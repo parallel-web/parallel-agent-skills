@@ -1,47 +1,61 @@
 # Parallel Agent Skills
 
-[Agent Skills](https://agentskills.io/specification) for [Parallel Web Tools](https://parallel.ai) - web search, content extraction, deep research, and data enrichment.
+[Agent Skills](https://agentskills.io/specification) for [Parallel](https://parallel.ai) — web search, content extraction, deep research, and data enrichment for AI coding agents.
+
+## Prerequisites
+
+1. **Install the CLI**
+
+   ```bash
+   curl -fsSL https://parallel.ai/install.sh | bash
+   ```
+
+2. **Get an API key** at [parallel.ai](https://parallel.ai) and set it as an environment variable:
+
+   ```bash
+   export PARALLEL_API_KEY="your-key"
+   ```
+
+   Or authenticate interactively after installing the CLI:
+
+   ```bash
+   parallel-cli login
+   ```
+
+3. **Install the skills** into your AI agent (see below).
 
 ## Installation
 
-### Claude Code
-
-```bash
-/plugin marketplace add parallel-web/agent-skills
-/plugin install parallel
-# restart claude before continuing!
-/parallel:setup
-```
-
-### Other AI Agents
+### Agent Skills
 
 Use the [Vercel Skills CLI](https://github.com/vercel-labs/skills) to install skills into Cursor, Cline, GitHub Copilot, and 30+ other agents.
 
 ```bash
-# Preview available skills
-npx skills add parallel-web/agent-skills --list
+# Install all skills globally (available in all projects)
+npx skills add parallel-web/agent-skills --all --global
 
-# Install all skills
+# Or install to current project only
 npx skills add parallel-web/agent-skills --all
 
 # Install a specific skill
 npx skills add parallel-web/agent-skills --skill parallel-web-search
 
-# Install globally (available in all projects)
-npx skills add parallel-web/agent-skills --all --global
+# Preview available skills
+npx skills add parallel-web/agent-skills --list
 ```
 
-## Commands
+### Claude Code
 
-| Command | Description |
-|---------|-------------|
-| `/parallel:setup` | Install CLI and authenticate |
-| `/parallel:search <query>` | Search the web |
-| `/parallel:extract <url>` | Extract content from URL |
-| `/parallel:deep-research <topic>` | Deep research on a topic |
-| `/parallel:enrich <data>` | Enrich data with web intelligence |
-| `/parallel:status <run_id>` | Check task status |
-| `/parallel:result <run_id>` | Get task results |
+Available as a [Claude Code Plugin Marketplace](https://code.claude.com/docs/en/discover-plugins).
+
+```bash
+/plugin marketplace add parallel-web/agent-skills
+/plugin install parallel
+# restart Claude Code before continuing!
+
+# this will install the CLI and authenticate if not done already
+/parallel:setup
+```
 
 ## Skills
 
@@ -52,19 +66,26 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 - **parallel-deep-research**: Comprehensive research and analysis
 - **parallel-data-enrichment**: Enrich lists of companies, people, products
 
-## Authentication
+## Commands
 
-```bash
-parallel-cli login          # Interactive OAuth
-export PARALLEL_API_KEY="key"  # CI/automation
-```
+Claude Code slash commands:
+
+| Command | Description |
+|---------|-------------|
+| `/parallel:setup` | Install CLI and authenticate |
+| `/parallel:search <query>` | Search the web |
+| `/parallel:extract <url>` | Extract content from URL |
+| `/parallel:research <topic>` | Deep research on a topic |
+| `/parallel:enrich <data>` | Enrich data with web intelligence |
+| `/parallel:status <run_id>` | Check task status |
+| `/parallel:result <run_id>` | Get task results |
 
 ## Examples
 
-```bash
+```
 /parallel:search latest React 19 features
 /parallel:extract https://docs.parallel.ai
-/parallel:deep-research competitive landscape of AI code assistants
+/parallel:research competitive landscape of AI code assistants
 /parallel:enrich Apple, Microsoft, Google - get CEO names
 ```
 
@@ -85,7 +106,7 @@ claude --plugin-dir /path/to/agent-skills
 
 ## Releasing a New Version
 
-Claude Code plugins are pinned to commit SHAs, and `npx skills add` pulls the latest from `main`. Version numbers are for display only.
+Claude Code plugins are pinned to commit SHAs, and `npx skills add` pulls the latest from `main`.
 
 1. Bump the version in all three locations:
    - `.claude-plugin/plugin.json` → `version`
