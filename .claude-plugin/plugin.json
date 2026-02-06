@@ -1,0 +1,22 @@
+{
+  "name": "parallel",
+  "version": "0.1.0",
+  "description": "Parallel Web Search MCP and Task API integration for Claude Code. Provides web search, content extraction, deep research tasks, and data enrichment capabilities.",
+  "author": {
+    "name": "Parallel Web Systems",
+    "email": "support@parallel.ai"
+  },
+  "homepage": "https://docs.parallel.ai/home",
+  "repository": "https://github.com/parallel-web/agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "web-search",
+    "research",
+    "data-enrichment",
+    "mcp",
+    "parallel",
+    "ai-tools"
+  ],
+  "commands": "./commands",
+  "skills": "./skills"
+}

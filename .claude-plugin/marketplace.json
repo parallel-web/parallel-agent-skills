@@ -1,0 +1,45 @@
+{
+  "name": "agent-skills",
+  "owner": {
+    "name": "Parallel Web Systems",
+    "email": "support@parallel.ai",
+    "url": "https://parallel.ai"
+  },
+  "metadata": {
+    "description": "Official Parallel Web Systems plugin for Claude Code - web search, content extraction, deep research, and data enrichment capabilities.",
+    "version": "0.1.0",
+    "pluginRoot": "./"
+  },
+  "plugins": [
+    {
+      "name": "parallel",
+      "description": "Parallel CLI integration for web search, URL content extraction, deep research tasks, and bulk data enrichment powered by Parallel's AI-native web infrastructure.",
+      "version": "0.1.0",
+      "source": "./",
+      "author": {
+        "name": "Parallel Web Systems",
+        "email": "support@parallel.ai"
+      },
+      "homepage": "https://docs.parallel.ai/home",
+      "repository": "https://github.com/parallel-web/agent-skills",
+      "license": "MIT",
+      "keywords": [
+        "web-search",
+        "research",
+        "data-enrichment",
+        "parallel",
+        "parallel-cli",
+        "ai-tools",
+        "content-extraction"
+      ],
+      "category": "External integrations",
+      "tags": [
+        "search",
+        "web",
+        "research",
+        "enrichment",
+        "cli"
+      ]
+    }
+  ]
+}
