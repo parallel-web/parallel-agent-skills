@@ -14,36 +14,17 @@ Search the web for: $ARGUMENTS
 
 ## Command
 
+Choose a short, descriptive filename based on the query (e.g., `ai-chip-news`, `react-vs-vue`). Use lowercase with hyphens, no spaces.
+
 ```bash
-parallel-cli search "$ARGUMENTS" -q "<keyword1>" -q "<keyword2>" --json --max-results 10 --excerpt-max-chars-total 27000
+parallel-cli search "$ARGUMENTS" -q "<keyword1>" -q "<keyword2>" --json --max-results 10 --excerpt-max-chars-total 27000 -o "$FILENAME.json"
 ```
 
-Choose relevant keywords from the query for the `-q` flags.
+Choose relevant keywords from the query for the `-q` flags. The `-o` flag saves the full results to a JSON file for follow-up questions.
 
 Options if needed:
 - `--after-date YYYY-MM-DD` for time-sensitive queries
 - `--include-domains domain1.com,domain2.com` to limit to specific sources
-
-## Claude Code
-
-If you are running in Claude Code, run this command in a **forked context** using the Task tool:
-
-```
-Task tool:
-  subagent_type: "parallel:parallel-subagent"
-  prompt: |
-    Search the web for: "$ARGUMENTS"
-
-    Run: parallel-cli search "$ARGUMENTS" -q "<keyword1>" -q "<keyword2>" --json --max-results 10 --excerpt-max-chars-total 27000
-
-    Parse the JSON from stdout. For each result, extract:
-    - title, url, publish_date
-    - Useful content from excerpts (skip navigation noise)
-
-    Synthesize a response with specific facts, cited as [Title](URL) with dates.
-    ONLY cite URLs that appear in the JSON output. Do NOT invent URLs.
-    End with a Sources list.
-```
 
 ## Parsing results
 
@@ -53,15 +34,25 @@ The command outputs JSON to stdout. For each result, extract:
 
 ## Response format
 
+**CRITICAL: Every claim must have an inline citation.** Use markdown links like [Title](URL) pulling only from the JSON output. Never invent or guess URLs.
+
 Synthesize a response that:
 - Leads with the key answer/finding
 - Includes specific facts, names, numbers, dates
-- Cites sources as [Title](URL) with dates
+- Cites every fact inline as [Source Title](url) — do not leave any claim uncited
 - Organizes by theme if multiple topics
 
-ONLY cite URLs that appear in the JSON output. Do NOT invent URLs.
+**End with a Sources section** listing every URL referenced:
 
-End with a **Sources** list of [Title](URL) with dates.
+```
+Sources:
+- [Source Title](https://example.com/article) (Feb 2026)
+- [Another Source](https://example.com/other) (Jan 2026)
+```
+
+This Sources section is mandatory. Do not omit it.
+
+After the Sources section, mention the output file path (`$FILENAME.json`) so the user knows it's available for follow-up questions.
 
 ## Setup
 

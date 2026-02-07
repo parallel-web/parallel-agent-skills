@@ -1,6 +1,6 @@
 {
   "name": "parallel",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Parallel Web Search MCP and Task API integration for Claude Code. Provides web search, content extraction, deep research tasks, and data enrichment capabilities.",
   "author": {
     "name": "Parallel Web Systems",
