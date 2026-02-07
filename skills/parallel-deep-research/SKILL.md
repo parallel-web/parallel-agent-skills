@@ -52,6 +52,7 @@ Important:
 - The `-o` flag generates two output files:
   - `$FILENAME.json` — metadata and basis
   - `$FILENAME.md` — formatted markdown report
+- The poll command prints an **executive summary** to stdout when the research completes. Share this executive summary with the user — it gives them a quick overview without having to open the files.
 
 ### If the poll times out
 
@@ -63,13 +64,15 @@ Higher processor tiers can take longer than 9 minutes. If the poll exits without
 
 **After step 1:** Share the monitoring URL (for tracking progress only — it is not the final report).
 
-**After step 2:** Tell the user the two generated file paths:
-- `$FILENAME.md` — formatted markdown report
-- `$FILENAME.json` — metadata and basis
+**After step 2:**
+1. Share the **executive summary** that the poll command printed to stdout
+2. Tell the user the two generated file paths:
+   - `$FILENAME.md` — formatted markdown report
+   - `$FILENAME.json` — metadata and basis
 
 Do NOT re-share the monitoring URL after completion — the results are in the files, not at that link.
 
-Ask the user if they would like to read through the files now. Do NOT read the file contents into context unless the user asks.
+Ask the user if they would like to read through the files for more detail. Do NOT read the file contents into context unless the user asks.
 
 ## Setup
 

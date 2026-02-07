@@ -15,44 +15,63 @@ Enrich: $ARGUMENTS
 
 Inform the user that enrichment may take several minutes depending on the number of rows and fields requested.
 
-## Command
+## Step 1: Start the enrichment
 
 Use ONE of these command patterns (substitute user's actual data):
 
 For inline data:
 
 ```bash
-parallel-cli enrich run --data '[{"company": "Google"}, {"company": "Microsoft"}]' --intent "CEO name and founding year" --target "output.csv"
+parallel-cli enrich run --data '[{"company": "Google"}, {"company": "Microsoft"}]' --intent "CEO name and founding year" --target "output.csv" --no-wait
 ```
 
 For CSV file:
 
 ```bash
-parallel-cli enrich run --source-type csv --source "input.csv" --target "output.csv" --source-columns '[{"name": "company", "description": "Company name"}]' --intent "CEO name and founding year"
+parallel-cli enrich run --source-type csv --source "input.csv" --target "output.csv" --source-columns '[{"name": "company", "description": "Company name"}]' --intent "CEO name and founding year" --no-wait
 ```
 
-**IMPORTANT:** Do NOT add `--json` flag - it doesn't exist for enrich.
+**IMPORTANT:** Always include `--no-wait` so the command returns immediately instead of blocking.
 
-The CLI will print a monitoring URL - share this with the user immediately.
+Parse the output to extract the `taskgroup_id` and monitoring URL. Immediately tell the user:
+- Enrichment has been kicked off
+- The monitoring URL where they can track progress
+
+Tell them they can background the polling step to continue working while it runs.
+
+## Step 2: Poll for results
+
+```bash
+parallel-cli enrich poll "$TASKGROUP_ID" --timeout 540
+```
+
+Important:
+- Use `--timeout 540` (9 minutes) to stay within tool execution limits
+
+### If the poll times out
+
+Enrichment of large datasets can take longer than 9 minutes. If the poll exits without completing:
+1. Tell the user the enrichment is still running server-side
+2. Re-run the same `parallel-cli enrich poll` command to continue waiting
 
 ## Claude Code
 
-If you are running in Claude Code, run this command in a **forked context** using the Task tool:
+If you are running in Claude Code, run these commands in a **forked context** using the Task tool:
 
 ```
 Task tool:
   subagent_type: "parallel:parallel-subagent"
   prompt: |
-    Run enrichment (substitute user's data):
+    Step 1: Start enrichment with --no-wait:
+    parallel-cli enrich run --data '[...]' --intent "..." --target "output.csv" --no-wait
 
-    For inline data:
-    parallel-cli enrich run --data '[...]' --intent "..." --target "output.csv"
+    Parse the output for the taskgroup_id and monitoring URL.
+    Share the monitoring URL immediately.
 
-    For CSV file:
-    parallel-cli enrich run --source-type csv --source "input.csv" --target "output.csv" --source-columns '[...]' --intent "..."
+    Step 2: Poll for results:
+    parallel-cli enrich poll "$TASKGROUP_ID" --timeout 540
 
-    Do NOT add --json flag.
-    Share the monitoring URL with the user immediately.
+    If the poll times out, re-run the poll command.
 
     When complete:
     1. Report number of rows enriched
@@ -62,10 +81,14 @@ Task tool:
 
 ## Response format
 
-When complete:
+**After step 1:** Share the monitoring URL (for tracking progress).
+
+**After step 2:**
 1. Report number of rows enriched
 2. Preview first few rows of the output CSV
 3. Tell user the full path to the output CSV file
+
+Do NOT re-share the monitoring URL after completion — the results are in the output file.
 
 ## Setup
 
