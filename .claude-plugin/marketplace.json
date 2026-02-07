@@ -1,5 +1,5 @@
 {
-  "name": "agent-skills",
+  "name": "parallel-agent-skills",
   "owner": {
     "name": "Parallel Web Systems",
     "email": "support@parallel.ai",
@@ -21,7 +21,7 @@
         "email": "support@parallel.ai"
       },
       "homepage": "https://docs.parallel.ai/home",
-      "repository": "https://github.com/parallel-web/agent-skills",
+      "repository": "https://github.com/parallel-web/parallel-agent-skills",
       "license": "MIT",
       "keywords": [
         "web-search",
