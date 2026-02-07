@@ -32,16 +32,16 @@ Use the [Vercel Skills CLI](https://github.com/vercel-labs/skills) to install sk
 
 ```bash
 # Install all skills globally (available in all projects)
-npx skills add parallel-web/agent-skills --all --global
+npx skills add parallel-web/parallel-agent-skills --all --global
 
 # Or install to current project only
-npx skills add parallel-web/agent-skills --all
+npx skills add parallel-web/parallel-agent-skills --all
 
 # Install a specific skill
-npx skills add parallel-web/agent-skills --skill parallel-web-search
+npx skills add parallel-web/parallel-agent-skills --skill parallel-web-search
 
 # Preview available skills
-npx skills add parallel-web/agent-skills --list
+npx skills add parallel-web/parallel-agent-skills --list
 ```
 
 ### Claude Code
@@ -49,7 +49,7 @@ npx skills add parallel-web/agent-skills --list
 Available as a [Claude Code Plugin Marketplace](https://code.claude.com/docs/en/discover-plugins).
 
 ```bash
-/plugin marketplace add parallel-web/agent-skills
+/plugin marketplace add parallel-web/parallel-agent-skills
 /plugin install parallel
 # restart Claude Code before continuing!
 
@@ -99,8 +99,8 @@ Claude Code slash commands:
 ## Local Development
 
 ```bash
-git clone https://github.com/parallel-web/agent-skills.git
-claude --plugin-dir /path/to/agent-skills
+git clone https://github.com/parallel-web/parallel-agent-skills.git
+claude --plugin-dir /path/to/parallel-agent-skills
 /parallel:setup
 ```
 
