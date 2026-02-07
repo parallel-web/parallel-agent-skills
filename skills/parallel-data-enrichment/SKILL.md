@@ -54,31 +54,6 @@ Enrichment of large datasets can take longer than 9 minutes. If the poll exits w
 1. Tell the user the enrichment is still running server-side
 2. Re-run the same `parallel-cli enrich poll` command to continue waiting
 
-## Claude Code
-
-If you are running in Claude Code, run these commands in a **forked context** using the Task tool:
-
-```
-Task tool:
-  subagent_type: "parallel:parallel-subagent"
-  prompt: |
-    Step 1: Start enrichment with --no-wait:
-    parallel-cli enrich run --data '[...]' --intent "..." --target "output.csv" --no-wait
-
-    Parse the output for the taskgroup_id and monitoring URL.
-    Share the monitoring URL immediately.
-
-    Step 2: Poll for results:
-    parallel-cli enrich poll "$TASKGROUP_ID" --timeout 540
-
-    If the poll times out, re-run the poll command.
-
-    When complete:
-    1. Report number of rows enriched
-    2. Preview first few rows of the output CSV
-    3. Tell user the full path to the output CSV file
-```
-
 ## Response format
 
 **After step 1:** Share the monitoring URL (for tracking progress).

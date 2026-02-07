@@ -21,23 +21,6 @@ parallel-cli extract "$ARGUMENTS" --json
 Options if needed:
 - `--objective "focus area"` to focus on specific content
 
-## Claude Code
-
-If you are running in Claude Code, run this command in a **forked context** using the Task tool:
-
-```
-Task tool:
-  subagent_type: "parallel:parallel-subagent"
-  prompt: |
-    Run: parallel-cli extract "$ARGUMENTS" --json
-
-    Parse the JSON from stdout. Return content as:
-    **[Page Title](URL)**
-    <extracted content verbatim - skip navigation, menus, boilerplate>
-
-    Keep content verbatim. Strip only obvious noise.
-```
-
 ## Response format
 
 Return content as:
