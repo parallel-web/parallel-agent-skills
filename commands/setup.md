@@ -6,8 +6,17 @@ description: Set up the Parallel plugin (install CLI)
 
 ## Install CLI
 
+Try the install script first:
+
 ```bash
 curl -fsSL https://parallel.ai/install.sh | bash
+```
+
+If unable to install that way, install via pip instead:
+
+```bash
+pipx install "parallel-web-tools[cli]"
+pipx ensurepath
 ```
 
 ## Authenticate
