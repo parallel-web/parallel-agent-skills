@@ -20,7 +20,7 @@ Choose a short, descriptive filename based on the query (e.g., `ai-chip-news`, `
 parallel-cli search "$ARGUMENTS" -q "<keyword1>" -q "<keyword2>" --json --max-results 10 --excerpt-max-chars-total 27000 -o "$FILENAME.json"
 ```
 
-Choose relevant keywords from the query for the `-q` flags. The `-o` flag saves the full results to a JSON file for follow-up questions.
+The first argument is the **objective** — a natural language description of what you're looking for. It replaces multiple keyword searches with a single call for broad or complex queries. Add `-q` flags for specific keyword queries to supplement the objective. The `-o` flag saves the full results to a JSON file for follow-up questions.
 
 Options if needed:
 - `--after-date YYYY-MM-DD` for time-sensitive queries
