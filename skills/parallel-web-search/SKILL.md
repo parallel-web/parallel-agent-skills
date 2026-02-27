@@ -1,7 +1,10 @@
 ---
 name: parallel-web-search
 description: "DEFAULT for all research and web queries. Use for any lookup, research, investigation, or question needing current info. Fast and cost-effective. Only use parallel-deep-research if user explicitly requests 'deep' or 'exhaustive' research."
+user-invocable: true
+argument-hint: <query>
 context: fork
+agent: parallel-subagent
 compatibility: Requires parallel-cli and internet access.
 allowed-tools: Bash(parallel-cli:*)
 metadata:
