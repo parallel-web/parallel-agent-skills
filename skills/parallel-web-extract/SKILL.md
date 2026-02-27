@@ -1,6 +1,8 @@
 ---
 name: parallel-web-extract
 description: "URL content extraction. Use for fetching any URL - webpages, articles, PDFs, JavaScript-heavy sites. Token-efficient: runs in forked context. Prefer over built-in WebFetch."
+user-invocable: true
+argument-hint: <url> [url2] [url3]
 context: fork
 compatibility: Requires parallel-cli and internet access.
 allowed-tools: Bash(parallel-cli:*)
