@@ -4,6 +4,7 @@ description: "URL content extraction. Use for fetching any URL - webpages, artic
 user-invocable: true
 argument-hint: <url> [url2] [url3]
 context: fork
+agent: parallel-subagent
 compatibility: Requires parallel-cli and internet access.
 allowed-tools: Bash(parallel-cli:*)
 metadata:
