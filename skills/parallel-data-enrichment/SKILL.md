@@ -1,6 +1,8 @@
 ---
 name: parallel-data-enrichment
 description: "Bulk data enrichment. Adds web-sourced fields (CEO names, funding, contact info) to lists of companies, people, or products. Use for enriching CSV files or inline data."
+user-invocable: true
+argument-hint: <file or entities> with <fields to add>
 compatibility: Requires parallel-cli and internet access.
 allowed-tools: Bash(parallel-cli:*)
 metadata:

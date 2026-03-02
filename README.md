@@ -59,34 +59,26 @@ Available as a [Claude Code Plugin Marketplace](https://code.claude.com/docs/en/
 
 ## Skills
 
-Skills follow the [Agent Skills](https://agentskills.io/specification) specification.
+Skills follow the [Agent Skills](https://agentskills.io/specification) specification and double as Claude Code slash commands.
 
-- **parallel-web-search**: Current events, fact-checking, web search
-- **parallel-web-extract**: Extract content from URLs, articles, PDFs
-- **parallel-deep-research**: Comprehensive research and analysis
-- **parallel-data-enrichment**: Enrich lists of companies, people, products
-
-## Commands
-
-Claude Code slash commands:
-
-| Command | Description |
-|---------|-------------|
-| `/parallel:setup` | Install CLI and authenticate |
-| `/parallel:search <query>` | Search the web |
-| `/parallel:extract <url>` | Extract content from URL |
-| `/parallel:research <topic>` | Deep research on a topic |
-| `/parallel:enrich <data>` | Enrich data with web intelligence |
-| `/parallel:status <run_id>` | Check task status |
-| `/parallel:result <run_id>` | Get task results |
+| Skill | Description |
+|-------|-------------|
+| **parallel-web-search** | Web search (default for most research queries) |
+| **parallel-web-extract** | Extract content from URLs, articles, PDFs |
+| **parallel-deep-research** | Comprehensive research and analysis |
+| **parallel-data-enrichment** | Enrich lists of companies, people, products |
+| **setup** | Install CLI and authenticate |
+| **status** | Check running research task status |
+| **result** | Get completed research task result |
 
 ## Examples
 
 ```
-/parallel:search latest React 19 features
-/parallel:extract https://docs.parallel.ai
-/parallel:research competitive landscape of AI code assistants
-/parallel:enrich Apple, Microsoft, Google - get CEO names
+/parallel:parallel-web-search latest React 19 features
+/parallel:parallel-web-extract https://docs.parallel.ai
+/parallel:parallel-deep-research competitive landscape of AI code assistants
+/parallel:parallel-data-enrichment Apple, Microsoft, Google - get CEO names
+/parallel:setup
 ```
 
 ## Resources

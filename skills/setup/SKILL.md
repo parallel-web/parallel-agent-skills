@@ -1,5 +1,10 @@
 ---
+name: setup
 description: Set up the Parallel plugin (install CLI)
+user-invocable: true
+allowed-tools: Bash(curl:*), Bash(pipx:*), Bash(parallel-cli:*)
+metadata:
+  author: parallel
 ---
 
 # Parallel Plugin Setup

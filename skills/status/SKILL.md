@@ -1,6 +1,11 @@
 ---
+name: status
 description: Check running research task status by run ID
+user-invocable: true
 argument-hint: <run_id>
+allowed-tools: Bash(parallel-cli:*)
+metadata:
+  author: parallel
 ---
 
 # Check Research Status
