@@ -4,7 +4,7 @@ description: "DEFAULT for all research and web queries. Use for any lookup, rese
 user-invocable: true
 argument-hint: <query>
 context: fork
-agent: parallel-subagent
+agent: parallel:parallel-subagent
 compatibility: Requires parallel-cli and internet access.
 allowed-tools: Bash(parallel-cli:*)
 metadata:
