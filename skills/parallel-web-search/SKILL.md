@@ -20,7 +20,7 @@ Search the web for: $ARGUMENTS
 Choose a short, descriptive filename based on the query (e.g., `ai-chip-news`, `react-vs-vue`). Use lowercase with hyphens, no spaces.
 
 ```bash
-parallel-cli search "$ARGUMENTS" -q "<keyword1>" -q "<keyword2>" --json --max-results 10 --excerpt-max-chars-total 27000 -o "$FILENAME.json"
+parallel-cli search "$ARGUMENTS" -q "<keyword1>" -q "<keyword2>" --json --max-results 10 --excerpt-max-chars-total 27000 -o "/tmp/$FILENAME.json"
 ```
 
 The first argument is the **objective** — a natural language description of what you're looking for. It replaces multiple keyword searches with a single call for broad or complex queries. Add `-q` flags for specific keyword queries to supplement the objective. The `-o` flag saves the full results to a JSON file for follow-up questions.
@@ -55,7 +55,7 @@ Sources:
 
 This Sources section is mandatory. Do not omit it.
 
-After the Sources section, mention the output file path (`$FILENAME.json`) so the user knows it's available for follow-up questions.
+After the Sources section, mention the output file path (`/tmp/$FILENAME.json`) so the user knows it's available for follow-up questions.
 
 ## Setup
 
