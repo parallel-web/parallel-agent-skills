@@ -1,6 +1,6 @@
 ---
 name: parallel-data-enrichment
-description: "Bulk data enrichment. Adds web-sourced fields (CEO names, funding, contact info) to lists of companies, people, or products. Use for enriching CSV files or inline data."
+description: "Bulk data enrichment. Adds web-sourced fields (CEO names, funding, contact info) to lists of companies, people, or products. Use for enriching CSV files or inline data. Supports multi-turn: pass --previous-interaction-id from a prior research/search/enrichment to carry context forward."
 user-invocable: true
 argument-hint: <file or entities> with <fields to add>
 compatibility: Requires parallel-cli and internet access.
@@ -33,9 +33,17 @@ For CSV file:
 parallel-cli enrich run --source-type csv --source "input.csv" --target "output.csv" --source-columns '[{"name": "company", "description": "Company name"}]' --intent "CEO name and founding year" --no-wait
 ```
 
+If this is a **follow-up** to a previous research, search, or enrichment task where you know the `interaction_id`, add context chaining:
+
+```bash
+parallel-cli enrich run --data '...' --intent "..." --target "output.csv" --no-wait --previous-interaction-id "$INTERACTION_ID"
+```
+
+This allows the enrichment to reference context from the prior task — e.g., the user researched a topic and now wants to enrich entities discovered in that research.
+
 **IMPORTANT:** Always include `--no-wait` so the command returns immediately instead of blocking.
 
-Parse the output to extract the `taskgroup_id` and monitoring URL. Immediately tell the user:
+Parse the output to extract the `taskgroup_id`, `interaction_id`, and monitoring URL. Immediately tell the user:
 - Enrichment has been kicked off
 - The monitoring URL where they can track progress
 
@@ -64,8 +72,11 @@ Enrichment of large datasets can take longer than 9 minutes. If the poll exits w
 1. Report number of rows enriched
 2. Preview first few rows of the output CSV
 3. Tell user the full path to the output CSV file
+4. Share the `interaction_id` and tell the user they can ask follow-up questions that build on this enrichment
 
 Do NOT re-share the monitoring URL after completion — the results are in the output file.
+
+**Remember the `interaction_id`** — if the user asks a follow-up question that relates to this enrichment, use it as `--previous-interaction-id` in the next research or enrichment command.
 
 ## Setup
 

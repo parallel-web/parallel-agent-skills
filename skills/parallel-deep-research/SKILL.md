@@ -1,6 +1,6 @@
 ---
 name: parallel-deep-research
-description: "ONLY use when user explicitly says 'deep research', 'exhaustive', 'comprehensive report', or 'thorough investigation'. Slower and more expensive than parallel-web-search. For normal research/lookup requests, use parallel-web-search instead."
+description: "ONLY use when user explicitly says 'deep research', 'exhaustive', 'comprehensive report', or 'thorough investigation'. Slower and more expensive than parallel-web-search. For normal research/lookup requests, use parallel-web-search instead. Supports multi-turn: pass --previous-interaction-id from a prior research/search/enrichment to continue with context."
 user-invocable: true
 argument-hint: <topic>
 compatibility: Requires parallel-cli and internet access.
@@ -23,6 +23,14 @@ ONLY use this skill when the user explicitly requests deep/exhaustive research. 
 parallel-cli research run "$ARGUMENTS" --processor pro-fast --no-wait --json
 ```
 
+If this is a **follow-up** to a previous research, search, or enrichment task where you know the `interaction_id`, add context chaining:
+
+```bash
+parallel-cli research run "$ARGUMENTS" --processor pro-fast --no-wait --json --previous-interaction-id "$INTERACTION_ID"
+```
+
+This allows the research to reference context from the prior task — e.g., the user can say "drill deeper into point 3" or "compare that to competitors" without restating the full context.
+
 This returns instantly. Do NOT omit `--no-wait` — without it the command blocks for minutes and will time out.
 
 Processor options (choose based on user request):
@@ -33,7 +41,7 @@ Processor options (choose based on user request):
 | `ultra-fast` | 1 – 10 min | Deeper analysis, more sources (~2x cost) |
 | `ultra` | 5 – 25 min | Maximum depth, only when explicitly requested (~3x cost) |
 
-Parse the JSON output to extract the `run_id` and monitoring URL. Immediately tell the user:
+Parse the JSON output to extract the `run_id`, `interaction_id`, and monitoring URL. Immediately tell the user:
 - Deep research has been kicked off
 - The expected latency for the processor tier chosen (from the table above)
 - The monitoring URL where they can track progress
@@ -71,10 +79,13 @@ Higher processor tiers can take longer than 9 minutes. If the poll exits without
 2. Tell the user the two generated file paths:
    - `$FILENAME.md` — formatted markdown report
    - `$FILENAME.json` — metadata and basis
+3. Share the `interaction_id` and tell the user they can ask follow-up questions that build on this research (e.g., "drill deeper into X" or "compare that to Y")
 
 Do NOT re-share the monitoring URL after completion — the results are in the files, not at that link.
 
 Ask the user if they would like to read through the files for more detail. Do NOT read the file contents into context unless the user asks.
+
+**Remember the `interaction_id`** — if the user asks a follow-up question that relates to this research, use it as `--previous-interaction-id` in the next research or enrichment command.
 
 ## Setup
 

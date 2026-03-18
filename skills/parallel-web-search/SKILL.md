@@ -1,6 +1,6 @@
 ---
 name: parallel-web-search
-description: "DEFAULT for all research and web queries. Use for any lookup, research, investigation, or question needing current info. Fast and cost-effective. Only use parallel-deep-research if user explicitly requests 'deep' or 'exhaustive' research."
+description: "DEFAULT for all research and web queries. Use for any lookup, research, investigation, or question needing current info. Fast and cost-effective. Only use parallel-deep-research if user explicitly requests 'deep' or 'exhaustive' research. Returns an interaction_id that can be passed to subsequent deep-research or enrichment for multi-turn context chaining."
 user-invocable: true
 argument-hint: <query>
 context: fork
@@ -55,7 +55,9 @@ Sources:
 
 This Sources section is mandatory. Do not omit it.
 
-After the Sources section, mention the output file path (`/tmp/$FILENAME.json`) so the user knows it's available for follow-up questions.
+After the Sources section:
+1. Mention the output file path (`/tmp/$FILENAME.json`) so the user knows it's available for follow-up questions.
+2. Check the JSON output for an `interaction_id` field. If present, include it in the response as: `Interaction ID: <id>` — this can be used for follow-up deep research or enrichment that builds on these search results.
 
 ## Setup
 
