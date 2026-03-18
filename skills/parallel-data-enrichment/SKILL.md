@@ -1,6 +1,6 @@
 ---
 name: parallel-data-enrichment
-description: "Bulk data enrichment. Adds web-sourced fields (CEO names, funding, contact info) to lists of companies, people, or products. Use for enriching CSV files or inline data. Supports multi-turn: pass --previous-interaction-id from a prior research/search/enrichment to carry context forward."
+description: "Bulk data enrichment. Adds web-sourced fields (CEO names, funding, contact info) to lists of companies, people, or products. Use for enriching CSV files or inline data. Supports multi-turn: pass --previous-interaction-id from a prior research or enrichment to carry context forward."
 user-invocable: true
 argument-hint: <file or entities> with <fields to add>
 compatibility: Requires parallel-cli and internet access.
