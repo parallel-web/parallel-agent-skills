@@ -33,13 +33,13 @@ For CSV file:
 parallel-cli enrich run --source-type csv --source "input.csv" --target "output.csv" --source-columns '[{"name": "company", "description": "Company name"}]' --intent "CEO name and founding year" --no-wait
 ```
 
-If this is a **follow-up** to a previous research, search, or enrichment task where you know the `interaction_id`, add context chaining:
+If this is a **follow-up** to a previous research or enrichment task where you know the `interaction_id`, add context chaining:
 
 ```bash
 parallel-cli enrich run --data '...' --intent "..." --target "output.csv" --no-wait --previous-interaction-id "$INTERACTION_ID"
 ```
 
-This allows the enrichment to reference context from the prior task — e.g., the user researched a topic and now wants to enrich entities discovered in that research.
+By chaining `interaction_id` values across requests, each follow-up automatically has the full context of prior turns — so you can enrich entities discovered in earlier research without restating what was already found.
 
 **IMPORTANT:** Always include `--no-wait` so the command returns immediately instead of blocking.
 

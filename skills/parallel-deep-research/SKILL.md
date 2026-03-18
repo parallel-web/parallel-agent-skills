@@ -23,13 +23,13 @@ ONLY use this skill when the user explicitly requests deep/exhaustive research. 
 parallel-cli research run "$ARGUMENTS" --processor pro-fast --no-wait --json
 ```
 
-If this is a **follow-up** to a previous research, search, or enrichment task where you know the `interaction_id`, add context chaining:
+If this is a **follow-up** to a previous research or enrichment task where you know the `interaction_id`, add context chaining:
 
 ```bash
-parallel-cli research run "$ARGUMENTS" --processor pro-fast --no-wait --json --previous-interaction-id "$INTERACTION_ID"
+parallel-cli research run "$ARGUMENTS" --processor lite --no-wait --json --previous-interaction-id "$INTERACTION_ID"
 ```
 
-This allows the research to reference context from the prior task — e.g., the user can say "drill deeper into point 3" or "compare that to competitors" without restating the full context.
+By chaining `interaction_id` values across requests, each follow-up question automatically has the full context of prior turns — so you can drill deeper into a topic without restating what was already researched. Use `--processor lite` for follow-ups since the heavy research was already done in the initial turn and the follow-up just needs to build on that context.
 
 This returns instantly. Do NOT omit `--no-wait` — without it the command blocks for minutes and will time out.
 
