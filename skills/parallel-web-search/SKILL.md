@@ -31,7 +31,9 @@ Options if needed:
 
 ## Parsing results
 
-Read the output file (`/tmp/$FILENAME.json`) to get the full results — stdout may be truncated. For each result, extract:
+Do not set `max_output_tokens` on the command execution — the output is already bounded by `--max-results` and `--excerpt-max-chars-total`. Capping output tokens will truncate the JSON and break parsing.
+
+Parse the JSON from stdout. For each result, extract:
 - title, url, publish_date
 - Useful content from excerpts (skip navigation noise like menus, footers, "Skip to content")
 
