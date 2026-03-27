@@ -60,15 +60,19 @@ Available as a [Claude Code Plugin Marketplace](https://code.claude.com/docs/en/
 ### OpenAI Codex
 
 ```bash
-# Clone into your Codex plugins directory
-git clone https://github.com/parallel-web/parallel-agent-skills.git ~/.codex/plugins/parallel
+# Clone the repo and symlink skills into the Codex user skills directory
+git clone https://github.com/parallel-web/parallel-agent-skills.git ~/parallel-agent-skills
+mkdir -p ~/.agents/skills
+for skill in ~/parallel-agent-skills/skills/*/; do
+  ln -sf "$skill" ~/.agents/skills/$(basename "$skill")
+done
 
 # Install the CLI and authenticate
 curl -fsSL https://parallel.ai/install.sh | bash
 parallel-cli login
 ```
 
-Then invoke skills with `$parallel-web-search`, `$parallel-deep-research`, etc.
+Skills are now available globally in Codex. Invoke with `$parallel-web-search`, `$parallel-deep-research`, etc.
 
 ## Skills
 
