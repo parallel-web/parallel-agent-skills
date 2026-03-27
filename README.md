@@ -59,20 +59,45 @@ Available as a [Claude Code Plugin Marketplace](https://code.claude.com/docs/en/
 
 ### OpenAI Codex
 
-```bash
-# Clone the repo and symlink skills into the Codex user skills directory
-git clone https://github.com/parallel-web/parallel-agent-skills.git ~/parallel-agent-skills
-mkdir -p ~/.agents/skills
-for skill in ~/parallel-agent-skills/skills/*/; do
-  ln -sf "$skill" ~/.agents/skills/$(basename "$skill")
-done
+**Step 1:** Copy the plugin into your Codex plugins directory:
 
-# Install the CLI and authenticate
+```bash
+git clone https://github.com/parallel-web/parallel-agent-skills.git ~/.codex/plugins/parallel
+```
+
+**Step 2:** Add a personal marketplace entry at `~/.agents/plugins/marketplace.json`:
+
+```json
+{
+  "name": "personal",
+  "interface": {
+    "displayName": "Personal"
+  },
+  "plugins": [
+    {
+      "name": "parallel",
+      "source": {
+        "source": "local",
+        "path": "./../../.codex/plugins/parallel"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
+```
+
+**Step 3:** Install the CLI and authenticate:
+
+```bash
 curl -fsSL https://parallel.ai/install.sh | bash
 parallel-cli login
 ```
 
-Skills are now available globally in Codex. Invoke with `$parallel-web-search`, `$parallel-deep-research`, etc.
+**Step 4:** Restart Codex. The plugin should appear in `codex /plugins`.
 
 ## Skills
 
