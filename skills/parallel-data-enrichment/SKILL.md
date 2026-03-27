@@ -24,19 +24,19 @@ Use ONE of these command patterns (substitute user's actual data):
 For inline data:
 
 ```bash
-parallel-cli enrich run --data '[{"company": "Google"}, {"company": "Microsoft"}]' --intent "CEO name and founding year" --target "output.csv" --no-wait
+parallel-cli enrich run --data '[{"company": "Google"}, {"company": "Microsoft"}]' --intent "CEO name and founding year" --target "output.csv" --no-wait --json
 ```
 
 For CSV file:
 
 ```bash
-parallel-cli enrich run --source-type csv --source "input.csv" --target "output.csv" --source-columns '[{"name": "company", "description": "Company name"}]' --intent "CEO name and founding year" --no-wait
+parallel-cli enrich run --source-type csv --source "input.csv" --target "output.csv" --source-columns '[{"name": "company", "description": "Company name"}]' --intent "CEO name and founding year" --no-wait --json
 ```
 
 If this is a **follow-up** to a previous research or enrichment task where you know the `interaction_id`, add context chaining:
 
 ```bash
-parallel-cli enrich run --data '...' --intent "..." --target "output.csv" --no-wait --previous-interaction-id "$INTERACTION_ID"
+parallel-cli enrich run --data '...' --intent "..." --target "output.csv" --no-wait --json --previous-interaction-id "$INTERACTION_ID"
 ```
 
 By chaining `interaction_id` values across requests, each follow-up automatically has the full context of prior turns — so you can enrich entities discovered in earlier research without restating what was already found.
@@ -52,8 +52,10 @@ Tell them they can background the polling step to continue working while it runs
 ## Step 2: Poll for results
 
 ```bash
-parallel-cli enrich poll "$TASKGROUP_ID" --timeout 540
+parallel-cli enrich poll "$TASKGROUP_ID" --timeout 540 --output "/tmp/$TARGET"
 ```
+
+Use the same target filename from step 1. The `--target` flag on `enrich run` does not carry over to the poll — you must pass `--output` here to save the results.
 
 Important:
 - Use `--timeout 540` (9 minutes) to stay within tool execution limits

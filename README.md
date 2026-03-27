@@ -57,6 +57,27 @@ Available as a [Claude Code Plugin Marketplace](https://code.claude.com/docs/en/
 /parallel:setup
 ```
 
+### OpenAI Codex
+
+Install skills from this repo using the built-in skill installer:
+
+```
+$skill-installer parallel-web/parallel-agent-skills
+```
+
+Or install manually:
+
+```bash
+# Clone into your Codex plugins directory
+git clone https://github.com/parallel-web/parallel-agent-skills.git ~/.codex/plugins/parallel
+
+# Install the CLI and authenticate
+curl -fsSL https://parallel.ai/install.sh | bash
+parallel-cli login
+```
+
+Then invoke skills with `$parallel-web-search`, `$parallel-deep-research`, etc.
+
 ## Skills
 
 Skills follow the [Agent Skills](https://agentskills.io/specification) specification and double as Claude Code slash commands.
@@ -90,10 +111,21 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 
 ## Local Development
 
+**Claude Code:**
+
 ```bash
 git clone https://github.com/parallel-web/parallel-agent-skills.git
 claude --plugin-dir /path/to/parallel-agent-skills
 /parallel:setup
+```
+
+**Codex:**
+
+```bash
+git clone https://github.com/parallel-web/parallel-agent-skills.git
+cd parallel-agent-skills
+codex
+# Skills are auto-discovered via .agents/skills/
 ```
 
 ## Releasing a New Version
