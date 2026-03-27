@@ -1,0 +1,39 @@
+{
+  "name": "parallel",
+  "version": "0.2.0",
+  "description": "Parallel Web Search and Task API integration. Provides web search, content extraction, deep research tasks, and data enrichment capabilities.",
+  "author": {
+    "name": "Parallel Web Systems",
+    "email": "support@parallel.ai",
+    "url": "https://parallel.ai"
+  },
+  "homepage": "https://docs.parallel.ai/home",
+  "repository": "https://github.com/parallel-web/parallel-agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "web-search",
+    "research",
+    "data-enrichment",
+    "mcp",
+    "parallel",
+    "ai-tools",
+    "content-extraction"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Parallel",
+    "shortDescription": "Web search, deep research, and data enrichment",
+    "longDescription": "AI-native web infrastructure for coding agents. Search the web, extract content from URLs, run deep multi-source research tasks, and bulk-enrich datasets with web-sourced fields — all through the parallel-cli.",
+    "developerName": "Parallel Web Systems",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://parallel.ai",
+    "privacyPolicyURL": "https://parallel.ai/privacy",
+    "termsOfServiceURL": "https://parallel.ai/terms",
+    "defaultPrompt": [
+      "Search the web for the latest news on a topic",
+      "Run deep research on a complex question",
+      "Enrich a list of companies with CEO names and funding data"
+    ]
+  }
+}
