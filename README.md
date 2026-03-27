@@ -59,7 +59,7 @@ Available as a [Claude Code Plugin Marketplace](https://code.claude.com/docs/en/
 
 ### OpenAI Codex
 
-Install skills from this repo using the built-in skill installer (run this inside Codex, not your terminal):
+Install skills from this repo using the built-in skill installer (run inside Codex):
 
 ```
 $skill-installer parallel-web/parallel-agent-skills
