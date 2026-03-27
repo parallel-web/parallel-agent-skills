@@ -31,7 +31,7 @@ Options if needed:
 
 ## Parsing results
 
-The command outputs JSON to stdout. For each result, extract:
+Read the output file (`/tmp/$FILENAME.json`) to get the full results — stdout may be truncated. For each result, extract:
 - title, url, publish_date
 - Useful content from excerpts (skip navigation noise like menus, footers, "Skip to content")
 
