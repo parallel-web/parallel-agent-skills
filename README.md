@@ -59,16 +59,17 @@ Available as a [Claude Code Plugin Marketplace](https://code.claude.com/docs/en/
 
 ### OpenAI Codex
 
-```bash
-git clone https://github.com/parallel-web/parallel-agent-skills.git
-cd parallel-agent-skills
+Install skills using the built-in skill installer (run inside Codex):
 
-# Install the CLI and authenticate
+```
+$skill-installer parallel-web/parallel-agent-skills
+```
+
+Then install the CLI and authenticate:
+
+```bash
 curl -fsSL https://parallel.ai/install.sh | bash
 parallel-cli login
-
-# Start Codex — skills are auto-discovered, plugin marketplace is included
-codex
 ```
 
 ## Skills
