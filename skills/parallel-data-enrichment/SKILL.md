@@ -52,8 +52,10 @@ Tell them they can background the polling step to continue working while it runs
 ## Step 2: Poll for results
 
 ```bash
-parallel-cli enrich poll "$TASKGROUP_ID" --timeout 540
+parallel-cli enrich poll "$TASKGROUP_ID" --timeout 540 --output "/tmp/$TARGET"
 ```
+
+Use the same target filename from step 1. The `--target` flag on `enrich run` does not carry over to the poll — you must pass `--output` here to save the results.
 
 Important:
 - Use `--timeout 540` (9 minutes) to stay within tool execution limits
