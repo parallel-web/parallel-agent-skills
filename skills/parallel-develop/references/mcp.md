@@ -1,62 +1,93 @@
-# MCP recipe — Parallel's hosted Search + Task MCP
+# MCP recipe — Parallel's hosted Search + Task MCPs
 
-Parallel ships two **remote** (streamable-HTTP) MCP servers. Agents never have to install a local binary:
+Parallel ships two remote streamable-HTTP MCP servers. Almost every client just needs the URL:
 
-- **Search MCP** — `https://search.parallel.ai/mcp` (web search + extract tools)
+- **Search MCP** — `https://search.parallel.ai/mcp` (web search + extract)
 - **Task MCP** — `https://task-mcp.parallel.ai/mcp` (deep research tasks)
 
-Auth is OAuth on first use in most clients, or a Bearer token via `Authorization: Bearer $PARALLEL_API_KEY` for stdio bridges.
+OAuth handles auth on first use in most clients. No `mcp-remote`, no API key in config, no npm package to install.
+
+Canonical install docs per client: [docs.parallel.ai/integrations/mcp/search-mcp](https://docs.parallel.ai/integrations/mcp/search-mcp).
 
 ---
 
-## Claude Code — one-line install
+## Quick install by client
+
+### Claude Code
 
 ```bash
 claude mcp add --transport http "Parallel-Search-MCP" https://search.parallel.ai/mcp
 claude mcp add --transport http "Parallel-Task-MCP"   https://task-mcp.parallel.ai/mcp
 ```
 
-Then use `/mcp` in Claude Code and complete the browser OAuth flow. No config file needed.
+Run `/mcp` and complete the browser OAuth flow.
 
-## Cursor — `~/.cursor/mcp.json` (or `.cursor/mcp.json` per-project)
+### Claude Desktop
+
+Settings → Connectors → Add Custom Connector, once per server:
+
+- **Parallel Search MCP** → `https://search.parallel.ai/mcp`
+- **Parallel Task MCP** → `https://task-mcp.parallel.ai/mcp`
+
+(Older Claude Desktop builds without the Connectors UI — see "Stdio fallback" below.)
+
+### Cursor — `~/.cursor/mcp.json` (or `.cursor/mcp.json` per-project)
 
 ```json
 {
   "mcpServers": {
-    "Parallel Search MCP": {
-      "url": "https://search.parallel.ai/mcp"
-    },
-    "Parallel Task MCP": {
-      "url": "https://task-mcp.parallel.ai/mcp"
-    }
+    "Parallel Search MCP": { "url": "https://search.parallel.ai/mcp" },
+    "Parallel Task MCP":   { "url": "https://task-mcp.parallel.ai/mcp" }
   }
 }
 ```
 
-Cursor handles OAuth automatically. Restart Cursor after editing.
+Restart Cursor after editing. OAuth handles auth.
 
-## VS Code — same URL, different wrapper
+### VS Code — `settings.json`
 
 ```json
 {
   "mcp": {
     "servers": {
-      "Parallel Search MCP": {
-        "type": "http",
-        "url": "https://search.parallel.ai/mcp"
-      },
-      "Parallel Task MCP": {
-        "type": "http",
-        "url": "https://task-mcp.parallel.ai/mcp"
-      }
+      "Parallel Search MCP": { "type": "http", "url": "https://search.parallel.ai/mcp" },
+      "Parallel Task MCP":   { "type": "http", "url": "https://task-mcp.parallel.ai/mcp" }
     }
   }
 }
 ```
 
-## Claude Desktop — stdio bridge via `mcp-remote`
+### Windsurf — `~/.codeium/windsurf/mcp_config.json`
 
-Claude Desktop's connector UI is a GUI alternative, but the JSON config still works. Config file: `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows). Quit + relaunch Claude Desktop after editing.
+```json
+{
+  "mcpServers": {
+    "Parallel Search MCP": { "serverUrl": "https://search.parallel.ai/mcp" },
+    "Parallel Task MCP":   { "serverUrl": "https://task-mcp.parallel.ai/mcp" }
+  }
+}
+```
+
+### Cline — MCP Servers → Remote Servers → Edit Configuration
+
+```json
+{
+  "mcpServers": {
+    "Parallel Search MCP": { "url": "https://search.parallel.ai/mcp", "type": "streamableHttp" },
+    "Parallel Task MCP":   { "url": "https://task-mcp.parallel.ai/mcp", "type": "streamableHttp" }
+  }
+}
+```
+
+### Other clients
+
+Gemini CLI, ChatGPT, Codex, Amp, Kiro, Antigravity — all covered in the [Search MCP install guide](https://docs.parallel.ai/integrations/mcp/search-mcp).
+
+---
+
+## Stdio fallback (older clients only)
+
+If a client can't speak remote HTTP MCP, bridge via `mcp-remote`:
 
 ```json
 {
@@ -64,64 +95,34 @@ Claude Desktop's connector UI is a GUI alternative, but the JSON config still wo
     "Parallel Search MCP": {
       "command": "npx",
       "args": [
-        "-y",
-        "mcp-remote",
+        "-y", "mcp-remote",
         "https://search.parallel.ai/mcp",
-        "--header",
-        "Authorization: Bearer ${PARALLEL_API_KEY}"
-      ],
-      "env": {
-        "PARALLEL_API_KEY": "your-api-key-here"
-      }
-    },
-    "Parallel Task MCP": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://task-mcp.parallel.ai/mcp",
-        "--header",
-        "Authorization: Bearer ${PARALLEL_API_KEY}"
-      ],
-      "env": {
-        "PARALLEL_API_KEY": "your-api-key-here"
-      }
+        "--header", "Authorization: Bearer YOUR-PARALLEL-API-KEY"
+      ]
     }
   }
 }
 ```
 
-### Claude Desktop gotchas (macOS)
-
-1. **GUI doesn't inherit your shell env.** A `.zshrc`/`.bashrc` `export PARALLEL_API_KEY=...` is invisible to the Claude Desktop process. Paste the key into the `env` block above (or use `launchctl setenv PARALLEL_API_KEY "..."`).
-2. **`${PARALLEL_API_KEY}` substitution.** Claude Desktop substitutes `${VAR}` in `args` against the `env` block — that's why the config above works. It does **not** shell-expand against the OS environment.
-3. **`spawn npx ENOENT`.** GUI apps often don't have Node on their PATH. Replace `"command": "npx"` with an absolute path — e.g. `/opt/homebrew/bin/npx` (Apple Silicon) or `/usr/local/bin/npx` (Intel). Find yours with `which npx`.
-4. **Always quit + relaunch** after editing the JSON — a reload-on-save there isn't.
+Paste your key from [platform.parallel.ai](https://platform.parallel.ai) into the header. **Don't** rely on `${PARALLEL_API_KEY}` expansion from a shell `export` — many GUI clients don't inherit shell env.
 
 ---
 
 ## Programmatic access with Bearer auth
 
-For scripts, curl, or other agents that aren't MCP-aware, hit the endpoints as plain HTTP with a Bearer token:
+For scripts or agents that aren't MCP-aware, hit the endpoints as plain HTTP:
 
 ```bash
 curl https://search.parallel.ai/mcp \
   -H "Authorization: Bearer $PARALLEL_API_KEY"
 ```
 
-The servers implement the MCP streamable-HTTP spec — use any MCP client library to pass through prompts.
+See [Programmatic Use](https://docs.parallel.ai/integrations/mcp/programmatic-use).
 
 ---
 
 ## When to choose MCP vs direct SDK
 
-**MCP is best when:**
-- The user already lives in an MCP-native IDE (Cursor, Claude Code, VS Code, Claude Desktop) and wants web tools inside that agent.
-- They don't need custom request shaping — Parallel's MCP tools expose sensible defaults.
+**MCP** when the user lives in an MCP-native IDE and wants web tools inside that agent — sensible defaults, no custom request shaping needed.
 
-**Direct SDK (Python / TypeScript) is best when:**
-- They're building a backend / worker / agent of their own and need full control of the request payload.
-- They want typed responses, custom output schemas, webhooks, or batch workflows.
-- They're using structured task outputs (Task API with `task_spec.output_schema`).
-
-For programmatic MCP access, see [Parallel's programmatic-use guide](https://docs.parallel.ai/integrations/mcp/programmatic-use).
+**Direct SDK** (Python / TypeScript) when they're building a backend / agent / worker and need full control: custom output schemas, webhooks, batch workflows, structured task outputs.
