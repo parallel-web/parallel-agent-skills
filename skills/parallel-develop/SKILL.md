@@ -52,13 +52,26 @@ Parallel publishes an agent-friendly docs index at **https://docs.parallel.ai/ll
 
 For deep-dive API questions the `/llms.txt` index is authoritative; do not invent parameter names.
 
+### Canonical best-practice pages (link, don't paraphrase)
+
+When the user asks "how do I do X correctly?", send them to the dedicated page instead of making things up:
+
+- **Search** — [Best Practices](https://docs.parallel.ai/search/best-practices) · [Advanced Settings](https://docs.parallel.ai/search/advanced-search-settings) · [Modes](https://docs.parallel.ai/search/modes)
+- **Extract** — [Best Practices](https://docs.parallel.ai/extract/best-practices) · [Advanced Settings](https://docs.parallel.ai/extract/advanced-extract-settings)
+- **Task** — [Specify a Task](https://docs.parallel.ai/task-api/guides/specify-a-task) · [Choose a Processor](https://docs.parallel.ai/task-api/guides/choose-a-processor) · [Task Run Lifecycle](https://docs.parallel.ai/task-api/guides/execute-task-run) · [Webhooks](https://docs.parallel.ai/task-api/webhooks)
+- **FindAll** — [Generators & Pricing](https://docs.parallel.ai/findall-api/core-concepts/findall-generator-pricing)
+- **MCP** — [Quickstart](https://docs.parallel.ai/integrations/mcp/quickstart) · [Programmatic Use](https://docs.parallel.ai/integrations/mcp/programmatic-use)
+
 ## Guardrails
 
 - **Snake_case everywhere.** Both the Python and TypeScript SDKs use **snake_case** body keys (`task_spec`, `output_schema`, `json_schema`, `run_id`, `event_types`). Do NOT camelCase these in TypeScript — it will silently be rejected by the server or produce a type error.
 - **Never** invent an endpoint version. Current versions: Search/Extract/Task at `/v1`, FindAll at `/v1beta`, Monitor at `/v1alpha`.
 - **For runs > 30 s** (Task `pro`/`ultra`, FindAll `core`/`pro`, any Monitor event), prefer a **webhook** over polling. Pass `webhook={"url": "...", "event_types": [...]}` at creation.
+- **Task output schemas are strict.** Every property must appear in `required`; for optional fields use a union like `{"type": ["string", "null"]}` instead of omitting. Always set `additionalProperties: false`. The root must be `{"type": "object"}` — arrays cannot be the root. Prefer flat schemas.
 - **Always** give each Task/Enrichment field a *specific* description with exact format (e.g. `"MM-YYYY"`, `"USD"`, `"ISO 3166-1 alpha-2"`) and an explicit missing-value behavior (`"Return 'Not Available' if no source confirms"`).
-- **Start FindAll with `generator="preview"`** to iterate on the objective and match_conditions before scaling up — it's cheap and fast.
+- **Start FindAll with `generator="preview"`** to iterate on the objective and match_conditions before scaling up — it's cheap and fast. **If you get 0 matches, upgrade the generator before rewriting the query** — the issue is usually pool size, not query quality.
+- **session_id** groups related Search + Extract calls into one logical task. Generate a fresh UUID per task and reuse it across calls. **client_model** tells the server which LLM will consume the excerpts so it can tune formatting.
+- **When exposing Search/Extract as an LLM tool**, expose ONLY `objective` and `search_queries`. Exposing `advanced_settings` tempts the model to over-narrow and hurts recall.
 - **Don't** use `parallel-cli` for these recipes — this skill is about writing integration code, not about invoking the CLI. For CLI workflows, use the `parallel-web-search`, `parallel-web-extract`, `parallel-deep-research`, or `parallel-data-enrichment` skills instead.
 
 ## When to choose a different skill

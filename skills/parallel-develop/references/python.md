@@ -35,23 +35,35 @@ Pick the block that matches the user's goal, drop it into a script in their repo
 
 ### Web Search — `client.search`
 
+Deep dive: [Search Best Practices](https://docs.parallel.ai/search/best-practices) · [Advanced Settings](https://docs.parallel.ai/search/advanced-search-settings) · [Modes](https://docs.parallel.ai/search/modes).
+
 ```python
 from parallel import Parallel
 
 client = Parallel()
 
 # Best practices:
-#   - Provide BOTH objective (what/why) and search_queries (2-3 short
-#     keyword queries, 3-6 words each). Either alone works; together is best.
+#   - Provide BOTH objective (what/why) and search_queries. Either alone works;
+#     together is best. Use 2-3 queries of 3-6 words each (max 5, ≤200 chars).
 #   - Modes: "basic" = lowest latency, "advanced" = higher recall + reranking.
+#   - Put freshness / source preferences in the objective ("official docs",
+#     "post-2024 only") rather than as extra keywords.
 #   - advanced_settings.source_policy restricts/blocks domains.
 #   - advanced_settings.fetch_policy.max_age_seconds for freshness control.
 #   - advanced_settings.location (ISO 3166 alpha-2) for geo-targeting.
+#   - session_id: pass the same UUID across related Search + Extract calls
+#     in one task, so Parallel treats them as one logical workflow.
+#   - client_model: declare your consuming LLM for server-side optimization.
+#   - If you expose Search as a tool to an agent, expose ONLY objective and
+#     search_queries. Exposing advanced_settings tempts the model to
+#     over-narrow the search and hurts recall.
 search = client.search(
     objective="Find the latest information about <TOPIC>",
     search_queries=["<query 1>", "<query 2>"],
     mode="advanced",
     max_chars_total=27000,
+    # session_id="<shared UUID>",
+    # client_model="claude-opus-4-7",
     advanced_settings={
         "max_results": 10,
         "excerpt_settings": {"max_chars_per_result": 10000},
@@ -66,6 +78,8 @@ for result in search.results:
 
 ### Research / structured task — `client.task_run`
 
+Deep dive: [Specify a Task](https://docs.parallel.ai/task-api/guides/specify-a-task) · [Choose a Processor](https://docs.parallel.ai/task-api/guides/choose-a-processor) · [Task Run Lifecycle](https://docs.parallel.ai/task-api/guides/execute-task-run) · [Webhooks](https://docs.parallel.ai/task-api/webhooks).
+
 ```python
 from parallel import Parallel
 
@@ -76,6 +90,15 @@ client = Parallel()
 #   core         — up to ~10 output fields, light research (30 s – 2 min)
 #   pro / ultra  — deep, multi-hop research (2 – 25 min; use webhooks!)
 #   append "-fast" for lower-latency variants (e.g. "core-fast", "pro-fast")
+#
+# Schema rules (canonical, enforced by the API):
+#   - Root MUST be {"type": "object"} with "properties". Arrays cannot be root.
+#   - EVERY property must appear in "required". Optional fields use a union
+#     like {"type": ["string", "null"]} instead of being omitted.
+#   - Set "additionalProperties": false for strict validation.
+#   - Prefer flat schemas — top-level properties beat nesting for output quality.
+#   - The field "description" is your primary knob: specify format, sources,
+#     and missing-value behavior per field.
 task_run = client.task_run.create(
     input="<your research question or entity>",
     task_spec={
@@ -83,6 +106,7 @@ task_run = client.task_run.create(
             "type": "json",
             "json_schema": {
                 "type": "object",
+                "additionalProperties": False,
                 "properties": {
                     "summary": {"type": "string"},
                     "key_findings": {"type": "array", "items": {"type": "string"}},
@@ -110,13 +134,17 @@ from parallel import Parallel
 
 client = Parallel()
 
-# Enrichment best practices:
-#   - Name fields specifically (ceo_name, not name).
+# Enrichment best practices (see specify-a-task):
+#   - Name fields specifically (ceo_name, not name; headquarters_address,
+#     not address).
 #   - Put EXACT format requirements in each description ("MM-YYYY", "USD",
 #     "ISO 3166-1 alpha-2"). The model honors descriptions tightly.
 #   - Tell the model what to do when data is missing ("Return 'Not Available'
 #     if no source confirms"). This prevents hallucination.
-#   - Mark fields "required" only if the task should fail without them.
+#   - Every property MUST appear in "required"; for optional fields use a
+#     union like {"type": ["string", "null"]} instead of omitting.
+#   - Set "additionalProperties": false.
+#   - Keep schemas flat.
 task_run = client.task_run.create(
     input="<entity, e.g. 'Stripe'>",
     task_spec={
@@ -124,6 +152,7 @@ task_run = client.task_run.create(
             "type": "json",
             "json_schema": {
                 "type": "object",
+                "additionalProperties": False,
                 "properties": {
                     "founding_date": {
                         "type": "string",
@@ -190,19 +219,27 @@ for event in client.beta.task_group.events(group.taskgroup_id):
 
 ### Lead discovery — `client.beta.findall`
 
+Deep dive: [Generators & Pricing](https://docs.parallel.ai/findall-api/core-concepts/findall-generator-pricing).
+
 ```python
 from parallel import Parallel
 
 client = Parallel()
 
 # Best practices:
-#   - START with generator="preview" — ~10 candidates in seconds, low cost.
-#     Iterate on objective + match_conditions cheaply before scaling up.
+#   - ALWAYS start with generator="preview" — ~10 candidates in seconds, low
+#     cost. Use it to validate your approach before committing to a big run.
+#   - Match generator to expected volume:
+#       base  — broad criteria, many matches from common fields
+#       core  — moderate specificity, ~20-50 results
+#       pro   — rare / highly specific, thoroughness > cost
+#   - 0 MATCHES?  Try UPGRADING THE GENERATOR before rewriting the query.
+#     Usually the issue is candidate pool size, not query quality.
 #   - Write DETAILED match_conditions. Each {name, description} is run
 #     against every candidate for verification. Detailed = higher precision.
-#   - Generators: preview (test), base (broad/common), core (specific),
-#                 pro (rare/hard-to-find, most thorough).
 #   - For large runs, pass a webhook instead of polling .result().
+#   - Enrichments multiply costs across matches — validate counts in preview
+#     before adding enrichments. Extend runs are cheaper than fresh ones.
 findall_run = client.beta.findall.create(
     objective="<e.g. 'AI startups that raised Series A in 2024'>",
     entity_type="companies",
@@ -267,6 +304,8 @@ Response shape: `{ "monitor_id": str, "status": str, "cadence": str, "query": st
 
 ### Content extraction — `client.extract`
 
+Deep dive: [Extract Best Practices](https://docs.parallel.ai/extract/best-practices) · [Advanced Settings](https://docs.parallel.ai/extract/advanced-extract-settings).
+
 ```python
 from parallel import Parallel
 
@@ -274,15 +313,21 @@ client = Parallel()
 
 # Best practices:
 #   - Always provide an "objective" — extraction ranks excerpts by relevance.
-#   - Add search_queries alongside objective to emphasize specific keywords.
+#   - Add 2-3 search_queries (3-6 words each) for focus.
 #   - Up to 20 URLs per call. PDFs and JS-heavy pages are handled.
 #   - Set full_content=True only when you need the whole page as markdown —
-#     excerpts are usually enough and much cheaper.
+#     excerpts are usually enough and much cheaper. WARNING: full_content
+#     without an objective is redundant (excerpts duplicate the full page).
 #   - fetch_policy.max_age_seconds controls cache-vs-live freshness.
+#   - session_id: pass the SAME UUID across related Search + Extract calls
+#     in one task so Parallel treats them as one logical workflow.
+#   - client_model: declare your consuming LLM for server-side optimization.
 extract = client.extract(
     urls=["https://example.com/article"],
     objective="<what to focus on in the page>",
     excerpt_settings={"max_chars_per_result": 5000},
+    # session_id="<shared UUID>",
+    # client_model="claude-opus-4-7",
     # fetch_policy={"max_age_seconds": 3600},  # uncomment for fresh content
 )
 
