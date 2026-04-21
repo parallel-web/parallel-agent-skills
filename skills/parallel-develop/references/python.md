@@ -3,11 +3,31 @@
 ## Install
 
 ```bash
-pip install parallel-web     # or: uv add parallel-web
-export PARALLEL_API_KEY="your-api-key"   # get one at https://platform.parallel.ai
+pip install 'parallel-web>=0.5,<1.0'   # or: uv add 'parallel-web>=0.5,<1.0'
+export PARALLEL_API_KEY="your-api-key" # get one at https://platform.parallel.ai
 ```
 
-The SDK reads `PARALLEL_API_KEY` from the environment automatically. Use `Parallel(api_key=...)` to override.
+The current minor is `0.5.x` — pin against `>=0.5,<1.0` until v1.0 ships. The SDK reads `PARALLEL_API_KEY` from the environment automatically; use `Parallel(api_key=...)` to override.
+
+### Package / import / types
+
+| Item | Value |
+|------|-------|
+| PyPI package | `parallel-web` |
+| Import | `from parallel import Parallel` |
+| Exceptions | `from parallel import APIError, RateLimitError, AuthenticationError, BadRequestError, InternalServerError` |
+| Typed params (strict mode) | `from parallel.types import TaskSpecParam, JsonSchemaParam, TextSchemaParam` |
+
+Typed params are optional — plain `dict` bodies work fine at runtime. Reach for the TypedDicts when your project has pyright/mypy in strict mode and the plain-dict `task_spec` argument gets flagged.
+
+### Result shape cheat-sheet
+
+- `client.search(...)` → `.results[i].{title, url, publish_date, excerpts: list[str]}`
+- `client.extract(...)` → same shape as search results, plus optional `.results[i].full_content`
+- `client.task_run.create(...)` → `.run_id` (you pass this to `.result()`)
+- `client.task_run.result(run_id, api_timeout=N)` → `.output.content` is a dict matching your `json_schema` (or a string if you passed a text/bare-string schema)
+- `client.beta.findall.create(...)` → `.findall_id`
+- `client.beta.findall.result(findall_id=...)` → `.candidates[i].{name, url, description, ...}`
 
 ## Snippets by use case
 
@@ -126,10 +146,46 @@ task_run = client.task_run.create(
 )
 
 result = client.task_run.result(task_run.run_id, api_timeout=600)
-print(result.output)
+print(result.output)  # result.output.content is a dict matching your json_schema
+```
 
-# For batches (say, 50+ rows), use client.beta.task_group.create(...) and
-# stream events, or pass a webhook — polling per row is wasteful.
+### Batch enrichment with Task Groups
+
+For 50+ rows, don't call `task_run.create + result` per row — it's wasteful. Use a **Task Group**, which accepts a batch of inputs, runs them concurrently under a shared spec, and streams progress events:
+
+```python
+from parallel import Parallel
+
+client = Parallel()
+
+group = client.beta.task_group.create(
+    default_task_spec={
+        "output_schema": {
+            "type": "json",
+            "json_schema": {
+                "type": "object",
+                "properties": {
+                    "ceo_name": {
+                        "type": "string",
+                        "description": "Current CEO full name. Return 'Not Available' if unknown.",
+                    },
+                    "revenue_2024": {
+                        "type": "string",
+                        "description": "2024 annual revenue in USD (e.g. '$5.2B'). Return 'Not Available' if unknown.",
+                    },
+                },
+                "required": ["ceo_name", "revenue_2024"],
+            },
+        }
+    },
+)
+
+inputs = [{"input": name, "processor": "core"} for name in ["Stripe", "OpenAI", "Anthropic"]]
+client.beta.task_group.add_runs(group.taskgroup_id, runs=inputs)
+
+# Stream events until all runs finish
+for event in client.beta.task_group.events(group.taskgroup_id):
+    print(event)
 ```
 
 ### Lead discovery — `client.beta.findall`

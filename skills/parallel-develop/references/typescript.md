@@ -3,11 +3,20 @@
 ## Install
 
 ```bash
-npm install parallel-web         # or pnpm add / yarn add
-export PARALLEL_API_KEY="your-api-key"   # get one at https://platform.parallel.ai
+npm install 'parallel-web@^0.4'        # or pnpm add / yarn add
+export PARALLEL_API_KEY="your-api-key"  # get one at https://platform.parallel.ai
 ```
 
-The SDK reads `PARALLEL_API_KEY` from the environment automatically. Use `new Parallel({ apiKey })` to override.
+The current minor is `0.4.x`; pin with `^0.4` until v1.0 ships. `npm install parallel-web` (unpinned) also works — but a pin prevents silent major-version drift. The SDK reads `PARALLEL_API_KEY` from the environment automatically; use `new Parallel({ apiKey })` to override.
+
+### Response shape cheat-sheet
+
+- `client.search(...)` → `{ results: [{ title, url, publish_date, excerpts: string[] }] }`
+- `client.extract(...)` → same, plus `results[i].full_content?`
+- `client.taskRun.create(...)` → `{ run_id: string, ... }`
+- `client.taskRun.result(runId, { timeout })` → `{ output: { content: <matches your json_schema>, basis?: ... } }`
+- `client.post<T>('/v1beta/findall/runs', ...)` → `{ findall_id: string }`
+- `client.get<T>('/v1beta/findall/runs/{id}/result')` → `{ candidates: [{ name, url, description, ... }] }`
 
 **`tsconfig.json` note:** `parallel-web` uses modern class features (private `#fields`). If you type-check with a bare `tsc file.ts`, set `"target": "ES2022"` and `"skipLibCheck": true` — or just use a runner (tsx, bun, ts-node) that already does this.
 
