@@ -82,6 +82,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 | **parallel-web-extract** | Extract content from URLs, articles, PDFs |
 | **parallel-deep-research** | Comprehensive research and analysis |
 | **parallel-data-enrichment** | Enrich lists of companies, people, products |
+| **parallel-develop** | Bootstrap a Parallel API integration in your codebase (Python / TypeScript / cURL / MCP) |
 | **setup** | Install CLI and authenticate |
 | **status** | Check running research task status |
 | **result** | Get completed research task result |
@@ -93,6 +94,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 /parallel:parallel-web-extract https://docs.parallel.ai
 /parallel:parallel-deep-research competitive landscape of AI code assistants
 /parallel:parallel-data-enrichment Apple, Microsoft, Google - get CEO names
+/parallel:parallel-develop add a research agent to my Next.js app in typescript
 /parallel:setup
 ```
 
