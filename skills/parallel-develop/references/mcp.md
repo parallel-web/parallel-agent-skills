@@ -2,7 +2,7 @@
 
 Parallel ships two **remote** (streamable-HTTP) MCP servers. Agents never have to install a local binary:
 
-- **Search MCP** — `https://search-mcp.parallel.ai/mcp` (web search + extract tools)
+- **Search MCP** — `https://search.parallel.ai/mcp` (web search + extract tools)
 - **Task MCP** — `https://task-mcp.parallel.ai/mcp` (deep research tasks)
 
 Auth is OAuth on first use in most clients, or a Bearer token via `Authorization: Bearer $PARALLEL_API_KEY` for stdio bridges.
@@ -12,7 +12,7 @@ Auth is OAuth on first use in most clients, or a Bearer token via `Authorization
 ## Claude Code — one-line install
 
 ```bash
-claude mcp add --transport http "Parallel-Search-MCP" https://search-mcp.parallel.ai/mcp
+claude mcp add --transport http "Parallel-Search-MCP" https://search.parallel.ai/mcp
 claude mcp add --transport http "Parallel-Task-MCP"   https://task-mcp.parallel.ai/mcp
 ```
 
@@ -24,7 +24,7 @@ Then use `/mcp` in Claude Code and complete the browser OAuth flow. No config fi
 {
   "mcpServers": {
     "Parallel Search MCP": {
-      "url": "https://search-mcp.parallel.ai/mcp"
+      "url": "https://search.parallel.ai/mcp"
     },
     "Parallel Task MCP": {
       "url": "https://task-mcp.parallel.ai/mcp"
@@ -43,7 +43,7 @@ Cursor handles OAuth automatically. Restart Cursor after editing.
     "servers": {
       "Parallel Search MCP": {
         "type": "http",
-        "url": "https://search-mcp.parallel.ai/mcp"
+        "url": "https://search.parallel.ai/mcp"
       },
       "Parallel Task MCP": {
         "type": "http",
@@ -66,7 +66,7 @@ Claude Desktop's connector UI is a GUI alternative, but the JSON config still wo
       "args": [
         "-y",
         "mcp-remote",
-        "https://search-mcp.parallel.ai/mcp",
+        "https://search.parallel.ai/mcp",
         "--header",
         "Authorization: Bearer ${PARALLEL_API_KEY}"
       ],
@@ -105,7 +105,7 @@ Claude Desktop's connector UI is a GUI alternative, but the JSON config still wo
 For scripts, curl, or other agents that aren't MCP-aware, hit the endpoints as plain HTTP with a Bearer token:
 
 ```bash
-curl https://search-mcp.parallel.ai/mcp \
+curl https://search.parallel.ai/mcp \
   -H "Authorization: Bearer $PARALLEL_API_KEY"
 ```
 
