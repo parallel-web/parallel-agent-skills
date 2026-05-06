@@ -42,9 +42,13 @@ SKILLS_TO_SYNC = [
 CC_ONLY_FIELDS = {"user-invocable", "argument-hint", "context", "agent"}
 
 # Replacement for the agent-skills "## Setup" trailing section.
-CURSOR_SETUP_SECTION = """## If `parallel-cli` is not found
+# Heading is intentionally specific to "binary not installed" so it doesn't
+# get conflated with the in-body "errors with `no such command`" guidance,
+# which covers a separate failure mode (stale CLI) and routes to
+# `parallel-cli update`, not `/parallel-setup`.
+CURSOR_SETUP_SECTION = """## If the `parallel-cli` binary is not installed
 
-If the command fails with "command not found", **stop immediately**. Do NOT search the web yourself, do NOT use any built-in search tools, and do NOT try to answer the query from your own knowledge. Instead, tell the user:
+If the shell reports `command not found: parallel-cli` (i.e. the binary itself is missing — distinct from a `No such command` error from a stale CLI, which the in-body guidance above covers), **stop immediately**. Do NOT search the web yourself, do NOT use any built-in search tools, and do NOT try to answer the query from your own knowledge. Instead, tell the user:
 
 1. `parallel-cli` is not installed
 2. Run `/parallel-setup` to install it
