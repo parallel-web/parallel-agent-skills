@@ -1,6 +1,6 @@
 ---
 name: parallel-data-enrichment
-description: "Bulk data enrichment. Adds web-sourced fields (CEO names, funding, contact info) to lists of companies, people, or products. Use for enriching CSV files or inline data. Supports multi-turn: pass --previous-interaction-id from a prior research or enrichment to carry context forward."
+description: "Bulk data enrichment. Adds web-sourced fields (CEO names, funding, contact info) to lists of companies, people, or products. Use for enriching CSV files or inline data. Supports multi-turn: pass --previous-interaction-id from a prior research task to carry context forward."
 user-invocable: true
 argument-hint: <file or entities> with <fields to add>
 compatibility: Requires parallel-cli and internet access.
@@ -25,7 +25,7 @@ If the user gave a vague intent ("enrich these companies with useful info") and 
 parallel-cli enrich suggest "Find CEO and recent funding info" --json
 ```
 
-This returns a recommended processor tier and a structured `enriched-columns` schema you can pass to `enrich run`. Skip this step if the user already specified the fields they want.
+This returns a recommended processor tier and a structured `enriched_columns` schema. Pass that JSON array to `--enriched-columns` on `enrich run` (in place of `--intent`). Skip this step if the user already specified the fields they want.
 
 > `enrich suggest` requires `parallel-cli` ≥ 0.3.0. If it errors with `no such command`, skip the suggestion step and proceed directly to step 1, then suggest the user run `parallel-cli update` afterwards.
 
@@ -45,19 +45,17 @@ For CSV file:
 parallel-cli enrich run --source-type csv --source "input.csv" --target "output.csv" --source-columns '[{"name": "company", "description": "Company name"}]' --intent "CEO name and founding year" --no-wait --json
 ```
 
-If this is a **follow-up** to a previous research or enrichment task where you know the `interaction_id`, add context chaining:
+If this is a **follow-up** to a previous research task and you have its `interaction_id`, add context chaining:
 
 ```bash
 parallel-cli enrich run --data '...' --intent "..." --target "output.csv" --no-wait --json --previous-interaction-id "$INTERACTION_ID"
 ```
 
-By chaining `interaction_id` values across requests, each follow-up automatically has the full context of prior turns — so you can enrich entities discovered in earlier research without restating what was already found.
+The enrichment will run with the full context of that prior research — so you can enrich entities discovered earlier without restating what was already found. Note: enrichment does **not** itself produce a new `interaction_id`, so you cannot chain a further follow-up off of an enrichment.
 
 **IMPORTANT:** Always include `--no-wait` so the command returns immediately instead of blocking.
 
-Tip: if you ran `enrich suggest` above and got back an `enriched_columns` schema, you can pass it through with `--enriched-columns '<json>'` instead of relying on `--intent`.
-
-Parse the output to extract the `taskgroup_id` and monitoring URL. If the response also includes an `interaction_id`, capture it for possible follow-ups; otherwise skip. Immediately tell the user:
+Parse the `--json` output to extract `taskgroup_id` and `url`. The output is `{taskgroup_id, url, num_runs}` — there is no `interaction_id` field, do not look for one. Immediately tell the user:
 - Enrichment has been kicked off
 - The monitoring URL where they can track progress
 
@@ -73,7 +71,7 @@ parallel-cli enrich poll "$TASKGROUP_ID" --timeout 540 --output "/tmp/enrichment
 
 Important:
 - Use `--timeout 540` (9 minutes) to stay within tool execution limits
-- The `--target` from step 1 is the source-of-truth target on the server side; the `--output` flag here is where the local poll saves a copy
+- The `--target` from step 1 is unused in `--no-wait` mode — only `--output` here determines where results are saved, and the file is always JSON
 
 ### If the poll times out
 
@@ -89,11 +87,8 @@ Enrichment of large datasets can take longer than 9 minutes. If the poll exits w
 1. Report number of rows enriched
 2. Preview first few rows from the output file (it's a JSON array of `{input, output}` objects)
 3. Tell the user the full path to the output file
-4. If you captured an `interaction_id` in step 1, share it and tell the user they can ask follow-up questions that build on this enrichment. If no `interaction_id` was returned, skip this point.
 
 Do NOT re-share the monitoring URL after completion — the results are in the output file.
-
-**Remember the `interaction_id` (if you have one)** — if the user asks a follow-up question that relates to this enrichment, use it as `--previous-interaction-id` in the next research or enrichment command.
 
 ## Setup
 
