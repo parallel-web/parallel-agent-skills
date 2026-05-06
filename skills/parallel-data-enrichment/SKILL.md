@@ -17,6 +17,16 @@ Enrich: $ARGUMENTS
 
 Inform the user that enrichment may take several minutes depending on the number of rows and fields requested.
 
+## Optional: Suggest output columns
+
+If the user gave a vague intent ("enrich these companies with useful info") and you're not sure what columns to add, ask the API for a suggestion before kicking off the run:
+
+```bash
+parallel-cli enrich suggest "Find CEO and recent funding info" --json
+```
+
+This returns a recommended processor tier and a structured `enriched-columns` schema you can pass to `enrich run`. Skip this step if the user already specified the fields they want.
+
 ## Step 1: Start the enrichment
 
 Use ONE of these command patterns (substitute user's actual data):
