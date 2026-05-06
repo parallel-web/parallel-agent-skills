@@ -68,6 +68,8 @@ parallel-cli monitor list -n 10 --json
 
 Default to `-n 10` — accounts with many historical monitors can return megabytes of JSON otherwise. Raise the limit only if the user explicitly asks for "all" or a larger set. Present as a table: ID, query (truncated), cadence, created.
 
+> Note: `monitor list` is not guaranteed to be sorted newest-first, so a monitor you just created may not appear in the first page of results. If a user is verifying creation, prefer `monitor get $MONITOR_ID` (using the ID returned by create) over scanning the list.
+
 ## View events for a monitor
 
 ```bash

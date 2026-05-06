@@ -74,9 +74,11 @@ Re-run the same `parallel-cli findall poll` command to continue waiting. Server-
 Before presenting matches, **filter the results** for obvious noise:
 - Drop entries with empty/missing `url`
 - Drop entries whose `name` echoes the user's query (e.g., literal "YC W25 batch companies in developer tools") — those are search-result placeholders, not real entities
-- Drop entries that point at category/directory pages rather than the entity itself
+- Drop entries whose `url` is a third-party directory or profile page rather than the entity's own domain. Concretely: drop URLs on `linkedin.com`, `ycombinator.com/companies/...`, `crunchbase.com`, `pitchbook.com`, generic news/blog posts about the entity, etc. The URL should be something the entity itself owns (its product site, docs, or marketing site)
 
 If filtering removes a meaningful share of matches, mention this to the user and suggest re-running with `-g pro` or a higher `-n`.
+
+**Sanity-check `-g base` results.** The base generator can hallucinate categorical attributes (e.g., return a YC S22 company as a YC W25 match). The filter rules above only catch URL/name shape, not factual correctness. If the user's query has a falsifiable attribute (a specific batch, year, geography, etc.), spot-check the kept entries against the source URL and flag any that don't fit. Recommend re-running with `-g core` if multiple kept entries fail the spot-check.
 
 Present the remaining (real) entities as a markdown table or list. Lead with the count, then list each entity with its name, URL, and a one-line description if available. Cite each entity with its source URL.
 
