@@ -3,7 +3,7 @@ name: parallel-deep-research
 description: "ONLY use when user explicitly says 'deep research', 'exhaustive', 'comprehensive report', or 'thorough investigation'. Slower and more expensive than parallel-web-search. For normal research/lookup requests, use parallel-web-search instead. Supports multi-turn: pass --previous-interaction-id from a prior research or enrichment to continue with context."
 user-invocable: true
 argument-hint: <topic>
-compatibility: Requires parallel-cli and internet access.
+compatibility: Requires parallel-cli >= 0.3.0 and internet access.
 allowed-tools: Bash(parallel-cli:*)
 metadata:
   author: parallel
@@ -12,6 +12,8 @@ metadata:
 # Deep Research
 
 Research topic: $ARGUMENTS
+
+> Requires `parallel-cli` ≥ 0.3.0. If any command below errors with `no such option`, `no such command`, or `unrecognized arguments`, the user is on an older CLI. Tell them to run `parallel-cli update` (or `pipx upgrade parallel-web-tools` if installed via pipx), then retry.
 
 ## When to use (vs parallel-web-search)
 

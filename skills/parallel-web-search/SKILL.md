@@ -17,10 +17,16 @@ Search the web for: $ARGUMENTS
 
 ## Command
 
-Choose a short, descriptive filename based on the query (e.g., `ai-chip-news`, `react-vs-vue`). Use lowercase with hyphens, no spaces.
+Choose a short, descriptive filename based on the query (e.g., `ai-chip-news`, `react-vs-vue`). Use lowercase with hyphens, no spaces. Substitute it into the command **inline** — `$FILENAME` and `<keyword>` below are placeholders, not shell variables; do not copy them verbatim.
 
 ```bash
 parallel-cli search "$ARGUMENTS" -q "<keyword1>" -q "<keyword2>" --json --max-results 10 --excerpt-max-chars-total 27000 -o "/tmp/$FILENAME.json"
+```
+
+Concrete example for a query about React 19:
+
+```bash
+parallel-cli search "latest React 19 features and adoption" -q "React 19" -q "concurrent rendering" --json --max-results 10 --excerpt-max-chars-total 27000 -o "/tmp/react-19-features.json"
 ```
 
 The first argument is the **objective** — a natural language description of what you're looking for. It replaces multiple keyword searches with a single call for broad or complex queries. Add `-q` flags for specific keyword queries to supplement the objective. The `-o` flag saves the full results to a JSON file for follow-up questions.
@@ -36,7 +42,7 @@ Options if needed:
 
 Do not set `max_output_tokens` on the command execution — the output is already bounded by `--max-results` and `--excerpt-max-chars-total`. Capping output tokens will truncate the JSON and break parsing.
 
-Parse the JSON from stdout. For each result, extract:
+**Prefer reading from the saved `-o` file**, not stdout. Even bounded output regularly exceeds harness stdout limits and gets truncated. Read `/tmp/$FILENAME.json` for the authoritative payload. For each result, extract:
 - title, url, publish_date
 - Useful content from excerpts (skip navigation noise like menus, footers, "Skip to content")
 

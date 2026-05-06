@@ -27,6 +27,8 @@ parallel-cli enrich suggest "Find CEO and recent funding info" --json
 
 This returns a recommended processor tier and a structured `enriched-columns` schema you can pass to `enrich run`. Skip this step if the user already specified the fields they want.
 
+> `enrich suggest` requires `parallel-cli` ≥ 0.3.0. If it errors with `no such command`, skip the suggestion step and proceed directly to step 1, then suggest the user run `parallel-cli update` afterwards.
+
 ## Step 1: Start the enrichment
 
 Use ONE of these command patterns (substitute user's actual data):
@@ -53,7 +55,9 @@ By chaining `interaction_id` values across requests, each follow-up automaticall
 
 **IMPORTANT:** Always include `--no-wait` so the command returns immediately instead of blocking.
 
-Parse the output to extract the `taskgroup_id`, `interaction_id`, and monitoring URL. Immediately tell the user:
+Tip: if you ran `enrich suggest` above and got back an `enriched_columns` schema, you can pass it through with `--enriched-columns '<json>'` instead of relying on `--intent`.
+
+Parse the output to extract the `taskgroup_id` and monitoring URL. If the response also includes an `interaction_id`, capture it for possible follow-ups; otherwise skip. Immediately tell the user:
 - Enrichment has been kicked off
 - The monitoring URL where they can track progress
 
@@ -61,14 +65,15 @@ Tell them they can background the polling step to continue working while it runs
 
 ## Step 2: Poll for results
 
-```bash
-parallel-cli enrich poll "$TASKGROUP_ID" --timeout 540 --output "/tmp/$TARGET"
-```
+Pick a concrete output path (e.g., `/tmp/enrichment-acme.json`). Note: the file is JSON regardless of the extension you choose — it's an array of `{input, output}` objects, not a CSV. Name it `.json` to avoid confusing yourself or the user.
 
-Use the same target filename from step 1. The `--target` flag on `enrich run` does not carry over to the poll — you must pass `--output` here to save the results.
+```bash
+parallel-cli enrich poll "$TASKGROUP_ID" --timeout 540 --output "/tmp/enrichment-<descriptive-name>.json"
+```
 
 Important:
 - Use `--timeout 540` (9 minutes) to stay within tool execution limits
+- The `--target` from step 1 is the source-of-truth target on the server side; the `--output` flag here is where the local poll saves a copy
 
 ### If the poll times out
 
@@ -82,13 +87,13 @@ Enrichment of large datasets can take longer than 9 minutes. If the poll exits w
 
 **After step 2:**
 1. Report number of rows enriched
-2. Preview first few rows of the output CSV
-3. Tell user the full path to the output CSV file
-4. Share the `interaction_id` and tell the user they can ask follow-up questions that build on this enrichment
+2. Preview first few rows from the output file (it's a JSON array of `{input, output}` objects)
+3. Tell the user the full path to the output file
+4. If you captured an `interaction_id` in step 1, share it and tell the user they can ask follow-up questions that build on this enrichment. If no `interaction_id` was returned, skip this point.
 
 Do NOT re-share the monitoring URL after completion — the results are in the output file.
 
-**Remember the `interaction_id`** — if the user asks a follow-up question that relates to this enrichment, use it as `--previous-interaction-id` in the next research or enrichment command.
+**Remember the `interaction_id` (if you have one)** — if the user asks a follow-up question that relates to this enrichment, use it as `--previous-interaction-id` in the next research or enrichment command.
 
 ## Setup
 

@@ -3,7 +3,7 @@ name: parallel-monitor
 description: "Continuously track the web for changes on a recurring cadence. Use when the user asks to 'monitor', 'track changes to', 'watch', or 'alert me when' something on the web changes — e.g., 'Track price changes for iPhone 16', 'Alert me when Tesla files a new 8-K', 'Monitor competitor pricing pages weekly'. Also use to list, inspect, update, or delete existing monitors."
 user-invocable: true
 argument-hint: <create|list|events|get|update|delete> [args]
-compatibility: Requires parallel-cli and internet access.
+compatibility: Requires parallel-cli >= 0.3.0 and internet access.
 allowed-tools: Bash(parallel-cli:*)
 metadata:
   author: parallel
@@ -12,6 +12,8 @@ metadata:
 # Web Monitor
 
 Action: $ARGUMENTS
+
+> Requires `parallel-cli` ≥ 0.3.0 (the `monitor` command was added in 0.3.0). If `parallel-cli monitor` errors with `no such command` or similar, tell the user to run `parallel-cli update` (or `pipx upgrade parallel-web-tools` if installed via pipx), then retry.
 
 ## What this skill does
 
@@ -28,6 +30,8 @@ Parse the user's request and pick one:
 | "What changed?" / "Show me events for monitor X" | **events** |
 | "Show monitor X" / "Get details for X" | **get** |
 | "Change cadence / query / webhook for X" | **update** |
+| "Test the webhook" / "Fire a test event" | **simulate** (requires a webhook on the monitor) |
+| "Show me the full payload for event group X" | **event-group** |
 | "Stop / delete monitor X" | **delete** (always confirm before deleting) |
 
 ## Create a monitor
@@ -54,13 +58,15 @@ If they configured a webhook, suggest testing it:
 parallel-cli monitor simulate "$MONITOR_ID"
 ```
 
+`simulate` requires a webhook to be configured on the monitor. Without one it errors with `Webhook not configured for this monitor` — do not run it on monitors created without `--webhook`.
+
 ## List monitors
 
 ```bash
-parallel-cli monitor list --json
+parallel-cli monitor list -n 10 --json
 ```
 
-Add `-n 10` to limit. Present as a table: ID, query (truncated), cadence, created.
+Default to `-n 10` — accounts with many historical monitors can return megabytes of JSON otherwise. Raise the limit only if the user explicitly asks for "all" or a larger set. Present as a table: ID, query (truncated), cadence, created.
 
 ## View events for a monitor
 
