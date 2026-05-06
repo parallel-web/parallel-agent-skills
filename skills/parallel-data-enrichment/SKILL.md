@@ -25,7 +25,7 @@ If the user gave a vague intent ("enrich these companies with useful info") and 
 parallel-cli enrich suggest "Find CEO and recent funding info" --json
 ```
 
-The response is an envelope: `{title, processor, enriched_columns, warnings}`. Extract just the **`enriched_columns` array** (not the whole envelope) and pass it as the value of `--enriched-columns` on `enrich run`, **in place of `--intent`** — the two flags are alternative ways to specify what to enrich, not combined. The suggested `processor` is informational; either pass it explicitly via `--processor` or let `enrich run` pick its default. Skip this whole section if the user already specified the fields they want.
+The response is an envelope: `{title, processor, enriched_columns, warnings}`. Extract just the **`enriched_columns` array** (not the whole envelope) and pass it as the value of `--enriched-columns` on `enrich run`, **in place of `--intent`** — the two flags are alternative ways to specify what to enrich, not combined. If `suggest` returned a `processor`, pass it through explicitly via `--processor` on the `run` call (it's a tuned recommendation for the schema). Skip this whole section if the user already specified the fields they want.
 
 > `enrich suggest` requires `parallel-cli` ≥ 0.3.0. If it errors with `no such command`, skip the suggestion step and proceed directly to step 1, then suggest the user run `parallel-cli update` afterwards.
 

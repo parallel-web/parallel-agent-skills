@@ -2,7 +2,7 @@
 name: parallel-monitor
 description: "Continuously track the web for changes on a recurring cadence. Use when the user asks to 'monitor', 'track changes to', 'watch', or 'alert me when' something on the web changes — e.g., 'Track price changes for iPhone 16', 'Alert me when Tesla files a new 8-K', 'Monitor competitor pricing pages weekly'. Also use to list, inspect, update, or delete existing monitors."
 user-invocable: true
-argument-hint: <create|list|events|get|update|delete> [args]
+argument-hint: <create|list|events|get|update|simulate|event-group|delete> [args]
 compatibility: Requires parallel-cli >= 0.3.0 and internet access.
 allowed-tools: Bash(parallel-cli:*)
 metadata:

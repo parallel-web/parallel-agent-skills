@@ -78,7 +78,7 @@ Before presenting matches, **filter the results** for obvious noise:
 
 If filtering removes a meaningful share of matches, mention this to the user and suggest re-running with `-g pro` or a higher `-n`.
 
-**Sanity-check `-g base` results.** The base generator can hallucinate categorical attributes (e.g., return a YC S22 company as a YC W25 match). The filter rules above only catch URL/name shape, not factual correctness. If the user's query has a falsifiable attribute (a specific batch, year, geography, etc.), spot-check the kept entries against the source URL and flag any that don't fit. Recommend re-running with `-g core` if multiple kept entries fail the spot-check.
+**Sanity-check `-g base` results.** The base generator can hallucinate categorical attributes (e.g., return a YC S22 company as a YC W25 match). The filter rules above only catch URL/name shape, not factual correctness. If the user's query has a falsifiable attribute (a specific batch, year, geography, etc.), spot-check the kept entries against the source URL and flag any that don't fit. Recommend re-running with `-g core` (or higher) if **either** multiple kept entries fail the spot-check **or** noise filtering dropped a meaningful share of the matched set (say, ≥40%) — both indicate `base` isn't producing reliable results for this query.
 
 Present the remaining (real) entities as a markdown table or list. Lead with the count, then list each entity with its name, URL, and a one-line description if available. Cite each entity with its source URL.
 
