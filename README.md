@@ -82,6 +82,8 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 | **parallel-web-extract** | Extract content from URLs, articles, PDFs |
 | **parallel-deep-research** | Comprehensive research and analysis |
 | **parallel-data-enrichment** | Enrich lists of companies, people, products |
+| **parallel-findall** | Discover entities matching a natural-language description |
+| **parallel-monitor** | Continuously track the web for changes (with webhooks) |
 | **setup** | Install CLI and authenticate |
 | **status** | Check running research task status |
 | **result** | Get completed research task result |
@@ -93,6 +95,8 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 /parallel:parallel-web-extract https://docs.parallel.ai
 /parallel:parallel-deep-research competitive landscape of AI code assistants
 /parallel:parallel-data-enrichment Apple, Microsoft, Google - get CEO names
+/parallel:parallel-findall AI startups that raised Series A in 2026
+/parallel:parallel-monitor track price changes for the iPhone 16 Pro
 /parallel:setup
 ```
 

@@ -17,14 +17,33 @@ Extract content from: $ARGUMENTS
 
 ## Command
 
-Choose a short, descriptive filename based on the URL or content (e.g., `vespa-docs`, `react-hooks-api`). Use lowercase with hyphens, no spaces.
+Choose a short, descriptive filename based on the URL or content (e.g., `vespa-docs`, `react-hooks-api`). Use lowercase with hyphens, no spaces. Substitute it into the command **inline** — `$FILENAME` is a placeholder, not a shell variable.
 
 ```bash
-parallel-cli extract "$ARGUMENTS" --json -o "/tmp/$FILENAME.md"
+parallel-cli extract "$ARGUMENTS" --json -o "/tmp/$FILENAME.json"
 ```
 
+Concrete example:
+
+```bash
+parallel-cli extract "https://docs.parallel.ai" --json -o "/tmp/parallel-docs.json"
+```
+
+Note: `-o` always saves JSON. The extension must be `.json`.
+
 Options if needed:
-- `--objective "focus area"` to focus on specific content
+- `--objective "focus area"` to focus extraction on a specific goal (also silences the "neither objective nor search_queries" warning that V1 emits when neither is set)
+- `-q "keyword"` (repeatable) to prioritize keywords in excerpts
+- `--full-content` to include the complete page body (for long articles, PDFs, or when excerpts may not capture what you need)
+- `--full-content-max-chars N` to cap full-content size per result
+- `--no-excerpts` to strip excerpts when you only want full content
+
+## Handling failed extractions
+
+If the response has an `errors` field, an empty `results` array, or a 404/timeout for the URL, do NOT fabricate content. Tell the user the extraction failed, surface the upstream status, and suggest:
+- Verifying the URL (the page may have moved)
+- Retrying with `--full-content` if excerpts came back empty but the page exists
+- Using `parallel-cli search` to locate the current URL if the page was renamed
 
 ## Response format
 
@@ -38,7 +57,7 @@ Then the extracted content verbatim, with these rules:
 - Strip only obvious noise: nav menus, footers, ads
 - Preserve all facts, names, numbers, dates, quotes
 
-After the response, mention the output file path (`/tmp/$FILENAME.md`) so the user knows it's available for follow-up questions.
+After the response, mention the output file path (`/tmp/$FILENAME.json`) so the user knows it's available for follow-up questions.
 
 ## Setup
 

@@ -37,3 +37,9 @@ parallel-cli auth
 ```
 
 If `parallel-cli` not found, add `~/.local/bin` to PATH.
+
+## Update later
+
+```bash
+parallel-cli update
+```
