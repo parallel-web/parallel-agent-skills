@@ -70,23 +70,4 @@ After the Sources section, mention the output file path (`/tmp/$FILENAME.json`) 
 
 ## Setup
 
-If `parallel-cli` is not found, install and authenticate:
-
-```bash
-curl -fsSL https://parallel.ai/install.sh | bash
-```
-
-If unable to install that way, install via pipx instead:
-
-```bash
-pipx install "parallel-web-tools[cli]"
-pipx ensurepath
-```
-
-Then authenticate:
-
-```bash
-parallel-cli login
-```
-
-Or set an API key: `export PARALLEL_API_KEY="your-key"`
+Requires `parallel-cli` (installed and authenticated). If `parallel-cli --version` fails, or if a later command fails with an authentication error, tell the user to see https://docs.parallel.ai/integrations/cli and stop.

@@ -7,8 +7,11 @@
 1. **Install the CLI**
 
    ```bash
-   curl -fsSL https://parallel.ai/install.sh | bash
+   pipx install "parallel-web-tools[cli]"
+   pipx ensurepath
    ```
+
+   For other install methods, see [docs.parallel.ai/integrations/cli](https://docs.parallel.ai/integrations/cli).
 
 2. **Get an API key** at [parallel.ai](https://parallel.ai) and set it as an environment variable:
 
@@ -68,9 +71,12 @@ $skill-installer parallel-web/parallel-agent-skills
 Then install the CLI and authenticate:
 
 ```bash
-curl -fsSL https://parallel.ai/install.sh | bash
+pipx install "parallel-web-tools[cli]"
+pipx ensurepath
 parallel-cli login
 ```
+
+For other install methods, see [docs.parallel.ai/integrations/cli](https://docs.parallel.ai/integrations/cli).
 
 ## Skills
 
@@ -130,10 +136,11 @@ codex
 
 Claude Code plugins are pinned to commit SHAs, and `npx skills add` pulls the latest from `main`.
 
-1. Bump the version in all three locations:
+1. Bump the version in all four locations:
    - `.claude-plugin/plugin.json` → `version`
    - `.claude-plugin/marketplace.json` → `metadata.version`
    - `.claude-plugin/marketplace.json` → `plugins[0].version`
+   - `.codex-plugin/plugin.json` → `version`
 2. Commit and push to `main`
 
 ## License
