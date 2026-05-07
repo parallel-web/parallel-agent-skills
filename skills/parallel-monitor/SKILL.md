@@ -101,14 +101,14 @@ parallel-cli monitor delete "$MONITOR_ID" --json
 If `parallel-cli` is not found, install and authenticate:
 
 ```bash
-curl -fsSL https://parallel.ai/install.sh | bash
-```
-
-If unable to install that way, install via pipx instead:
-
-```bash
 pipx install "parallel-web-tools[cli]"
 pipx ensurepath
+```
+
+If `pipx` isn't available, install the prebuilt binary instead:
+
+```bash
+curl -fsSL https://parallel.ai/install.sh | bash
 ```
 
 Then authenticate:

@@ -11,17 +11,17 @@ metadata:
 
 ## Install CLI
 
-Try the install script first:
-
-```bash
-curl -fsSL https://parallel.ai/install.sh | bash
-```
-
-If unable to install that way, install via pip instead:
+Install via `pipx` (preferred — pure Python source, no prebuilt binary):
 
 ```bash
 pipx install "parallel-web-tools[cli]"
 pipx ensurepath
+```
+
+If `pipx` isn't available, install the prebuilt binary instead:
+
+```bash
+curl -fsSL https://parallel.ai/install.sh | bash
 ```
 
 ## Authenticate

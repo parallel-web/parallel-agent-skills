@@ -7,6 +7,13 @@
 1. **Install the CLI**
 
    ```bash
+   pipx install "parallel-web-tools[cli]"
+   pipx ensurepath
+   ```
+
+   If `pipx` isn't available, install the prebuilt binary instead:
+
+   ```bash
    curl -fsSL https://parallel.ai/install.sh | bash
    ```
 
@@ -66,6 +73,14 @@ $skill-installer parallel-web/parallel-agent-skills
 ```
 
 Then install the CLI and authenticate:
+
+```bash
+pipx install "parallel-web-tools[cli]"
+pipx ensurepath
+parallel-cli login
+```
+
+If `pipx` isn't available, install the prebuilt binary instead:
 
 ```bash
 curl -fsSL https://parallel.ai/install.sh | bash
