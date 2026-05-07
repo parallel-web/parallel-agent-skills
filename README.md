@@ -11,11 +11,7 @@
    pipx ensurepath
    ```
 
-   If `pipx` isn't available, install the prebuilt binary instead:
-
-   ```bash
-   curl -fsSL https://parallel.ai/install.sh | bash
-   ```
+   For other install methods, see [docs.parallel.ai/integrations/cli](https://docs.parallel.ai/integrations/cli).
 
 2. **Get an API key** at [parallel.ai](https://parallel.ai) and set it as an environment variable:
 
@@ -80,12 +76,7 @@ pipx ensurepath
 parallel-cli login
 ```
 
-If `pipx` isn't available, install the prebuilt binary instead:
-
-```bash
-curl -fsSL https://parallel.ai/install.sh | bash
-parallel-cli login
-```
+For other install methods, see [docs.parallel.ai/integrations/cli](https://docs.parallel.ai/integrations/cli).
 
 ## Skills
 
