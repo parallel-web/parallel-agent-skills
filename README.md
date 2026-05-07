@@ -145,10 +145,11 @@ codex
 
 Claude Code plugins are pinned to commit SHAs, and `npx skills add` pulls the latest from `main`.
 
-1. Bump the version in all three locations:
+1. Bump the version in all four locations:
    - `.claude-plugin/plugin.json` → `version`
    - `.claude-plugin/marketplace.json` → `metadata.version`
    - `.claude-plugin/marketplace.json` → `plugins[0].version`
+   - `.codex-plugin/plugin.json` → `version`
 2. Commit and push to `main`
 
 ## License
