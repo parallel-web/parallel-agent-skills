@@ -2,7 +2,7 @@
 name: setup
 description: Set up the Parallel plugin (install CLI)
 user-invocable: true
-allowed-tools: Bash(curl:*), Bash(pipx:*), Bash(parallel-cli:*)
+allowed-tools: Bash(parallel-cli:*)
 metadata:
   author: parallel
 ---
@@ -11,14 +11,7 @@ metadata:
 
 ## Install CLI
 
-Install via `pipx`:
-
-```bash
-pipx install "parallel-web-tools[cli]"
-pipx ensurepath
-```
-
-For other install methods (Homebrew, native binary, Windows), see https://docs.parallel.ai/integrations/cli.
+See https://docs.parallel.ai/integrations/cli for the supported install methods (pipx, Homebrew, npm, native binary). Walk the user through whichever they pick.
 
 ## Authenticate
 

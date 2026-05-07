@@ -103,4 +103,4 @@ Ask the user if they would like to read through the files for more detail. Do NO
 
 ## Setup
 
-Requires `parallel-cli`. If `parallel-cli --version` fails, tell the user to see https://docs.parallel.ai/integrations/cli for installation and authentication, then stop.
+Requires `parallel-cli` (installed and authenticated). If `parallel-cli --version` fails, or if a later command fails with an authentication error, tell the user to see https://docs.parallel.ai/integrations/cli and stop.
