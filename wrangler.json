@@ -1,0 +1,17 @@
+{
+  "$schema": "https://unpkg.com/wrangler@latest/config-schema.json",
+  "name": "parallel-agent-skills",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-05-19",
+  "observability": { "logs": { "enabled": true } },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "vars": {
+    "GITHUB_OWNER": "parallel-web",
+    "GITHUB_REPO": "parallel-agent-skills"
+  },
+  "routes": [{ "custom_domain": true, "pattern": "skills.parallel.ai" }]
+}

@@ -3,8 +3,8 @@ repos:
     rev: v0.44.0
     hooks:
       - id: markdownlint
+        exclude: "^(README\\.md|MAINTAINERS\\.md|CLAUDE\\.md)$"
         args:
           - "--fix"
-          - "**/*.md"
           - "--ignore"
           - "node_modules/**/*"
