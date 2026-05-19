@@ -20,7 +20,7 @@ jobs:
       - name: Checkout docs repo
         uses: actions/checkout@v4
         with:
-          repository: parallel-web/documentation
+          repository: shapleyai/documentation
           token: ${{ secrets.DOCS_REPO_TOKEN }}
           path: docs
 
