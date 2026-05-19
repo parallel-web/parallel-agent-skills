@@ -32,6 +32,7 @@ parallel-cli search "latest React 19 features and adoption" -q "React 19" -q "co
 The first argument is the **objective** — a natural language description of what you're looking for. It replaces multiple keyword searches with a single call for broad or complex queries. Add `-q` flags for specific keyword queries to supplement the objective. The `-o` flag saves the full results to a JSON file for follow-up questions.
 
 Options if needed:
+
 - `--after-date YYYY-MM-DD` for time-sensitive queries
 - `--include-domains domain1.com,domain2.com` to limit to specific sources
 - `--exclude-domains domain.com` to filter out noisy sources
@@ -43,6 +44,7 @@ Options if needed:
 Do not set `max_output_tokens` on the command execution — the output is already bounded by `--max-results` and `--excerpt-max-chars-total`. Capping output tokens will truncate the JSON and break parsing.
 
 **Prefer reading from the saved `-o` file**, not stdout. Even bounded output regularly exceeds harness stdout limits and gets truncated. Read `/tmp/$FILENAME.json` for the authoritative payload. For each result, extract:
+
 - title, url, publish_date
 - Useful content from excerpts (skip navigation noise like menus, footers, "Skip to content")
 
@@ -51,6 +53,7 @@ Do not set `max_output_tokens` on the command execution — the output is alread
 **CRITICAL: Every claim must have an inline citation.** Use markdown links like [Title](URL) pulling only from the JSON output. Never invent or guess URLs.
 
 Synthesize a response that:
+
 - Leads with the key answer/finding
 - Includes specific facts, names, numbers, dates
 - Cites every fact inline as [Source Title](url) — do not leave any claim uncited
@@ -58,7 +61,7 @@ Synthesize a response that:
 
 **End with a Sources section** listing every URL referenced:
 
-```
+```text
 Sources:
 - [Source Title](https://example.com/article) (Feb 2026)
 - [Another Source](https://example.com/other) (Jan 2026)

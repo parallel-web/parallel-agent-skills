@@ -43,11 +43,13 @@ parallel-cli monitor create "<query>" --cadence daily --json
 Cadence options: `hourly`, `daily` (default), `weekly`, `every_two_weeks`. Match cadence to how often the source actually changes — hourly for prices/news, weekly for filings/staffing.
 
 Optional flags:
+
 - `--webhook https://example.com/hook` — POST events to a URL as they happen
 - `--metadata '{"team":"competitive-intel"}'` — attach JSON metadata for your own bookkeeping
 - `--output-schema '<json>'` — structure the event payload (advanced)
 
 Parse the JSON to extract the `monitor_id`. Tell the user:
+
 - The monitor has been created with its ID
 - The cadence (so they know when to expect first event)
 - That events accumulate server-side — they can run `parallel-cli monitor events $MONITOR_ID` later to see what changed
@@ -98,4 +100,4 @@ parallel-cli monitor delete "$MONITOR_ID" --json
 
 ## Setup
 
-Requires `parallel-cli` (installed and authenticated). If `parallel-cli --version` fails, or if a later command fails with an authentication error, tell the user to see https://docs.parallel.ai/integrations/cli and stop.
+Requires `parallel-cli` (installed and authenticated). If `parallel-cli --version` fails, or if a later command fails with an authentication error, tell the user to see <https://docs.parallel.ai/integrations/cli> and stop.

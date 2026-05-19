@@ -4,28 +4,7 @@
 
 ## Prerequisites
 
-1. **Install the CLI**
-
-   ```bash
-   pipx install "parallel-web-tools[cli]"
-   pipx ensurepath
-   ```
-
-   For other install methods, see [docs.parallel.ai/integrations/cli](https://docs.parallel.ai/integrations/cli).
-
-2. **Get an API key** at [parallel.ai](https://parallel.ai) and set it as an environment variable:
-
-   ```bash
-   export PARALLEL_API_KEY="your-key"
-   ```
-
-   Or authenticate interactively after installing the CLI:
-
-   ```bash
-   parallel-cli login
-   ```
-
-3. **Install the skills** into your AI agent (see below).
+The `parallel-cli` tool (installed + authenticated, with a non-zero balance) is required to run the skills. The [`parallel-cli-setup`](skills/parallel-cli-setup/SKILL.md) skill walks an agent through install, auth, balance, and skills install end-to-end — install the plugin/skills below, then run `/parallel:parallel-cli-setup` from your agent.
 
 ## Installation
 
@@ -55,39 +34,35 @@ Available as a [Claude Code Plugin Marketplace](https://code.claude.com/docs/en/
 
 Install skills using the built-in skill installer (run inside Codex):
 
-```
+```text
 $skill-installer parallel-web/parallel-agent-skills
 ```
 
-Then install the CLI and authenticate:
+Then run the setup skill to install/auth the CLI:
 
-```bash
-pipx install "parallel-web-tools[cli]"
-pipx ensurepath
-parallel-cli login
+```text
+/parallel:parallel-cli-setup
 ```
-
-For other install methods, see [docs.parallel.ai/integrations/cli](https://docs.parallel.ai/integrations/cli).
 
 ## Skills
 
 Skills follow the [Agent Skills](https://agentskills.io/specification) specification and double as Claude Code slash commands.
 
-| Skill | Description |
-|-------|-------------|
-| **parallel-web-search** | Web search (default for most research queries) |
-| **parallel-web-extract** | Extract content from URLs, articles, PDFs |
-| **parallel-deep-research** | Comprehensive research and analysis |
-| **parallel-data-enrichment** | Enrich lists of companies, people, products |
-| **parallel-findall** | Discover entities matching a natural-language description |
-| **parallel-monitor** | Continuously track the web for changes (with webhooks) |
-| **parallel-cli-setup** | Install/update CLI, authenticate, and handle balance |
-| **status** | Check running research task status |
-| **result** | Get completed research task result |
+| Skill                        | Description                                               |
+| ---------------------------- | --------------------------------------------------------- |
+| **parallel-web-search**      | Web search (default for most research queries)            |
+| **parallel-web-extract**     | Extract content from URLs, articles, PDFs                 |
+| **parallel-deep-research**   | Comprehensive research and analysis                       |
+| **parallel-data-enrichment** | Enrich lists of companies, people, products               |
+| **parallel-findall**         | Discover entities matching a natural-language description |
+| **parallel-monitor**         | Continuously track the web for changes (with webhooks)    |
+| **parallel-cli-setup**       | Install/update CLI, authenticate, and handle balance      |
+| **status**                   | Check running research task status                        |
+| **result**                   | Get completed research task result                        |
 
 ## Examples
 
-```
+```text
 /parallel:parallel-web-search latest React 19 features
 /parallel:parallel-web-extract https://docs.parallel.ai
 /parallel:parallel-deep-research competitive landscape of AI code assistants
@@ -96,6 +71,10 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 /parallel:parallel-monitor track price changes for the iPhone 16 Pro
 /parallel:parallel-cli-setup
 ```
+
+## Contributing
+
+See [MAINTAINERS.md](MAINTAINERS.md) for dev setup (pre-commit hooks, etc.).
 
 ## Resources
 

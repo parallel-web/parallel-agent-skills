@@ -35,6 +35,7 @@ parallel-cli findall run "$ARGUMENTS" --no-wait --json
 ```
 
 Defaults: generator `core`, match limit `10`. Stick with `core` unless the user has a reason to escalate:
+
 - `-g pro` — most thorough generator (slower, costlier). Use when the user asks for "comprehensive" coverage or matches are sparse on `core`
 - `-g base` — fastest, but **markedly lower quality**. Often returns query-echo entities (e.g., directory pages, the literal query string), entries with no URL, or category placeholders. Only use if the user explicitly asks for a quick scan and accepts noise; otherwise prefer `core`
 - `-n 50` — return up to 50 matched entities (5–1000 allowed)
@@ -49,6 +50,7 @@ parallel-cli findall run "$ARGUMENTS" --no-wait --json \
 Tip — preview the schema first if the objective is ambiguous: `parallel-cli findall ingest "$ARGUMENTS" --json` shows the entity type and match conditions the API inferred, so you can refine wording before paying for a run.
 
 Parse the JSON output to extract the `findall_id` and any monitoring URL. Tell the user:
+
 - A FindAll run has been started
 - Approximate cadence (minutes for `core`, longer for `pro`)
 - They can keep working while it runs
@@ -62,6 +64,7 @@ parallel-cli findall poll "$FINDALL_ID" -o "/tmp/$FILENAME.json" --timeout 540
 ```
 
 Important:
+
 - Use `--timeout 540` (9 minutes) to stay within tool execution limits
 - Do NOT pass `--json` for large result sets — it will flood context. `-o` saves the full results to disk
 
@@ -72,6 +75,7 @@ Re-run the same `parallel-cli findall poll` command to continue waiting. Server-
 ## Response format
 
 Before presenting matches, **filter the results** for obvious noise:
+
 - Drop entries with empty/missing `url`
 - Drop entries whose `name` echoes the user's query (e.g., literal "YC W25 batch companies in developer tools") — those are search-result placeholders, not real entities
 - Drop entries whose `url` is a third-party directory or profile page rather than the entity's own domain. Concretely: drop URLs on `linkedin.com`, `ycombinator.com/companies/...`, `crunchbase.com`, `pitchbook.com`, generic news/blog posts about the entity, etc. The URL should be something the entity itself owns (its product site, docs, or marketing site)
@@ -83,6 +87,7 @@ If filtering removes a meaningful share of matches, mention this to the user and
 Present the remaining (real) entities as a markdown table or list. Lead with the count, then list each entity with its name, URL, and a one-line description if available. Cite each entity with its source URL.
 
 Tell the user:
+
 - How many entities were matched (and how many were filtered as noise, if any)
 - The full results path (`/tmp/$FILENAME.json`)
 - That they can:
@@ -97,4 +102,4 @@ Tell the user:
 
 ## Setup
 
-Requires `parallel-cli` (installed and authenticated). If `parallel-cli --version` fails, or if a later command fails with an authentication error, tell the user to see https://docs.parallel.ai/integrations/cli and stop.
+Requires `parallel-cli` (installed and authenticated). If `parallel-cli --version` fails, or if a later command fails with an authentication error, tell the user to see <https://docs.parallel.ai/integrations/cli> and stop.

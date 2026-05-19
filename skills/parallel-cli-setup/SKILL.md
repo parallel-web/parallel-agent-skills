@@ -74,7 +74,7 @@ When invoking from an agent harness, prefer streaming stdout via a Monitor-style
 
 The output will look like:
 
-```
+```json
 {"event": "auth_start"}
 {"event": "device_code", "verification_uri": "http://localhost:3000/getServiceKeys/device", "verification_uri_complete": "http://localhost:3000/getServiceKeys/device?user_code=CHQX-NQKP&onboard_variant=agent", "user_code": "CHQX-NQKP", "expires_in": 600, "browser_open_attempted": true, "browser_opened": true}
 {"event": "auth_waiting"}
@@ -97,7 +97,7 @@ If zero, prompt the user to add balance:
 parallel-cli balance add <AMOUNT_IN_CENTS>
 ```
 
-Make it clear that a payment method should have been added to the organization. If not, the user can go to https://platform.parallel.ai/settings to add one.
+Make it clear that a payment method should have been added to the organization. If not, the user can go to <https://platform.parallel.ai/settings> to add one.
 
 ## Step 4: Install the Parallel skills
 

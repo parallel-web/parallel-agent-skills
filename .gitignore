@@ -21,3 +21,7 @@ __pycache__/
 .venv/
 venv/
 .env
+
+.direnv
+.envrc
+.env.local
