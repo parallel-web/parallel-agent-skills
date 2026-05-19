@@ -44,6 +44,19 @@ Then run the setup skill to install/auth the CLI:
 /parallel:parallel-cli-setup
 ```
 
+## CDN and discovery
+
+A human + machine-readable catalog is published at [skills.parallel.ai](https://skills.parallel.ai).
+
+Useful endpoints:
+
+- [skills.parallel.ai](https://skills.parallel.ai) — human-friendly catalog and install instructions
+- [skills.parallel.ai/index.json](https://skills.parallel.ai/index.json) — machine-readable skill index
+- `https://skills.parallel.ai/skills/<skill>/SKILL.md` — live raw skill file
+- `https://skills.parallel.ai/skills/<skill>/manifest.json` — file manifest + checksums
+- `https://skills.parallel.ai/skills/<skill>/versions.json` — release history for that skill
+- `https://skills.parallel.ai/archives/<skill>/<version>.zip` — immutable GitHub Release archive via CDN redirect
+
 ## Skills
 
 Skills follow the [Agent Skills](https://agentskills.io/specification) specification and double as Claude Code slash commands.
@@ -74,7 +87,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 
 ## Contributing
 
-See [MAINTAINERS.md](MAINTAINERS.md) for dev setup (pre-commit hooks, etc.).
+See [MAINTAINERS.md](MAINTAINERS.md) for maintainer workflows, release process, and dev setup.
 
 ## Resources
 
@@ -101,17 +114,6 @@ cd parallel-agent-skills
 codex
 # Skills are auto-discovered via .agents/skills/
 ```
-
-## Releasing a New Version
-
-Claude Code plugins are pinned to commit SHAs, and `npx skills add` pulls the latest from `main`.
-
-1. Bump the version in all four locations:
-   - `.claude-plugin/plugin.json` → `version`
-   - `.claude-plugin/marketplace.json` → `metadata.version`
-   - `.claude-plugin/marketplace.json` → `plugins[0].version`
-   - `.codex-plugin/plugin.json` → `version`
-2. Commit and push to `main`
 
 ## License
 

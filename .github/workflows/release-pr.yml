@@ -1,0 +1,46 @@
+name: Open release PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      part:
+        description: Semver bump to apply
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  release-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Bump version
+        id: bump
+        run: |
+          version=$(python3 scripts/skills_cdn.py bump-version --part "${{ inputs.part }}")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Create release PR
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "Release v${{ steps.bump.outputs.version }}"
+          branch: "release/v${{ steps.bump.outputs.version }}"
+          delete-branch: true
+          title: "Release v${{ steps.bump.outputs.version }}"
+          body: |
+            ## Release checklist
+            - [ ] Review version bumps and changelog-relevant changes
+            - [ ] Merge this PR to `main`
+
+            Any merged `release/v*` PR triggers the automatic tag + GitHub Release workflow.

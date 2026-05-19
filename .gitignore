@@ -15,6 +15,10 @@ Thumbs.db
 # Node (if any scripts added later)
 node_modules/
 
+# Generated release/CDN artifacts
+dist/
+release-assets/
+
 # Python
 __pycache__/
 *.pyc

@@ -1,0 +1,54 @@
+name: Publish release archives
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build release archives
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          python3 scripts/skills_cdn.py build-archives --version "$version" --output release-assets
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          overwrite_files: true
+          files: release-assets/*.zip
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          path: main-repo
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Rebuild CDN site from main
+        working-directory: main-repo
+        run: python3 scripts/skills_cdn.py build-site --output dist
+
+      - name: Deploy refreshed CDN metadata
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.62.0"
+          workingDirectory: main-repo
