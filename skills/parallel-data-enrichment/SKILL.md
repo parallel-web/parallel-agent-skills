@@ -56,6 +56,7 @@ The enrichment will run with the full context of that prior research — so you 
 **IMPORTANT:** Always include `--no-wait` so the command returns immediately instead of blocking.
 
 Parse the `--json` output to extract `taskgroup_id` and `url`. The output is `{taskgroup_id, url, num_runs}` — there is no `interaction_id` field, do not look for one. Immediately tell the user:
+
 - Enrichment has been kicked off
 - The monitoring URL where they can track progress
 
@@ -70,12 +71,14 @@ parallel-cli enrich poll "$TASKGROUP_ID" --timeout 540 --output "/tmp/enrichment
 ```
 
 Important:
+
 - Use `--timeout 540` (9 minutes) to stay within tool execution limits
 - The `--target` from step 1 is unused in `--no-wait` mode — only `--output` here determines where results are saved, and the file is always JSON
 
 ### If the poll times out
 
 Enrichment of large datasets can take longer than 9 minutes. If the poll exits without completing:
+
 1. Tell the user the enrichment is still running server-side
 2. Re-run the same `parallel-cli enrich poll` command to continue waiting
 
@@ -84,6 +87,7 @@ Enrichment of large datasets can take longer than 9 minutes. If the poll exits w
 **After step 1:** Share the monitoring URL (for tracking progress).
 
 **After step 2:**
+
 1. Report number of rows enriched
 2. Preview first few rows from the output file (it's a JSON array of `{input, output}` objects)
 3. Tell the user the full path to the output file

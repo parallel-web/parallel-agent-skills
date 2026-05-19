@@ -1,0 +1,7 @@
+default: true
+
+# Prose is not hard-wrapped; line length is enforced by editors, not linters.
+MD013: false
+
+# Skill and agent files start with YAML frontmatter, not a heading.
+MD041: false

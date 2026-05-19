@@ -32,6 +32,7 @@ parallel-cli extract "https://docs.parallel.ai" --json -o "/tmp/parallel-docs.js
 Note: `-o` always saves JSON. The extension must be `.json`.
 
 Options if needed:
+
 - `--objective "focus area"` to focus extraction on a specific goal (also silences the "neither objective nor search_queries" warning that V1 emits when neither is set)
 - `-q "keyword"` (repeatable) to prioritize keywords in excerpts
 - `--full-content` to include the complete page body (for long articles, PDFs, or when excerpts may not capture what you need)
@@ -41,6 +42,7 @@ Options if needed:
 ## Handling failed extractions
 
 If the response has an `errors` field, an empty `results` array, or a 404/timeout for the URL, do NOT fabricate content. Tell the user the extraction failed, surface the upstream status, and suggest:
+
 - Verifying the URL (the page may have moved)
 - Retrying with `--full-content` if excerpts came back empty but the page exists
 - Using `parallel-cli search` to locate the current URL if the page was renamed
@@ -52,6 +54,7 @@ Return content as:
 **[Page Title](URL)**
 
 Then the extracted content verbatim, with these rules:
+
 - Keep content verbatim - do not paraphrase or summarize
 - Parse lists exhaustively - extract EVERY numbered/bulleted item
 - Strip only obvious noise: nav menus, footers, ads
