@@ -61,4 +61,10 @@ After the response, mention the output file path (`/tmp/$FILENAME.json`) so the 
 
 ## Setup
 
-Requires `parallel-cli` (installed and authenticated). If `parallel-cli --version` fails, or if a later command fails with an authentication error, tell the user to see https://docs.parallel.ai/integrations/cli and stop.
+If `parallel-cli` is not found, install and authenticate:
+
+```bash
+/parallel:parallel-cli-setup
+```
+
+If `parallel-cli extract` returns `403`, tell the user balance is likely required. Offer to run `parallel-cli balance get`, and if needed ask for explicit confirmation before running `parallel-cli balance add <amount_cents>`. Then retry the original extract command.

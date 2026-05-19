@@ -31,20 +31,11 @@
 
 ### Agent Skills
 
-Use the [Vercel Skills CLI](https://github.com/vercel-labs/skills) to install skills into Cursor, Cline, GitHub Copilot, and 30+ other agents.
+Use `parallel-cli` to install skills into Cursor, Cline, GitHub Copilot, and other compatible agents.
 
 ```bash
-# Install all skills globally (available in all projects)
-npx skills add parallel-web/parallel-agent-skills --all --global
-
-# Or install to current project only
-npx skills add parallel-web/parallel-agent-skills --all
-
-# Install a specific skill
-npx skills add parallel-web/parallel-agent-skills --skill parallel-web-search
-
-# Preview available skills
-npx skills add parallel-web/parallel-agent-skills --list
+# Install all Parallel skills
+parallel-cli skills install
 ```
 
 ### Claude Code
@@ -56,8 +47,8 @@ Available as a [Claude Code Plugin Marketplace](https://code.claude.com/docs/en/
 /plugin install parallel
 # restart Claude Code before continuing!
 
-# this will install the CLI and authenticate if not done already
-/parallel:setup
+# this will install/update CLI and authenticate if not done already
+/parallel:parallel-cli-setup
 ```
 
 ### OpenAI Codex
@@ -90,7 +81,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 | **parallel-data-enrichment** | Enrich lists of companies, people, products |
 | **parallel-findall** | Discover entities matching a natural-language description |
 | **parallel-monitor** | Continuously track the web for changes (with webhooks) |
-| **setup** | Install CLI and authenticate |
+| **parallel-cli-setup** | Install/update CLI, authenticate, and handle balance |
 | **status** | Check running research task status |
 | **result** | Get completed research task result |
 
@@ -103,7 +94,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 /parallel:parallel-data-enrichment Apple, Microsoft, Google - get CEO names
 /parallel:parallel-findall AI startups that raised Series A in 2026
 /parallel:parallel-monitor track price changes for the iPhone 16 Pro
-/parallel:setup
+/parallel:parallel-cli-setup
 ```
 
 ## Resources
@@ -120,7 +111,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 ```bash
 git clone https://github.com/parallel-web/parallel-agent-skills.git
 claude --plugin-dir /path/to/parallel-agent-skills
-/parallel:setup
+/parallel:parallel-cli-setup
 ```
 
 **Codex:**

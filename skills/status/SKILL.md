@@ -16,4 +16,4 @@ metadata:
 parallel-cli research status "$ARGUMENTS" --json
 ```
 
-If CLI not found, tell user to run `/parallel:setup`.
+If CLI not found, tell user to run `/parallel:parallel-cli-setup`.
