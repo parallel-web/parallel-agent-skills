@@ -1,0 +1,43 @@
+name: Sync Mintlify skills into docs repo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "skills/**"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout skills repo
+        uses: actions/checkout@v4
+
+      - name: Checkout docs repo
+        uses: actions/checkout@v4
+        with:
+          repository: parallel-web/documentation
+          token: ${{ secrets.DOCS_REPO_TOKEN }}
+          path: docs
+
+      - name: Sync skills into docs repo
+        run: |
+          rm -rf docs/.mintlify/skills
+          mkdir -p docs/.mintlify
+          cp -R skills docs/.mintlify/skills
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.DOCS_REPO_TOKEN }}
+          path: docs
+          commit-message: sync skills from parallel-agent-skills
+          branch: chore/sync-agent-skills
+          title: Sync agent skills from parallel-agent-skills
+          body: |
+            Automated sync from parallel-web/parallel-agent-skills.
+          delete-branch: true
