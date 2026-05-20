@@ -7,14 +7,14 @@
   },
   "metadata": {
     "description": "Official Parallel Web Systems plugin for Claude Code - web search, content extraction, deep research, data enrichment, entity discovery, and web monitoring.",
-    "version": "0.4.1",
+    "version": "0.4.2",
     "pluginRoot": "./"
   },
   "plugins": [
     {
       "name": "parallel",
       "description": "Parallel CLI integration for web search, URL extraction, deep research, bulk data enrichment, entity discovery (FindAll), and continuous web monitoring — powered by Parallel's AI-native web infrastructure.",
-      "version": "0.4.1",
+      "version": "0.4.2",
       "source": "./",
       "author": {
         "name": "Parallel Web Systems",
