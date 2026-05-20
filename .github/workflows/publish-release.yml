@@ -7,6 +7,10 @@ on:
     types:
       - completed
 
+concurrency:
+  group: skills-parallel-ai-deploy
+  cancel-in-progress: false
+
 jobs:
   publish-release:
     if: github.event.workflow_run.conclusion == 'success'
