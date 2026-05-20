@@ -1,12 +1,15 @@
 name: Publish release archives
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_run:
+    workflows:
+      - Create release tag
+    types:
+      - completed
 
 jobs:
   publish-release:
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -27,14 +30,20 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Read release version
+        id: version
+        run: |
+          version=$(tr -d '\n' < VERSION)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: Build release archives
         run: |
-          version="${GITHUB_REF_NAME#v}"
-          pnpm run build:archives -- --version "$version" --output release-assets
+          pnpm run build:archives -- --version "${{ steps.version.outputs.version }}" --output release-assets
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: "v${{ steps.version.outputs.version }}"
           generate_release_notes: true
           overwrite_files: true
           files: release-assets/*.zip
