@@ -107,6 +107,8 @@ The helper script is the canonical maintainer flow for opening release PRs local
 
 Live CDN content always tracks `main`. Immutable archives are published only for tagged releases.
 
+Per-skill archive downloads at `https://skills.parallel.ai/archives/<skill>/<version>.zip` do not live in Cloudflare storage. The Worker in `src/worker.js` treats `/archives/...` as a redirect route and sends users to the matching GitHub Release asset URL. Those zip files are created during the **Publish release archives** workflow by `pnpm run build:archives`, uploaded to the GitHub Release as per-skill assets, and then exposed through the stable CDN redirect path. This is separate from GitHub's automatic repo snapshot zips like `https://github.com/<owner>/<repo>/archive/refs/tags/vX.Y.Z.zip`, which are whole-repo tag archives rather than per-skill release assets.
+
 The automated bump updates these files:
 
 - `VERSION`
@@ -123,7 +125,7 @@ If you ever need to bootstrap or recover a tag for the current `VERSION`, run th
 - **Deploy CDN**: runs on pushes to `main`; deploys the live catalog
 - **pnpm run release:pr**: local helper that bumps semver, pushes `release/v*`, and opens the release PR
 - **Create release tag**: creates `vX.Y.Z` after a merged release PR (or manually)
-- **Publish release archives**: publishes GitHub Release zip assets and refreshes CDN metadata
+- **Publish release archives**: builds per-skill zip files, uploads them to the GitHub Release, and refreshes CDN metadata
 
 ### Useful local commands
 
