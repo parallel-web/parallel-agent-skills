@@ -19,6 +19,7 @@
     "@types/node": "^24.10.1",
     "archiver": "^7.0.1",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "wrangler": "4.92.0"
   }
 }
