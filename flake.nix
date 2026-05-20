@@ -15,7 +15,7 @@
       pkgs = import nixpkgs {inherit system;};
     in {
       devShells.default = pkgs.mkShell {
-        packages = [pkgs.pre-commit];
+        packages = [pkgs.nodejs_22 pkgs.pnpm pkgs.pre-commit];
       };
     });
 }

@@ -15,14 +15,22 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: pnpm/action-setup@v4
         with:
-          python-version: "3.12"
+          version: 11.1.3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Build release archives
         run: |
           version="${GITHUB_REF_NAME#v}"
-          python3 scripts/skills_cdn.py build-archives --version "$version" --output release-assets
+          pnpm run build:archives -- --version "$version" --output release-assets
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -37,13 +45,22 @@ jobs:
           fetch-depth: 0
           path: main-repo
 
-      - uses: actions/setup-python@v5
+      - uses: pnpm/action-setup@v4
         with:
-          python-version: "3.12"
+          version: 11.1.3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies in main checkout
+        working-directory: main-repo
+        run: pnpm install --frozen-lockfile
 
       - name: Rebuild CDN site from main
         working-directory: main-repo
-        run: python3 scripts/skills_cdn.py build-site --output dist
+        run: pnpm build
 
       - name: Deploy refreshed CDN metadata
         uses: cloudflare/wrangler-action@v3
