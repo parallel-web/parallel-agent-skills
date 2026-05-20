@@ -1,6 +1,6 @@
 {
   "name": "parallel",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Parallel Web Search and Task API integration. Provides web search, content extraction, deep research, data enrichment, entity discovery (FindAll), and web monitoring.",
   "author": {
     "name": "Parallel Web Systems",
@@ -28,7 +28,10 @@
     "longDescription": "AI-native web infrastructure for coding agents. Search the web, extract content from URLs, run deep multi-source research tasks, bulk-enrich datasets with web-sourced fields, discover entities matching a natural-language description (FindAll), and continuously monitor the web for changes — all through the parallel-cli.",
     "developerName": "Parallel Web Systems",
     "category": "Productivity",
-    "capabilities": ["Read", "Write"],
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
     "websiteURL": "https://parallel.ai",
     "privacyPolicyURL": "https://parallel.ai/privacy",
     "termsOfServiceURL": "https://parallel.ai/terms",
