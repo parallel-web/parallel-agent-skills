@@ -26,10 +26,12 @@ If missing, install with any of these methods:
 3. Linux/macOS/Windows (npm): `npm install -g parallel-web-cli`
 4. Linux/macOS/Windows (pipx): `pipx install "parallel-web-tools[cli]" && pipx ensurepath`
 
-If it already exists, check the version. These instructions require **0.4.0 or greater**. If lower, prompt the user to update using the method they originally used. Identify the install method from the path of the `parallel-cli` executable. If it's located in `~/.local/bin`, it was installed by a legacy method — remove the binary and reinstall using one of the methods above.
+When `parallel-cli` is present, require version `>=0.4.0`. If older, identify the install method before advising an update. Use `command -v parallel-cli`, then inspect `readlink "$(command -v parallel-cli)"` if it is a symlink. Paths under `~/.local/share/uv/
+  tools/` indicate `uv tool install`; paths under `~/.local/share/parallel-cli/` indicate the standalone installer.
 
 Upgrade commands (choose based on how it was installed):
 
+- standalone: `parallel-cli update`
 - uv: `uv tool upgrade parallel-web-tools[cli]`
 - pipx: `pipx upgrade parallel-web-tools[cli]`
 - npm: `npm update -g parallel-web-cli`
