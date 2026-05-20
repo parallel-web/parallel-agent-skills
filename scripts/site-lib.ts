@@ -268,17 +268,11 @@ function buildVersionsPayload(skillName: string, releases: ReleaseInfo[]) {
     schema_version: SCHEMA_VERSION,
     name: skillName,
     latest_release_version: latestReleaseVersion,
-    versions: releases.map((release) => {
-      const assetName = `${skillName}-${release.version}.zip`;
-      return {
-        version: release.version,
-        archive_url: absoluteUrl(`/archives/${skillName}/${release.version}.zip`),
-        asset_name: assetName,
-        release_url: `${REPOSITORY}/releases/tag/v${release.version}`,
-        github_asset_url: `${REPOSITORY}/releases/download/v${release.version}/${assetName}`,
-        published_at: release.published_at,
-      };
-    }),
+    versions: releases.map((release) => ({
+      version: release.version,
+      archive_url: absoluteUrl(`/archives/${skillName}/${release.version}.zip`),
+      published_at: release.published_at,
+    })),
   };
 }
 
