@@ -52,9 +52,9 @@ Useful endpoints:
 
 - [skills.parallel.ai](https://skills.parallel.ai) — human-friendly catalog and install instructions
 - [skills.parallel.ai/index.json](https://skills.parallel.ai/index.json) — machine-readable skill index
-- `https://skills.parallel.ai/skills/<skill>/SKILL.md` — live raw skill file
-- `https://skills.parallel.ai/skills/<skill>/manifest.json` — file manifest + checksums
-- `https://skills.parallel.ai/skills/<skill>/versions.json` — release history for that skill
+- `https://skills.parallel.ai/<skill>/SKILL.md` — live raw skill file
+- `https://skills.parallel.ai/<skill>/manifest.json` — file manifest + checksums
+- `https://skills.parallel.ai/<skill>/versions.json` — release history for that skill
 - `https://skills.parallel.ai/archives/<skill>/<version>.zip` — immutable GitHub Release archive via CDN redirect
 
 ## Skills

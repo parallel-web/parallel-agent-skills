@@ -1,0 +1,24 @@
+{
+  "name": "parallel-agent-skills",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.1.3",
+  "scripts": {
+    "build": "tsx scripts/build.ts site --output dist",
+    "dev": "tsx scripts/dev.ts",
+    "build:archives": "tsx scripts/build.ts archives",
+    "release:bump": "tsx scripts/release.ts bump-version",
+    "release:pr": "tsx scripts/open-release-pr.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@types/archiver": "^6.0.3",
+    "@types/node": "^24.10.1",
+    "archiver": "^7.0.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

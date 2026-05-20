@@ -13,6 +13,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.1.3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -24,9 +36,9 @@ jobs:
         run: pre-commit run --all-files
 
       - name: Validate CDN site build
-        run: python3 scripts/skills_cdn.py build-site --output dist
+        run: pnpm build
 
       - name: Validate release archive build
         run: |
           version=$(tr -d '\n' < VERSION)
-          python3 scripts/skills_cdn.py build-archives --version "$version" --output release-assets
+          pnpm run build:archives -- --version "$version" --output release-assets

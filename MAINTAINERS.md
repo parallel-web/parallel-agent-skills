@@ -39,13 +39,26 @@ pre-commit run --all-files
 
 The live catalog at `skills.parallel.ai` is generated from `skills/` on every push to `main`.
 
+Install JS tooling once per clone:
+
+```bash
+corepack enable
+pnpm install
+```
+
 Build it locally with:
 
 ```bash
-python3 scripts/skills_cdn.py build-site --output dist
+pnpm build
 ```
 
-This writes the deployable Worker assets to `dist/`.
+Preview the generated site locally with:
+
+```bash
+pnpm run dev
+```
+
+This writes the deployable Worker assets to `dist/` and serves them at `http://127.0.0.1:8000` during preview.
 
 For local Wrangler deploys or other direct Wrangler commands, set these system environment variables in your shell or `.env` file:
 
@@ -73,13 +86,24 @@ This updates the live `main` channel only. No tag or GitHub Release is created.
 
 Releases are repo-wide semver tags backed by GitHub Release archives.
 
-1. Run the **Open release PR** workflow with `patch`, `minor`, or `major`
-2. Review the generated PR and merge it to `main`
-3. Automation will then:
+1. Start from a clean, up-to-date `main` branch:
+   ```bash
+   git switch main
+   git pull --ff-only
+   gh auth status # or: gh auth login
+   ```
+2. Run the local release PR helper with `patch`, `minor`, or `major`:
+   ```bash
+   pnpm run release:pr -- --part patch
+   ```
+3. Review the generated PR and merge it to `main`
+4. Automation will then:
    - bump the shared repo version in all required manifests
    - create the corresponding git tag
    - publish per-skill zip files to GitHub Releases
    - refresh `skills.parallel.ai` metadata so `versions.json` and `index.json` include the new release
+
+The helper script is the canonical maintainer flow for opening release PRs locally: it bumps the version, creates and pushes `release/vX.Y.Z`, and opens the PR via `gh`.
 
 Live CDN content always tracks `main`. Immutable archives are published only for tagged releases.
 
@@ -97,7 +121,7 @@ If you ever need to bootstrap or recover a tag for the current `VERSION`, run th
 
 - **Validate PR**: runs on PRs to `main`; executes pre-commit and validates site/archive builds
 - **Deploy CDN**: runs on pushes to `main`; deploys the live catalog
-- **Open release PR**: manual workflow that bumps semver and opens `release/v*`
+- **pnpm run release:pr**: local helper that bumps semver, pushes `release/v*`, and opens the release PR
 - **Create release tag**: creates `vX.Y.Z` after a merged release PR (or manually)
 - **Publish release archives**: publishes GitHub Release zip assets and refreshes CDN metadata
 
@@ -105,8 +129,11 @@ If you ever need to bootstrap or recover a tag for the current `VERSION`, run th
 
 ```bash
 # bump VERSION + plugin manifests locally
-python3 scripts/skills_cdn.py bump-version --part patch
+pnpm run release:bump -- --part patch
+
+# create and open a release PR locally
+pnpm run release:pr -- --part patch
 
 # build GitHub Release zip archives for a specific version
-python3 scripts/skills_cdn.py build-archives --version 0.3.2 --output release-assets
+pnpm run build:archives -- --version 0.3.2 --output release-assets
 ```
