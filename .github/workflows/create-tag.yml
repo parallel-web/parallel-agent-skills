@@ -7,18 +7,10 @@ on:
       - closed
     branches:
       - main
-  push:
-    branches:
-      - main
-    paths:
-      - "VERSION"
-      - ".claude-plugin/plugin.json"
-      - ".claude-plugin/marketplace.json"
-      - ".codex-plugin/plugin.json"
 
 jobs:
   tag-release:
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/v')) || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Release v'))
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/v'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
