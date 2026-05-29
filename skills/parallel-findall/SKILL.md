@@ -3,7 +3,7 @@ name: parallel-findall
 description: "Discover entities (companies, people, products, etc.) matching a natural-language description. Use when the user asks to 'find all X' or 'list every Y that…' — e.g., 'Find AI startups that raised Series A in 2026', 'List roofing companies in Charlotte NC', 'Show me YC W24 dev tools companies'. Different from web-search (which returns webpages) and deep-research (which returns a narrative report). Use this when the user wants a structured list of entities."
 user-invocable: true
 argument-hint: <objective describing entities to find>
-compatibility: Requires parallel-cli >= 0.3.0 and internet access.
+compatibility: Requires parallel-cli >= 0.6.0 and internet access.
 allowed-tools: Bash(parallel-cli:*)
 metadata:
   author: parallel
@@ -13,7 +13,7 @@ metadata:
 
 Find: $ARGUMENTS
 
-> Requires `parallel-cli` ≥ 0.3.0 (the `findall` command was added in 0.3.0). If `parallel-cli findall` errors with `no such command` or similar, tell the user to run `parallel-cli update` (or `pipx upgrade parallel-web-tools` if installed via pipx), then retry.
+> Requires `parallel-cli` ≥ 0.6.0 (the `findall entity-search` command was added in 0.6.0; the broader `findall` command was added in 0.3.0). If either errors with `no such command` or similar, tell the user to run `parallel-cli update` (or `pipx upgrade parallel-web-tools` if installed via pipx), then retry.
 
 ## When to use this skill
 
@@ -27,6 +27,15 @@ Use FindAll when the user wants a **structured list of entities** matching a des
 | Add fields to a list you already have | parallel-data-enrichment |
 
 If the user already has a list and just wants to add fields, this is the wrong skill — use parallel-data-enrichment.
+
+FindAll has two paths: the comprehensive, asynchronous `findall run` (Steps 1–2) and the fast, synchronous `entity-search` (final section).
+
+- **`entity-search`** — very fast (few seconds), only supports people or company search. Supports a more limited set of query arguments.
+- **`findall run`** — Provides comprehensive coverage, complex, match conditions, exclusions, enrichment, citations, or a type other than people/companies.
+
+If it's ambiguous, ask the user which they'd prefer and offer a default. Remember entity search limits: companies/people only, no exclusions/generator/enrichment, and `entity_set_id` can't be used with `enrich`/`extend` (re-run via `findall run` if needed).
+
+Switch to `entity-search` **only when the user explicitly signals they want a fast, throwaway list**. `entity-search` is also strictly more limited: it only supports `companies` or `people` entity types, no exclusions, no generator choice, no enrichment, and the returned `entity_set_id` is **not** usable with `findall enrich`/`extend`. If you start there and the user later asks to enrich or extend, you'll have to re-run via `findall run`.
 
 ## Step 1: Start the run
 
@@ -78,7 +87,7 @@ Before presenting matches, **filter the results** for obvious noise:
 
 - Drop entries with empty/missing `url`
 - Drop entries whose `name` echoes the user's query (e.g., literal "YC W25 batch companies in developer tools") — those are search-result placeholders, not real entities
-- Drop entries whose `url` is a third-party directory or profile page rather than the entity's own domain. Concretely: drop URLs on `linkedin.com`, `ycombinator.com/companies/...`, `crunchbase.com`, `pitchbook.com`, generic news/blog posts about the entity, etc. The URL should be something the entity itself owns (its product site, docs, or marketing site)
+- Drop entries whose `url` is a third-party directory or profile page rather than the entity's own domain. The URL should be something the entity itself owns (its product site, docs, or marketing site)
 
 If filtering removes a meaningful share of matches, mention this to the user and suggest re-running with `-g pro` or a higher `-n`.
 
@@ -99,6 +108,36 @@ Tell the user:
 
     The schema is a JSON Schema-style object with `properties` mapping field names → `{type, description?}`.
   - Get more matches: `parallel-cli findall extend $FINDALL_ID 50`
+
+## Fast entity search
+
+**Use this path only when the user explicitly signals they want a quick/rough/preview list** — do not pick it just because the entity type happens to be `companies` or `people`.
+
+Synchronous call. No polling, no `findall_id`. Pick a descriptive `$FILENAME` (lowercase, hyphens, no spaces), as in Step 2.
+
+```bash
+parallel-cli findall entity-search "$ARGUMENTS" -t companies -n 25 -o "/tmp/$FILENAME.json"
+```
+
+Flags:
+
+- `-t companies|people` — entity type (required). The endpoint only supports these two; for anything else, use `findall run`
+- `-n 5..1000` — match limit (default `10`).
+- Do NOT pass `--json` for large result sets — it will flood context. `-o` saves the full results to disk
+
+Response shape:
+
+```json
+{ "entity_set_id": "entity_set_…", "entities": [ {"name": "...", "url": "...", "description": "..."},
+… ] }
+```
+
+Unlike the full path, the `url` returned by `entity-search` is usually a directory/profile link — expected, not noise. Don't drop them; only filter out entries with an empty `url` or a `name` that echoes the query.
+
+Present the kept entities as a markdown table or list, lead with the count, and cite each with its source URL. Tell the user:
+
+- How many entities came back (and how many were filtered as noise)
+- The full results path (`/tmp/$FILENAME.json`) if `-o` was used
 
 ## Setup
 
