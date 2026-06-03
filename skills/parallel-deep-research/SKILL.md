@@ -1,6 +1,10 @@
 ---
 name: parallel-deep-research
-description: "ONLY use when user explicitly says 'deep research', 'exhaustive', 'comprehensive report', or 'thorough investigation'. Slower and more expensive than parallel-web-search. For normal research/lookup requests, use parallel-web-search instead. Supports multi-turn: pass --previous-interaction-id from a prior research or enrichment to continue with context."
+description: >-
+  This skill should be used ONLY when the user explicitly says "deep research", "exhaustive
+  search", "comprehensive report", or "thorough investigation". Slower and more expensive than
+  parallel-web-search. Not for normal lookups. Supports multi-turn continuation via
+  --previous-interaction-id.
 user-invocable: true
 argument-hint: <topic>
 compatibility: Requires parallel-cli >= 0.3.0 and internet access.
