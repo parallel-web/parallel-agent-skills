@@ -30,7 +30,7 @@ If the user already has a list and just wants to add fields, this is the wrong s
 
 FindAll has two paths: the comprehensive, asynchronous `findall run` (Steps 1–2) and the fast, synchronous `entity-search` (final section).
 
-- **`entity-search`** — very fast (few seconds), only supports people or company search. Supports a more limited set of query arguments.
+- **`entity-search`** — very fast (few seconds), only supports people or company search. Supports a more limited set of query arguments. Optimized for recall over precision; results are not individually verified.
 - **`findall run`** — Provides comprehensive coverage, complex, match conditions, exclusions, enrichment, citations, or a type other than people/companies.
 
 If it's ambiguous, ask the user which they'd prefer and offer a default. Remember entity search limits: companies/people only, no exclusions/generator/enrichment, and `entity_set_id` can't be used with `enrich`/`extend` (re-run via `findall run` if needed).
@@ -116,14 +116,16 @@ Tell the user:
 Synchronous call. No polling, no `findall_id`. Pick a descriptive `$FILENAME` (lowercase, hyphens, no spaces), as in Step 2.
 
 ```bash
-parallel-cli findall entity-search "$ARGUMENTS" -t companies -n 25 -o "/tmp/$FILENAME.json"
+parallel-cli findall entity-search "$ARGUMENTS" -t companies -n 100 -o "/tmp/$FILENAME.json"
 ```
 
 Flags:
 
 - `-t companies|people` — entity type (required). The endpoint only supports these two; for anything else, use `findall run`
-- `-n 5..1000` — match limit (default `10`).
+- `-n 5..1000` — match limit (default `10`). When possible, request more than the user needs (e.g. `-n 100`) and select after filtering — results are ranked but not individually verified, and a low limit can omit relevant entities
 - Do NOT pass `--json` for large result sets — it will flood context. `-o` saves the full results to disk
+
+Avoid highly restrictive objectives on this path: the API fills toward the limit, so relevance declines toward the tail. Keep the core criterion in the objective and filter the rest downstream, or use `findall run`.
 
 Response shape:
 
