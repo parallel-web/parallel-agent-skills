@@ -24,6 +24,9 @@ Resolve `<skill-root>` to the directory containing this `SKILL.md`. Resolve ever
 - Never silently drop a filter, content field, synthesized answer, image, safety control, or score-based decision.
 - Never print API keys or secret values. Check only whether a key is present.
 - Do not add a hidden LLM call merely to manufacture `search_queries`.
+- Do not treat an arbitrary user prompt as a keyword query merely because it fits an API length limit.
+- Keep web-research intent, hard filters, handler policy, and answer-synthesis instructions in their separate contracts.
+- Treat omitted provider parameters as behavior too: inspect their defaults before omitting a Parallel setting.
 - Do not recreate the entire Exa or Tavily SDK behind a compatibility shim. Normalize only the contract the application actually uses.
 - Do not remove credentials from external secret managers or provider dashboards unless the user explicitly asks. Remove obsolete code references and update checked-in templates.
 - Treat mode mappings as starting points. Verify latency, quality, and output behavior with the application's real queries.
@@ -64,18 +67,22 @@ Prefer the design that localizes future search-provider changes and minimizes ed
 
 Build every Parallel Search API request around these facts:
 
-- `search_queries` is required. Supply at least one non-empty query; use 2–3 concise keyword queries when the calling flow can provide them.
-- `objective` is optional but recommended. Preserve the complete user or application intent there.
+- `search_queries` is required. Supply at least one non-empty keyword query; use two or three diverse keyword queries when the calling flow can provide them.
+- `objective` is optional but recommended. Put the self-contained web-research goal there, not the whole user conversation or answer-format instructions.
 - Use `https://api.parallel.ai/v1/search`, `x-api-key`, and `PARALLEL_API_KEY` for direct REST calls.
 - Use the official `parallel-web` package for both Python and TypeScript unless the detected framework has a current first-party Parallel integration that preserves the needed contract.
 
-Handle query sources deliberately:
+Classify every legacy input before translating it:
 
-- Rewrite static queries with an explicit objective and 2–3 keyword queries.
-- Change a model tool schema so the model supplies both fields directly.
-- For arbitrary runtime text, preserve the full text as `objective`. Reuse it as one `search_queries` item only when it satisfies the current API limits. Otherwise accept caller-supplied keyword queries or use an existing query-planning step. Do not silently truncate intent.
+- full web-research goal, context, or soft source/freshness preference → `objective`;
+- concise retrieval probes → `search_queries`;
+- must-only or must-never source restrictions → `advanced_settings.source_policy`;
+- answer format, synthesis instructions, structured output, or streaming → the existing synthesis layer, Chat API, or Task API;
+- latency, result count, cache, and excerpt controls → application-owned policy chosen and tested explicitly.
 
-Apply the provider mapping in the relevant reference. Preserve only settings that implement a real product requirement; unnecessary `advanced_settings` can reduce quality.
+For static calls, write an explicit objective and two or three keyword probes. For model tools, use the exact-three-query schema in [references/integration-patterns.md](references/integration-patterns.md). A one-query direct-call fallback is only for an already keyword-style legacy value and must be evaluated. Do not silently truncate intent, invent keyword variants, add a hidden planner, or move hard filters into prose.
+
+Apply the provider mapping only after that classification. Preserve only settings that implement a real product requirement; unnecessary `advanced_settings` can reduce quality.
 
 Validate runtime values against the Parallel V1 contract before sending them. Pay particular attention to query count/length, objective length, the combined 200-domain limit, date normalization, and supported location codes. Do not carry the old provider's numeric ranges forward implicitly.
 
@@ -111,6 +118,8 @@ Never expose or rewrite real secret values in logs, reports, patches, or fixture
 Add or update tests for:
 
 - request construction, including `search_queries`, mode, filters, dates, and location;
+- query-design behavior: static requests, direct one-query compatibility paths, and model-tool schemas;
+- omitted legacy defaults, dual domain lists, and any approved semantic change;
 - target-limit validation for dynamic queries and domain lists;
 - response parsing and excerpt joining;
 - empty results, missing optional titles/dates, warnings, and errors;
@@ -135,6 +144,7 @@ Finish only when all applicable statements are true:
 
 - No Exa/Tavily runtime dependency, import, endpoint, auth header, key reference, tool definition, fixture, or stale setup instruction remains.
 - Every used request feature and response field has an implemented Parallel path or an explicitly approved behavior change.
+- Query construction preserves the research goal, uses keyword-shaped retrieval probes, and follows the applicable direct-call or model-tool contract.
 - Tests and static checks pass, or unrelated pre-existing failures are identified with evidence.
 - The legacy scan passes and every identified provider response has been traced through its downstream consumers.
 - A live call passes when it was explicitly authorized and credentials are available; otherwise the missing live verification is stated clearly.

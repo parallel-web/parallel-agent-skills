@@ -18,9 +18,8 @@ Write the full research goal once and pair it with concise keyword queries. Keep
 
 ```python
 response = client.search(
-    objective="Find current official release notes for the libraries used in this project.",
-    search_queries=["official library release notes", "latest dependency releases"],
-    mode="basic",
+    objective="Find current official release notes for React and Vite used in this project.",
+    search_queries=["React release notes", "Vite release notes"],
 )
 ```
 
@@ -29,17 +28,19 @@ response = client.search(
 Separate full intent from retrieval terms at the caller boundary:
 
 ```python
-def search_web(*, objective: str, search_queries: list[str]):
+def search_web(*, objective: str, search_queries: list[str], mode: str):
     if not search_queries:
         raise ValueError("search_queries must contain at least one query")
     return parallel_client.search(
         objective=objective,
         search_queries=search_queries,
-        mode="basic",
+        mode=mode,
     )
 ```
 
-Prefer changing an upstream structured caller to provide both fields. If the existing contract supplies only one short query, using it as both `objective` and the sole `search_queries` item is a valid compatibility step within current length limits. Do not silently truncate long text or add an unpriced, unobserved model call for query expansion.
+Prefer changing an upstream structured caller to provide both fields. A one-query compatibility path is valid only when the old value is already a short keyword-style query. A question or application prompt can be valid API input and still be a poor retrieval query; do not decide from length alone. Preserve that text as `objective`, then use caller-provided queries or an existing explicit planning step. Do not silently truncate long text, regex-split it, or add an unpriced, unobserved model call for query expansion.
+
+Choose `mode` from the latency SLO, query quality, and a representative eval. Do not infer it from a provider-tier name alone.
 
 ## Model tool calling
 
@@ -56,9 +57,9 @@ Change the tool input contract instead of expanding queries inside the handler:
     "search_queries": {
       "type": "array",
       "items": {"type": "string"},
-      "minItems": 1,
+      "minItems": 3,
       "maxItems": 3,
-      "description": "Concise 3-6 word keyword queries covering distinct angles."
+      "description": "Exactly 3 diverse 3-6 word keyword queries. Each includes the key entity or topic. Never use sentences, instructions, or site: operators."
     }
   },
   "required": ["objective", "search_queries"]

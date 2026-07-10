@@ -17,27 +17,30 @@ Important: the current direct Exa SDKs add a 10,000-character text request when 
 
 | Exa behavior | Parallel migration |
 | --- | --- |
-| `query` | Preserve full intent in `objective`; supply at least one concise `search_queries` item. Use 2–3 when the caller or tool schema can provide them. |
-| `type: "instant"` or `"fast"` | Start with `mode: "turbo"`; verify latency and quality. |
-| `type: "auto"` | Start with `mode: "basic"`; verify against representative queries. |
-| `type: "deep-lite"`, `"deep"`, or `"deep-reasoning"` used only for ranked results | Start with Search API `mode: "advanced"`. |
-| A deep type, `outputSchema`, `systemPrompt`, streaming synthesis, or code reading `output` | Use the Task API for asynchronous multi-step/structured research, or the Chat API/existing model for an interactive grounded completion. Do not map synthesized output to Search API results. |
+| `query` | Preserve the web-research goal in `objective`; use concise keyword probes for `search_queries`. Do not duplicate a full prompt only because it fits a length limit. |
+| `type: "instant"` | Consider `mode: "turbo"` only for a latency-first path. Verify result quality and output shape. |
+| `type: "fast"` | Start the evaluation with `mode: "basic"`, not Turbo: Exa describes this as high-quality reduced-latency search. |
+| `type: "auto"` | No direct equivalent. Choose Basic for a foreground latency SLO or Advanced for quality-first/background work, then evaluate. |
+| omitted `type` | Exa defaults to Auto while Parallel defaults to Advanced. Make the intended mode explicit or test the accepted behavior change. |
+| `type: "deep-lite"`, `"deep"`, or `"deep-reasoning"` used only for ranked results | Treat Search API `mode: "advanced"` as a candidate baseline, not an equivalent. Verify latency and result shape. |
+| `outputSchema`, streaming synthesis, or code reading `output` | Use the Task API for asynchronous multi-step or structured research, or Chat/the existing model for an interactive grounded completion. Do not map synthesized output to Search API results. |
+| `systemPrompt` | Classify its purpose. Move soft source/freshness preferences into `objective`; keep hard source restrictions in source policy; preserve output instructions in the chosen synthesis layer. Implement and test duplicate suppression or other agent behavior at that boundary; Search has no one-field equivalent. Do not route every `systemPrompt` to Chat or Task. |
 | Exa `/answer`, `stream_answer`, or `streamAnswer` | Use the Chat API for an interactive answer or the Task API for deeper/structured research; preserve citations and streaming behavior explicitly. |
-| `numResults` / `num_results` | `advanced_settings.max_results`. Exa permits up to 100; do not assume Parallel accepts the same upper range without live validation. |
-| `includeDomains` / `excludeDomains` | `advanced_settings.source_policy.include_domains` / `exclude_domains`. Parallel's combined limit is 200 versus Exa's larger lists. Reject or redesign oversized runtime lists; never truncate silently. |
+| `numResults` / `num_results` | `advanced_settings.max_results`. Exa permits up to 100; do not assume Parallel accepts the same upper range without validation. Current public defaults are 10 in both APIs, but inspect SDK-wrapper behavior before relying on omission. |
+| `includeDomains` / `excludeDomains` | Map a single list directly. If both are set, reconcile the effective legacy behavior and send only one Parallel list: Parallel applies only `include_domains` when both are present. Reject, redesign, or explicitly approve oversized/ambiguous runtime lists; never truncate silently. |
 | `startPublishedDate` | Convert the ISO timestamp to `advanced_settings.source_policy.after_date` (`YYYY-MM-DD`) only if loss of time-of-day precision is acceptable. Exa says “after”; Parallel's boundary is inclusive, so test the boundary. |
 | `endPublishedDate` | No direct Search API equivalent. Use an explicit post-filter only if missing `publish_date` values are handled safely, or choose another research path. |
 | deprecated `startCrawlDate` / `endCrawlDate` | No direct equivalent. These filter when Exa discovered a link, not when it was published, and Parallel results do not expose a crawl date for post-filtering. Remove only if the behavior is confirmed unused; otherwise stop for an explicit design decision. |
-| `userLocation` | Lowercase the ISO alpha-2 code into `advanced_settings.location`; inspect warnings for unsupported locations. |
-| `additionalQueries` | Fold useful variants into the required `search_queries` array, respecting Parallel's maximum of 5. |
-| `category: "company"` or `"people"` | Prefer Entity Search or the FindAll API, based on speed versus verification needs. |
+| `userLocation` | Use `advanced_settings.location` only when geo-targeting was a product requirement. If the old value was a soft preference, state it in `objective` and evaluate; inspect warnings for unsupported locations. |
+| `additionalQueries` | Exa uses these only with deep-search types. First verify whether a non-deep legacy call ignored or rejected them. When they were effective, Exa can send the main query plus up to 10 variants while Parallel accepts at most 5 total. Select/rewrite variants with an explicit strategy, split into multiple calls with an explicit merge/dedup/order contract, or get an approved behavior change. Never silently keep the first few. |
+| `category: "company"` or `"people"` | Use Entity Search or FindAll only when the application needs entity candidates or enrichment. If it still consumes page URLs, highlights, or text, keep Search and express the category as an objective hint, then evaluate. |
 | Other `category` values | Express the content/source intent in `objective`; verify results. |
-| `contents.highlights` | Parallel Search API `excerpts` is the closest behavior. |
-| `contents.text` | Use Search API excerpts only when relevant snippets satisfy the consumer. Use the Extract API for full content from selected URLs. |
+| `contents.highlights` | Parallel Search API `excerpts` is the closest behavior. If Exa supplied `highlights.query`, fold that focus into the objective/query design and test per-page relevance. |
+| `contents.text` | Use Search API excerpts only when relevant snippets satisfy the consumer. Otherwise Extract every result whose text the old caller observes, preserve URL association and partial errors, and select a subset only if the old caller already did. Text rendering, section, and HTML controls need an application-layer normalization or an explicit behavior change. |
 | deprecated combined `context` | Treat it as a consumed full-content contract. Use excerpts only if the caller accepts snippets; otherwise use Extract and rebuild the application-owned combined context deliberately. |
-| `contents.summary` | Use the Chat API, Task API, or the application's existing model. The Search API does not synthesize an answer or per-page summary. |
+| `contents.summary` | This is a per-page contract. Extract each legacy-consumed URL, synthesize one summary per URL, and preserve association/partial errors. Treat a separate Chat or Task answer as request-level synthesis, not as a replacement. Search synthesizes neither form. |
 | `contents.text.maxCharacters` or highlight budget | Use `advanced_settings.excerpt_settings.max_chars_per_result` only for excerpt budgets; use Extract API settings for true page content. |
-| `contents.maxAgeHours` | Convert positive hours to `advanced_settings.fetch_policy.max_age_seconds`. Exa `0` means always live crawl, while Parallel documents a 600-second minimum; this is not exact. |
+| `contents.maxAgeHours` | Treat `0` (fresh), `-1` (always cache), omission (fallback fetch), and stale-cache failure as separate behaviors. Convert positive hours to `advanced_settings.fetch_policy.max_age_seconds` only after deciding stale-fallback behavior; set `disable_cache_fallback: true` when the old path must fail rather than return stale content. Parallel's documented 600-second minimum is not an exact match for Exa `0`. |
 | `contents.livecrawl`, subpages, extras, or code blocks | No single Search API field equivalent. Route known URLs through the Extract API or redesign the feature explicitly. |
 | deprecated `find_similar` / `findSimilar` variants | No direct URL-similarity switch. Redesign as a natural-language Search API objective and verify the new semantics. |
 | `moderation` or `compliance: "hipaa"` | No verified one-field Search API equivalent. Treat this as a security/compliance blocker until the requirement has an approved Parallel design. |
@@ -52,7 +55,7 @@ Important: the current direct Exa SDKs add a 10,000-character text request when 
 | `results[].highlights` | `results[].excerpts` |
 | `results[].text` | Join excerpts only if snippets meet the contract; otherwise use Search API then Extract API |
 | `results[].highlightScores` | No equivalent. Results are already ranked. Remove display/threshold logic or replace it with a tested application rule. |
-| `results[].summary` | No Search API equivalent; synthesize through the Chat API, Task API, or the existing model |
+| `results[].summary` | No Search API equivalent; preserve the per-URL contract by extracting and synthesizing one summary per result |
 | `results[].author`, `id`, `image`, `favicon`, `subpages`, `entities`, extras | No general Search API equivalent. Remove the consumer or implement an explicit alternative. |
 | `requestId` | `search_id` is the closest request identifier; do not conflate it with `session_id`. |
 | `costDollars` | Parallel `usage` reports SKU counts, not dollars. Update telemetry semantics. |

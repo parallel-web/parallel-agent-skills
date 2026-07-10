@@ -5,6 +5,7 @@ Verified against the official Parallel V1 OpenAPI and docs on 2026-07-10. Rechec
 ## Contents
 
 - [Request contract](#request-contract)
+- [Mode and default decisions](#mode-and-default-decisions)
 - [Auth and SDKs](#auth-and-sdks)
 - [Response contract](#response-contract)
 - [Product routing](#product-routing)
@@ -14,19 +15,25 @@ Verified against the official Parallel V1 OpenAPI and docs on 2026-07-10. Rechec
 
 | Field | Current contract |
 | --- | --- |
-| `search_queries` | Required array. At least one non-empty keyword query; docs recommend 2–3 queries of 3–6 words. Maximum 5 queries and 200 characters per query. |
-| `objective` | Optional self-contained natural-language goal. Docs list a 5,000-character maximum. Supply it for best results. |
+| `search_queries` | Required array of concise keyword probes. Docs recommend 2–3 diverse queries of 3–6 words; model tools should require exactly 3. Maximum 5 queries and 200 characters per query. |
+| `objective` | Optional self-contained natural-language web-research goal. Put context, soft source preference, and freshness preference here; keep answer-format instructions elsewhere. Docs list a 5,000-character maximum. |
 | `mode` | `turbo`, `basic`, or `advanced`; omission defaults to `advanced`. `turbo` targets the lowest latency/cost, `basic` lower latency, and `advanced` deeper retrieval/compression. |
 | `max_chars_total` | Optional upper bound across all returned excerpts. Default is dynamic. |
 | `client_model` | Optional consuming-model identifier used to tune defaults. |
 | `session_id` | Optional string up to 1,000 characters. Reuse it across Search API and Extract API calls for one logical task. |
 | `advanced_settings.max_results` | Optional upper bound; default is 10. |
 | `advanced_settings.location` | ISO 3166-1 alpha-2 code such as `us`, `gb`, `de`, or `jp`. Support is a subset; inspect response warnings. |
-| `advanced_settings.source_policy` | `include_domains`, `exclude_domains`, and `after_date`. The two domain lists have a combined hard limit of 200. `after_date` is an inclusive `YYYY-MM-DD` lower bound. |
+| `advanced_settings.source_policy` | `include_domains`, `exclude_domains`, and `after_date`. Use one domain-list type per request: `include_domains` is a hard allow-list, and it takes precedence if both are sent. The combined limit is 200. `after_date` is an inclusive `YYYY-MM-DD` lower bound. |
 | `advanced_settings.excerpt_settings` | `max_chars_per_result`. Omit unless the application has a real per-result budget. |
 | `advanced_settings.fetch_policy` | `max_age_seconds`, `timeout_seconds`, and `disable_cache_fallback`. Live fetch increases latency; documented minimum cache age is 600 seconds. |
 
 Do not copy the draft guide's English/Japanese-only guard into migrated code. Current official public Search guidance says query input can be in any language, and the current V1 OpenAPI/docs expose no `turbo`-specific language restriction. Recheck if a product requirement depends on a mode-specific language guarantee. The V1 OpenAPI is authoritative when older prose pages lag newly added values such as `turbo`.
+
+## Mode and default decisions
+
+Treat provider-tier names as evidence, not equivalents. Choose Turbo only for an explicit latency-first requirement, Basic for interactive/foreground work with two or three good retrieval probes, and Advanced for quality-first or background work. Advanced is the omission default.
+
+Inspect omitted provider values too. For example, a legacy provider's default result count or mode can differ from Parallel's default even when the call site sends no parameter. Preserve that behavior explicitly or record and test the approved change.
 
 ## Auth and SDKs
 

@@ -17,28 +17,30 @@ Tavily's `results[].content` is not stable across depths: basic/ultra-fast retur
 
 | Tavily behavior | Parallel migration |
 | --- | --- |
-| `query` | Preserve full intent in `objective`; supply at least one concise `search_queries` item. Use 2–3 when the caller or tool schema can provide them. |
-| `search_depth: "fast"` or `"ultra-fast"` | Start with `mode: "turbo"`; verify latency and quality. |
-| `search_depth: "basic"` | Start with `mode: "basic"`. |
-| `search_depth: "advanced"` | Start with `mode: "advanced"`. |
-| `max_results` / `maxResults` | `advanced_settings.max_results`. Tavily allows 0–20; preserve a deliberate zero-result short circuit locally rather than assuming the API accepts 0. |
+| `query` | Preserve the web-research goal in `objective`; use concise keyword probes for `search_queries`. Do not duplicate a full prompt only because it fits a length limit. |
+| `search_depth: "ultra-fast"` | Consider `mode: "turbo"` for a latency-first path, then evaluate the excerpt contract. |
+| `search_depth: "fast"` | Start the evaluation with `mode: "basic"`: Tavily describes Fast as lower latency with good relevance, not minimum latency. Use Turbo only if the quality eval passes. |
+| `search_depth: "basic"` | Do not equate names mechanically. Choose Basic or Advanced from the application's latency and quality contract; Tavily Basic returns page summaries while Parallel returns excerpts. |
+| `search_depth: "advanced"` | Treat `mode: "advanced"` as the candidate baseline and verify output shape, latency, and cost. |
+| omitted `search_depth` | Tavily defaults to Basic while Parallel defaults to Advanced. Make the intended mode explicit or test the accepted behavior change. |
+| `max_results` / `maxResults` | `advanced_settings.max_results`. Tavily allows 0–20; preserve a deliberate zero-result short circuit locally rather than assuming the API accepts 0. If Tavily omitted this field, set Parallel to 5 to preserve Tavily's documented default rather than silently taking Parallel's default of 10. |
 | `chunks_per_source` / `chunksPerSource` | No count-for-count equivalent. Use `excerpt_settings.max_chars_per_result` only when the consumer has a character budget, then verify output shape. |
-| `include_domains` / `exclude_domains` | `advanced_settings.source_policy.include_domains` / `exclude_domains`. Parallel's two lists have a combined limit of 200; Tavily permits larger lists. Never truncate silently. |
-| `start_date` | `advanced_settings.source_policy.after_date` (`YYYY-MM-DD`). Tavily says “after” while Parallel's boundary is inclusive; test the boundary. |
-| `time_range` | Compute an `after_date` at request time only if the application's rolling-window semantics tolerate date granularity. Test day/week/month/year boundaries and timezone choice. |
+| Search `include_domains` / `exclude_domains` | Map a single list directly. If both are set, reconcile the effective legacy behavior and send only one Parallel list: Parallel applies only `include_domains` when both are present. Parallel's combined domain limit is 200; Tavily permits larger lists. Never truncate silently. |
+| `start_date` | `advanced_settings.source_policy.after_date` (`YYYY-MM-DD`) only with an approved semantic change: Tavily filters on publish **or last-updated** date, while Parallel filters on publish date only and is inclusive. |
+| `time_range` | Compute an `after_date` at request time only with an approved semantic change: Tavily's rolling window considers publish or last-updated date, while Parallel considers publish date. Test day/week/month/year boundaries and timezone choice. |
 | legacy `days` | Normalize to a current date control before migration; current core SDKs may still emit it although it is absent from the REST OpenAPI. |
-| `end_date` | No direct Search API equivalent. Use an explicit post-filter only if missing dates are handled safely, or choose another research path. |
-| `country` | Convert the country name to an ISO alpha-2 code for `advanced_settings.location`. Tavily boosts a country; Parallel geo-targets and supports a subset, so verify behavior and warnings. |
-| `topic: "news"` or `"finance"` | State the domain and freshness requirement in `objective`; do not assume an exact routing equivalent. |
+| `end_date` | No direct Search API equivalent. A post-filter cannot recover pages omitted by retrieval and must handle missing `publish_date`; use it only with an approved behavior change. |
+| `country` | Tavily boosts a country while Parallel geo-targets. Use `advanced_settings.location` only for a hard geographic requirement; otherwise express a soft preference in `objective` and evaluate. |
+| `topic: "news"` or `"finance"` | Treat this as a retrieval hint, not an exact route. Describe the desired coverage and freshness in `objective`, then evaluate; stop if the old vertical/source behavior was contractual. |
 | `include_answer` | Use the Chat API or the application's existing model over Search API excerpts; use the Task API for deeper synthesis. |
-| `include_raw_content` | Use Search API then Extract API for selected result URLs, reusing `session_id`. If the consumer only needs concise evidence, excerpts may replace the old `content` path. |
+| `include_raw_content` | Use Search then Extract, reusing `session_id`. If the old consumer read raw content for every result, Extract every returned URL within the 20-URL limit or obtain an approved selection policy; do not silently reduce coverage to a subset. |
 | `include_images`, image descriptions, or favicon | No general Search API equivalent. Treat required image behavior as a migration gap. |
-| `auto_parameters` | Replace with explicit application-owned request construction and a chosen starting mode. |
-| `exact_match` | No verified exact switch. Preserve quoted terms in search queries/objective and add post-validation only if the exact-match guarantee is required. |
+| `auto_parameters` | Replace with explicit application-owned policy. Inspect production request/response samples to learn which depth/topic settings it selected, then choose and evaluate a Parallel policy; do not replace it with one guessed mode. |
+| `exact_match: true` | No verified exact switch. Treat exact matching as a required filter: validate each returned source against the quoted phrase(s) with an application-owned extraction/normalization rule, or obtain an approved behavior change. Quoting a Parallel query does not recreate the filter. |
 | `safe_search` | No verified one-field Search API equivalent. Treat a required safety filter as a blocker until it has an approved Parallel design. |
 | `include_usage` | Parallel may return `usage` as SKU counts; update telemetry rather than assuming Tavily credit semantics. |
-| standalone Tavily Extract (`extract`, `/extract`) | Use Parallel Extract. Set `advanced_settings.full_content` when the caller needs page bodies; it is off by default. Preserve focused-query behavior with `objective`/`search_queries`, and handle separate `results` and `errors` arrays. |
-| Tavily Research (`research`, `/research`) | Use the Task API when the caller needs asynchronous multi-step research. Preserve polling/webhook/SSE behavior, structured output, citations, terminal errors, and timeout budgets. |
+| standalone Tavily Extract (`extract`, `/extract`) | Use Parallel Extract. Map Tavily's reranking `query` to `objective`/`search_queries`; set `advanced_settings.full_content` when the caller needs page bodies; handle separate `results` and `errors` arrays. Extraction depth, format, timeout, images, and favicon controls need explicit validation or a gap decision. |
+| Tavily Research (`research`, `/research`) | Use the Task API when the caller needs asynchronous multi-step research. Preserve polling/webhook/SSE behavior, structured output, citations, terminal errors, and timeout budgets. Tavily Research `include_domains` is a soft preference, not a hard allow-list; preserve it as a research preference or explicitly approve hardening it. Map its hard `exclude_domains` only after testing host/subdomain behavior. |
 | Tavily Crawl or Map | No verified one-call Parallel Search equivalent. Stop for an explicit design; do not silently reduce a site traversal to one Search or Extract call. |
 
 ## Response mapping
