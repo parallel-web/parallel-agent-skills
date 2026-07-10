@@ -36,7 +36,8 @@ Options if needed:
 - `--after-date YYYY-MM-DD` for time-sensitive queries
 - `--include-domains domain1.com,domain2.com` to limit to specific sources
 - `--exclude-domains domain.com` to filter out noisy sources
-- `--mode advanced` for harder questions (multi-step, agentic search). Default `basic` is right for almost everything; only escalate when basic results are insufficient
+- `--mode turbo` for simple fact lookups where speed and cost matter most (p50 ~200ms, lowest cost). English and Japanese queries only
+- `--mode advanced` for harder questions (multi-step, agentic search). Default `basic` is right for almost everything; escalate to `advanced` only when basic results are insufficient, and drop to `turbo` for high-volume simple lookups
 - `--location us` (ISO 3166-1 alpha-2) for geo-targeted results
 
 ## Parsing results
