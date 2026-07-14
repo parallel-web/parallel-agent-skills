@@ -14,7 +14,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SCANNER_PATH = (
     REPO_ROOT
     / "skills"
-    / "migrate-to-parallel-search"
+    / "migrate-to-parallel"
     / "scripts"
     / "scan_provider_usage.py"
 )

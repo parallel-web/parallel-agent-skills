@@ -42,7 +42,7 @@ Trace which response fields are used. A method named `extract` may mean structur
 | Batch Scrape for public URL text | Chunked Extract calls | Parallel Extract accepts at most 20 URLs. Own concurrency, ordering, reconciliation, cancellation, and any job API in the application. |
 | Structured multi-page Extract or research | Task API | Preserve prompt, JSON Schema, sources, citations, asynchronous status, cancellation, and failure behavior. |
 | Deterministic structured extraction from known page content | Extract plus an application-owned model/parser | Preserve schema validation and per-document errors. Do not imply Parallel Extract itself returns arbitrary schema-shaped JSON. |
-| Agentic research that needs only web research and structured synthesis | Task API, after evaluating the exact behavior | Preserve asynchronous lifecycle and source provenance. Do not map FIRE-1 by name. |
+| Agentic research that needs only open-web research and structured synthesis | Task API, after evaluating the exact behavior | Preserve asynchronous lifecycle and source provenance. Approve the processor deliberately; do not map FIRE-1 or `spark-1-*` by name. |
 | Crawl or Map | No direct one-call equivalent | Retain Firecrawl or add an application-owned discovery/crawler layer before Parallel Extract. Search does not guarantee complete site enumeration. |
 | Parse of a local/private uploaded file | No direct equivalent | Keep a file parser or choose an explicit upload/parsing product. Public document URLs may use Extract. |
 | Browser, Interact, scrape actions, screenshots, or live view | No retrieval-only equivalent | Keep a browser-automation boundary or choose a browser product explicitly. |
@@ -150,7 +150,18 @@ Preserve the prompt, JSON Schema validation, source disclosure, web-search expan
 
 FIRE-1 and Firecrawl Agent behavior may navigate or interact across pages. Route it to Task only after verifying that the consumed behavior is research and structured synthesis rather than browser action, exhaustive collection, authenticated navigation, or stateful interaction.
 
-The current REST Agent start call returns a job ID, while SDK `agent(...)` methods provide a waiter-style interface. Preserve polling, credit budgets, URL constraints, `strictConstrainToURLs`, the selected `spark-1-*` model's quality behavior, schema validation, sources, and terminal failures. A Parallel Task processor is a new choice, not a model-name translation.
+The current REST Agent start call returns a job ID, while SDK `agent(...)` methods provide a waiter-style interface. Preserve polling, credit budgets, URL constraints, `strictConstrainToURLs`, the selected `spark-1-*` model's quality behavior, schema validation, sources, and terminal failures.
+
+Treat these Agent fields as migration decisions, not mechanical mappings:
+
+| Firecrawl Agent behavior | Parallel treatment |
+| --- | --- |
+| `urls` with `strictConstrainToURLs=True` | This is exact supplied-URL scope. A Task `source_policy.include_domains` allow-list is broader and must not be substituted silently. If known public URLs plus structured output are sufficient, fetch exactly those URLs with Parallel Extract and pass only that content to an application-owned model/parser. Otherwise retain Firecrawl or block until the user approves broader web research. |
+| `maxCredits` / `max_credits` | Parallel Task has no direct per-run field with equivalent Firecrawl-credit semantics. If this value is a hard spend ceiling, retain or block until an application-owned budget design is approved. Never omit it while claiming behavior preservation, and do not compare Parallel usage SKU counts to Firecrawl credits. |
+| `model="spark-1-*"` | Do not translate this name to `lite`, `base`, `core`, `pro`, or `ultra`. Parallel processors have different price, latency, and research-depth contracts. Choose one only from the application's quality, latency, and cost requirements and representative evaluation, or ask for approval. |
+| SDK `agent(...)` waiter versus Agent job API | Preserve whether the caller blocks, polls, times out, cancels, receives partial status, and handles terminal failure. A long `task_run.result(...)` timeout is a new lifecycle choice, not automatic equivalence. |
+
+When several of these constraints occur on one call, do not partially migrate it just to remove Firecrawl. Retaining the call is safer than broadening its URL scope, removing its spend ceiling, or guessing a processor. Continue independently separable Search or public-text extraction rows.
 
 ## Handle Crawl, Map, Parse, Browser, and Interact
 
@@ -216,6 +227,7 @@ Stop before deleting Firecrawl code when any of these remains unresolved:
 - cache, freshness, ZDR, lockdown, PII redaction, threat protection, cookies, headers, proxy, self-hosting, or authenticated-page behavior is a requirement;
 - Batch Scrape's job, webhook, pagination, ordering, duplicate, cancellation, or partial-failure contract is not implemented;
 - structured Extract's schema, sources, web expansion, site-scanning behavior, or asynchronous lifecycle would change without approval;
+- Agent exact-URL scope would become domain or open-web scope, a hard `maxCredits` ceiling would be dropped, a `spark-1-*` model would be guessed into a Parallel processor, or waiter/job behavior would change without approval;
 - Crawl, Map, local/private Parse, Browser, Interact, Agent navigation, or change tracking remains inside the requested boundary;
 - MCP exposes any unsupported Firecrawl tool through the same server being removed.
 

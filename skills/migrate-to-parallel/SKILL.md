@@ -1,9 +1,9 @@
 ---
-name: migrate-to-parallel-search
-description: Migrate Exa, Tavily, Perplexity, or Firecrawl web search and retrieval integrations completely to Parallel while preserving application behavior. Use when replacing these providers' SDKs or REST calls, dependencies, environment variables, request parameters, response parsing, model tools, search-plus-scrape paths, full-content or answer-synthesis paths, tests, and documentation; auditing for leftover provider usage; or finishing and verifying an in-progress provider migration.
+name: migrate-to-parallel
+description: Migrate Exa, Tavily, Perplexity, or Firecrawl web-data integrations completely to the appropriate Parallel products while preserving application behavior. Use when replacing these providers' SDKs or REST calls, dependencies, environment variables, request parameters, response parsing, model tools, search-plus-scrape paths, full-content or answer-synthesis paths, tests, and documentation; separating unsupported crawl, browser, file-parse, or non-search capabilities; auditing for leftover provider usage; or finishing and verifying an in-progress provider migration.
 ---
 
-# Migrate to Parallel Search
+# Migrate to Parallel
 
 Replace the provider boundary end to end. Treat a successful HTTP response as the midpoint, not completion: migrate request construction, response consumers, dependencies, configuration, tests, and operational behavior.
 
@@ -59,6 +59,20 @@ Use `--format json` for machine-readable output. The scanner intentionally skips
 
 Run the existing focused tests before editing when feasible. Record which behavior is currently covered, which failures are pre-existing, and which behavior must be verified manually.
 
+Before editing, write a decision row for every provider call site:
+
+| Call site | Provider product | Consumed behavior | Parallel route | Semantic gap | Action |
+| --- | --- | --- | --- | --- | --- |
+| `path:line` | Search, Scrape, Agent, etc. | Inputs, outputs, lifecycle, and policy the caller relies on | Exact product path, if any | Anything the route cannot preserve | `migrate`, `retain`, or `block` |
+
+Choose exactly one action before changing the call:
+
+- `migrate` only when the proposed route preserves the consumed contract or the user has already approved the named difference;
+- `retain` when the call is outside the migration boundary or is the smallest safe way to preserve an unsupported capability;
+- `block` when the requested boundary cannot be completed without a user decision. Name the smallest decision, and continue any independent `migrate` rows.
+
+Do not use a broader Parallel product merely to eliminate a provider import. A plausible result shape is not evidence that source scope, spend controls, model behavior, lifecycle, or privacy policy remains equivalent.
+
 ## 2. Choose the migration boundary
 
 Consider both designs before editing:
@@ -105,7 +119,7 @@ Route non-search behavior explicitly:
 - Use the Task API for asynchronous multi-step research or structured synthesis.
 - Use Entity Search for synchronous people or company discovery.
 
-For Firecrawl, classify the product before choosing a route. Search generally maps to Search; public-URL markdown or full content may map to Extract; structured multi-page research may map to Task. Crawl, Map, Parse uploads, Browser, Interact, screenshots, and other rich scrape behavior are not Search field mappings. Follow [references/firecrawl.md](references/firecrawl.md) and preserve separate capabilities until an explicit replacement is approved.
+For Firecrawl, classify the product before choosing a route. Search generally maps to Search; public-URL markdown or full content may map to Extract; structured multi-page research may map to Task only when Task preserves the required source scope, spend policy, quality choice, and lifecycle. Exact known-URL structured extraction instead favors Extract plus an application-owned model/parser. Crawl, Map, Parse uploads, Browser, Interact, screenshots, and other rich scrape behavior are not Search field mappings. Follow [references/firecrawl.md](references/firecrawl.md) and preserve separate capabilities until an explicit replacement is approved.
 
 Do not fill missing fields with plausible-looking constants. Remove obsolete consumers, redesign the application contract, or use the appropriate Parallel API.
 
@@ -135,6 +149,8 @@ Add or update tests for:
 - full-content, synthesis, or entity routes when used;
 - removal of score thresholds or provider-specific fields.
 
+Preserve the repository's test execution contract. If its focused tests previously stubbed the provider package and ran without installing that SDK, stub the replacement SDK or keep imports behind the injected boundary too. Rerun the exact pre-migration test command in an equivalently clean environment; a pass that depends on an ambient package is not evidence that the repository remains self-contained.
+
 Then run, in order:
 
 1. the narrow migration tests;
@@ -154,6 +170,8 @@ Finish only when all applicable statements are true:
 - No legacy-provider runtime dependency, import, endpoint, auth header, key reference, tool definition, fixture, or stale setup instruction remains inside the migrated boundary.
 - Any Perplexity model-routing, embeddings, finance, sandbox, MCP, or custom-function capability outside that boundary remains intact or is called out as an explicit blocker.
 - Any Firecrawl crawl, map, file-parse, browser, interaction, rich-format, change-tracking, security/privacy, MCP, or asynchronous-job capability outside that boundary remains intact or is called out as an explicit blocker.
+- Every inventoried call has a recorded `migrate`, `retain`, or `block` decision, and no `block` row was edited as though the gap were resolved.
+- Firecrawl exact-URL constraints, per-run credit ceilings, `spark-1-*` model choices, and synchronous/asynchronous behavior are preserved or changed only with explicit approval; a domain allow-list, omitted budget, or guessed Task processor does not satisfy this gate.
 - Every used request feature and response field has an implemented Parallel path or an explicitly approved behavior change.
 - Query construction preserves the research goal, uses keyword-shaped retrieval probes, and follows the applicable direct-call or model-tool contract.
 - Source-policy migration preserves the intended URL scope; unsupported path or wildcard behavior is implemented explicitly or recorded as an approved gap.
