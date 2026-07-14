@@ -16,10 +16,10 @@ Verified against the official Perplexity and Parallel documentation on 2026-07-1
 
 Classify every call and trace its consumers before editing:
 
-- **Search API:** `POST /search` or `client.search.create(...)`; returns ranked result objects.
+- **Search API:** `POST /search` or `client.search.create(...)`; returns ranked result objects. Check `search_type`: `"people"` selects Perplexity's specialized People Search instead of general web search.
 - **Sonar:** `POST /v1/sonar`, Sonar model IDs, or an OpenAI-compatible chat-completions client; returns a generated answer with web citations. Sonar is in maintenance mode but remains a real migration surface.
 - **Agent API:** `POST /v1/agent`, the `/v1/responses` alias, or `client.responses.create(...)`; combines frontier-model routing with optional tools and presets.
-- **Wrappers:** `ChatPerplexity`, Vercel AI SDK providers/tools, and MCP servers can expose Search, Sonar, or Agent behavior. Inspect the wrapper version and tool output rather than inferring behavior from its package name.
+- **Wrappers:** `ChatPerplexity`, `langchain-perplexity`, `@langchain/perplexity`, the older `@langchain/community/chat_models/perplexity` path, Vercel AI SDK providers/tools, and MCP servers can expose Search, Sonar, or Agent behavior. Inspect the wrapper version and tool output rather than inferring behavior from its package name.
 - **Embeddings:** embedding calls are not web search. Stop and keep them outside this migration.
 
 The Agent API can own more than retrieval. Inventory models, presets, instructions, conversation state, tool choice, step limits, structured output, streaming, and every configured tool. Do not remove non-search capabilities while replacing `web_search`.
@@ -29,11 +29,12 @@ The Agent API can own more than retrieval. Inventory models, presets, instructio
 | Perplexity behavior | Parallel route | Required decision |
 | --- | --- | --- |
 | Search API ranked results | Search API | Preserve result count, filters, grouped-query behavior, and response fields. |
+| Search API with `search_type="people"` | Entity Search for typed synchronous lookup; consider FindAll or Task for broader discovery | Preserve the people-only retrieval requirement and the old generic result shape. Do not silently turn it into general web search. |
 | Sonar or Agent cited answer | Chat API or the application's existing synthesis step over Search excerpts | Preserve streaming, structured output, conversation history, citations, and answer ownership. |
 | Sonar deep research, reasoning workflows, or asynchronous research | Task API | Preserve asynchronous lifecycle, progress, output schema, and research basis. Do not map a model name directly to a Parallel mode. |
 | Agent `web_search` | Search API | Move model-selected query planning into the model tool schema or preserve the existing explicit planner. |
 | Agent `fetch_url` | Extract API | Preserve URL limits, full-content needs, partial failures, and ordering contracts. |
-| Agent `people_search` | Entity Search for synchronous lookup; consider FindAll or Task for broader discovery | Verify the old result contract and whether the caller expects people-only structured fields. |
+| Agent `people_search` | Entity Search for synchronous lookup; consider FindAll or Task for broader discovery | Preserve both the final answer and any consumed `people_search_results` item. Its results are search-result records, not normalized person objects. |
 | Agent `finance_search` | No direct structured equivalent in Parallel Search | Stop for a product decision; ordinary web search is not a substitute for structured market data. |
 | Agent model routing, sandbox, MCP, or existing custom functions | Keep as a separate integration boundary | Replace only the web capability unless the user explicitly requests a broader redesign. |
 | Embeddings | No Parallel Search equivalent | Stop and leave the embedding provider intact or choose another embedding product explicitly. |
@@ -54,6 +55,7 @@ Perplexity accepts one query string or up to five queries. A multi-query request
 | Perplexity Search field | Parallel treatment |
 | --- | --- |
 | `query` | Classify into `objective` and `search_queries` using the rules above. Preserve grouped calls when an array's groups are consumed. |
+| `search_type` | `"web"` maps to ordinary Search. `"people"` is a product boundary, not a query hint: route it to Entity Search, FindAll, or Task according to whether the caller needs typed lookup, broad discovery, or synthesized research. Preserve its people-only behavior and response contract. |
 | `max_results` | Set `advanced_settings.max_results` only after validating the Parallel range and preserving whether the limit applies per query or to the combined task. Perplexity defaults to 10 and permits 1–20. |
 | `search_context_size` | Choose `max_chars_total` and optionally `max_chars_per_result` from the caller's actual context budget and an eval. The named levels are not Parallel modes. |
 | `max_tokens`, `max_tokens_per_page` | Recalculate as character budgets. Never copy token counts into character fields. Preserve truncation behavior with representative long pages. |
@@ -77,11 +79,15 @@ Sonar returns an answer, not merely search hits. Choose exactly one synthesis ow
 - Use Parallel Chat for an interactive grounded answer.
 - Use Task for deep, reasoning-heavy, asynchronous, or structured research whose latency contract permits it.
 
-Preserve `messages`, system instructions, streaming, `response_format`, citation display, `search_results`, images, related questions, and usage reporting deliberately. Perplexity generation controls and `web_search_options` do not map by name to Parallel controls. Re-evaluate temperature/token parameters against the chosen answer product; Parallel Chat documents several OpenAI-compatible parameters as ignored.
+Preserve `messages`, system instructions, streaming, `response_format`, citation display, `search_results`, image and document inputs, image/video outputs, related questions, and usage reporting deliberately. Perplexity generation controls and `web_search_options` do not map by name to Parallel controls. Re-evaluate temperature/token parameters against the chosen answer product; Parallel Chat documents several OpenAI-compatible parameters as ignored.
 
-Do not translate `sonar`, `sonar-pro`, `sonar-reasoning-*`, or `sonar-deep-research` directly into `turbo`, `basic`, or `advanced`. Model tiers combine retrieval and generation behavior, while Parallel Search modes configure retrieval.
+Do not translate the current `sonar`, `sonar-pro`, `sonar-reasoning-pro`, or `sonar-deep-research` models directly into `turbo`, `basic`, or `advanced`. Model tiers combine retrieval and generation behavior, while Parallel Search modes configure retrieval. Also detect the deprecated `sonar-reasoning` ID in older code instead of assuming it is a current model.
 
 Sonar `search_mode` values such as `academic` and `sec` are vertical search behavior, not Parallel mode equivalents. Express a soft source preference in `objective`, use an equivalent hard domain policy when one exists, or stop if the specialized corpus is required.
+
+Do not confuse the Search API's top-level `search_type` with Sonar Pro's `web_search_options.search_type`. The former selects `"web"` or `"people"`; the latter selects `"fast"`, `"pro"`, or `"auto"` retrieval behavior inside a generated-answer request. Preserve the observed depth, latency, streaming, and answer contract through the chosen synthesis route instead of renaming either value to a Parallel Search mode.
+
+Sonar accepts image inputs and document `file_url` content parts. Documents may be PDF, DOC, DOCX, TXT, or RTF supplied by a public URL or raw base64 string; Perplexity documents a 50 MB per-file limit and at most 30 files per request. These inputs are not Search queries. Keep an existing multimodal/document model, or use Extract for accessible document URLs and pass the extracted content to the chosen synthesis owner. Base64/local documents need an explicit parsing or upload path. Preserve existing size/count validation, and do not delete or reinterpret these inputs without an approved contract change.
 
 ### Agent API
 
@@ -95,7 +101,7 @@ In either design, separate the contracts:
 1. Preserve the model and non-search tools in their current owner unless broader migration is requested.
 2. Replace `web_search` with an application-executed Search tool whose input requires a self-contained `objective` and exactly three diverse keyword `search_queries`.
 3. Replace `fetch_url` with an application-executed Extract tool only when its input and result preserve URL limits, full content, and per-URL errors.
-4. Replace `people_search` only after defining the application-owned person input and result types, then route it to Entity Search, FindAll, or Task as appropriate.
+4. Replace `people_search` only after defining the application-owned person input and result types. The Agent response can include a `people_search_results` output item with model-generated queries and generic search-result entries before the final assistant message; it does not guarantee typed `name`, `company`, or `job_title` fields. Route it to Entity Search, FindAll, or Task as appropriate and normalize deliberately.
 5. Stop on `finance_search` or embeddings.
 
 Perplexity tool budgets such as `max_tokens` and `max_tokens_per_page` are token-based. Parallel Search and Extract excerpt budgets are character-based. Recalculate and test them; do not preserve the same integers.
@@ -119,7 +125,7 @@ When retaining Agent API routing, implement the complete custom-function loop: v
 ### Answer APIs
 
 - Preserve generated text and structured output through Chat, Task, or the existing model layer.
-- Preserve citations as provenance, including the UI's link-to-claim behavior. Parallel Chat research basis or Task research basis is not automatically the same annotation shape as Perplexity citations.
+- Preserve citations as provenance, including the UI's link-to-claim behavior. Sonar exposes a `citations` URL array and citation markers in generated text. Agent output has an `annotations` schema with URL and position fields, but annotations can be empty and cited Agent text may instead contain inline source markers. Trace the actual consumer rather than assuming either shape. Parallel Chat research basis or Task research basis is not automatically the same contract.
 - Preserve streaming at the caller boundary; chunk and event shapes are not one-to-one.
 - `search_results`, images/media, and related questions need explicit consumers or approved removal. Search excerpts alone do not reproduce them.
 - Map usage only into an application-owned telemetry type. Perplexity tokens/search counts and Parallel SKU counts are not interchangeable costs.
@@ -132,7 +138,7 @@ Stop before deleting Perplexity code when any of these remains unresolved:
 - `finance_search` supplies structured market data;
 - domain paths, an upper publication bound, last-updated filtering, or a hard language filter is required;
 - academic or SEC corpus behavior is a product requirement;
-- images/media, related questions, positional citations, or grouped query results are caller-visible and have no approved replacement;
+- image or document inputs, image/video outputs, related questions, citation markers or annotations, or grouped query results are caller-visible and have no approved replacement;
 - Agent model routing, sandbox, MCP, existing custom functions, or orchestration would be removed as a side effect;
 - a token budget has not been re-evaluated as a Parallel character budget;
 - the chosen Chat or Task path changes synchronous, streaming, structured-output, or citation behavior without approval.
@@ -145,8 +151,11 @@ Report the exact call site, consumed behavior, and smallest decision required. C
 - [Perplexity Search API reference](https://docs.perplexity.ai/api-reference/search-post)
 - [Perplexity domain filters](https://docs.perplexity.ai/docs/search/filters/domain-filter)
 - [Perplexity date and time filters](https://docs.perplexity.ai/docs/search/filters/date-time-filters)
+- [Perplexity Search API People Search](https://docs.perplexity.ai/docs/search/filters/people-search)
 - [Perplexity Sonar quickstart](https://docs.perplexity.ai/docs/sonar/quickstart)
+- [Perplexity Sonar models](https://docs.perplexity.ai/docs/sonar/models)
 - [Perplexity Sonar filters](https://docs.perplexity.ai/docs/sonar/filters)
+- [Perplexity Sonar media and attachments](https://docs.perplexity.ai/docs/sonar/media)
 - [Perplexity Agent API quickstart](https://docs.perplexity.ai/docs/agent-api/quickstart)
 - [Perplexity Agent tools overview](https://docs.perplexity.ai/docs/agent-api/tools/overview)
 - [Perplexity Agent custom functions](https://docs.perplexity.ai/docs/agent-api/tools/custom-functions)
@@ -155,6 +164,8 @@ Report the exact call site, consumed behavior, and smallest decision required. C
 - [Perplexity Agent people search](https://docs.perplexity.ai/docs/agent-api/tools/people-search)
 - [Perplexity Agent finance search](https://docs.perplexity.ai/docs/agent-api/tools/finance-search)
 - [Perplexity SDK overview](https://docs.perplexity.ai/docs/sdk/overview)
+- [Perplexity LangChain integration](https://docs.perplexity.ai/docs/getting-started/integrations/langchain)
+- [LangChain JavaScript Perplexity integration](https://docs.langchain.com/oss/javascript/integrations/chat/perplexity)
 - [Parallel Search reference](https://docs.parallel.ai/api-reference/search/search)
 - [Parallel Extract reference](https://docs.parallel.ai/api-reference/extract/extract)
 - [Parallel Chat quickstart](https://docs.parallel.ai/chat-api/chat-quickstart)

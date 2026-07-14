@@ -118,13 +118,15 @@ const options = {"model": "sonar"};
         rules = self.legacy_rules(
             {
                 "package.json": """
-{"dependencies":{"@ai-sdk/perplexity":"latest","@perplexity-ai/ai-sdk":"latest","@perplexity-ai/mcp-server":"latest"}}
+{"dependencies":{"@ai-sdk/perplexity":"latest","@perplexity-ai/ai-sdk":"latest","@perplexity-ai/mcp-server":"latest","@langchain/perplexity":"latest"}}
 """,
                 "requirements.txt": """
 langchain-perplexity==1.4.0
 llama-index-llms-perplexity==0.5.1
 """,
                 "app.ts": "import { perplexitySearch } from '@perplexity-ai/ai-sdk';",
+                "chain.ts": "import { ChatPerplexity } from '@langchain/perplexity';",
+                "legacy-chain.ts": "import { ChatPerplexity } from '@langchain/community/chat_models/perplexity';",
                 "chain.py": "from langchain_perplexity import ChatPerplexity",
                 "llama.py": "from llama_index.llms.perplexity import Perplexity",
             }
@@ -132,6 +134,59 @@ llama-index-llms-perplexity==0.5.1
 
         self.assertIn("perplexity-package", rules)
         self.assertIn("perplexity-import-client", rules)
+
+        for package in (
+            "@langchain/perplexity",
+            "@langchain/community/chat_models/perplexity",
+        ):
+            with self.subTest(package=package):
+                self.assertIn(
+                    "perplexity-package",
+                    self.legacy_rules({"package.txt": package}),
+                )
+
+    def test_detects_people_search_mode_and_sonar_media_contracts(self):
+        findings = self.scan(
+            {
+                "client.py": '''from perplexity import Perplexity
+search = client.search.create(query="Stripe engineering leaders", search_type="people")
+completion = client.chat.completions.create(
+    model="sonar-pro",
+    messages=[{"role": "user", "content": [
+        {"type": "file_url", "file_url": {"url": encoded_document}},
+    ]}],
+    media_response={"overrides": {"return_videos": True}},
+)
+people = {"type": "people_search_results", "results": []}
+finance = {"type": "finance_results", "results": []}
+'''
+            }
+        )
+
+        request_lines = {
+            finding.line
+            for finding in findings
+            if finding.rule == "perplexity-request-field"
+        }
+        self.assertTrue({2, 6, 8}.issubset(request_lines))
+        response_lines = {
+            finding.line
+            for finding in findings
+            if finding.rule == "perplexity-response-field"
+        }
+        self.assertTrue({10, 11}.issubset(response_lines))
+
+    def test_detects_current_and_deprecated_sonar_reasoning_models(self):
+        rules = self.legacy_rules(
+            {
+                "models.py": '''
+CURRENT_MODEL = "sonar-reasoning-pro"
+DEPRECATED_MODEL = "sonar-reasoning"
+'''
+            }
+        )
+
+        self.assertIn("perplexity-model", rules)
 
     def test_detects_agent_budgets_sandbox_and_routed_model(self):
         findings = self.scan(
@@ -216,6 +271,7 @@ const snippet = response.results[0].snippet;
             {
                 "quality.yml": "sonar.projectKey=example\nsonar.host.url=https://sonarqube.example.com\n",
                 "openai.py": "client.chat.completions.create(model='gpt-4o', stream=True)\n",
+                "generic-search.py": "search_type='people'\nfile_url='https://example.com/report.pdf'\n",
                 "notes.md": "Perplexity is sometimes used as a measure of language-model quality.\n",
             }
         )
