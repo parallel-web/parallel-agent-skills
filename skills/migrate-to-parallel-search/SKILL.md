@@ -32,7 +32,7 @@ Resolve `<skill-root>` to the directory containing this `SKILL.md`. Resolve ever
 - Do not remove credentials from external secret managers or provider dashboards unless the user explicitly asks. Remove obsolete code references and update checked-in templates.
 - Treat mode mappings as starting points. Verify latency, quality, and output behavior with the application's real queries.
 - Stop before destructive edits when a required behavior has no supported Parallel equivalent and no in-scope substitute. Report the exact gap and the smallest decision needed.
-- Stop when the Perplexity boundary requires embeddings or structured `finance_search`; neither is a Parallel Search replacement. Keep Agent API model routing, sandbox, MCP, computer, and custom-function capabilities separate unless the user explicitly expands the migration scope.
+- Stop when the Perplexity boundary requires embeddings or structured `finance_search`; neither is a Parallel Search replacement. Keep Agent API model routing, sandbox, MCP, and existing custom-function capabilities separate unless the user explicitly expands the migration scope.
 - Follow repository-local instructions such as `AGENTS.md`, `CLAUDE.md`, and `CONTRIBUTING.md`. Preserve unrelated work and never reset or discard user changes.
 - Complete safe repository-local migration work without stopping after an inventory or plan. Do not commit, push, change hosted secrets, or alter provider accounts unless the user asks.
 
@@ -134,10 +134,11 @@ Then run, in order:
 
 1. the narrow migration tests;
 2. the repository's formatter, type checker, lint, build, and broader tests as appropriate;
-3. `python3 <skill-root>/scripts/scan_provider_usage.py . --fail-on-legacy`;
-4. an independent case-insensitive search for `exa`, `tavily`, `perplexity`, `sonar-`, their package names, endpoints, and key names, excluding `<skill-root>` if the skill is installed inside the target repository;
-5. a review of the final diff for unintended behavior changes, leaked values, unrelated edits, and stale lockfiles;
-6. a live smoke test only when provider calls are explicitly authorized for this task and `PARALLEL_API_KEY` is already available, without printing it.
+3. `python3 <skill-root>/scripts/scan_provider_usage.py . --provider <legacy-provider> --fail-on-legacy` when that provider is being removed completely;
+4. when approved non-search Perplexity usage remains, run the provider scan without `--fail-on-legacy`, classify every finding, and then scan only the migrated roots or use narrow `--exclude` paths for isolated retained modules; never exclude a mixed search/non-search boundary;
+5. an independent case-insensitive search for `exa`, `tavily`, `perplexity`, `sonar-`, exact `model` assignments to `sonar`, routed `perplexity/sonar` model IDs, package names, endpoints, and key names, excluding `<skill-root>` if the skill is installed inside the target repository;
+6. a review of the final diff for unintended behavior changes, leaked values, unrelated edits, and stale lockfiles;
+7. a live smoke test only when provider calls are explicitly authorized for this task and `PARALLEL_API_KEY` is already available, without printing it.
 
 An ambient credential does not by itself authorize a paid network call. When authorized, use a small, non-sensitive synthetic query and inspect `warnings`, result ordering, excerpts, and error behavior. Compare representative production queries only when the user approves sending them to both providers or an existing repository test policy already permits that exact comparison. Do not require the user to paste secrets.
 
@@ -146,11 +147,11 @@ An ambient credential does not by itself authorize a paid network call. When aut
 Finish only when all applicable statements are true:
 
 - No legacy-provider runtime dependency, import, endpoint, auth header, key reference, tool definition, fixture, or stale setup instruction remains inside the migrated boundary.
-- Any Perplexity model-routing, embeddings, finance, sandbox, MCP, computer, or custom-function capability outside that boundary remains intact or is called out as an explicit blocker.
+- Any Perplexity model-routing, embeddings, finance, sandbox, MCP, or custom-function capability outside that boundary remains intact or is called out as an explicit blocker.
 - Every used request feature and response field has an implemented Parallel path or an explicitly approved behavior change.
 - Query construction preserves the research goal, uses keyword-shaped retrieval probes, and follows the applicable direct-call or model-tool contract.
 - Source-policy migration preserves the intended URL scope; unsupported path or wildcard behavior is implemented explicitly or recorded as an approved gap.
 - Tests and static checks pass, or unrelated pre-existing failures are identified with evidence.
-- The legacy scan passes and every identified provider response has been traced through its downstream consumers.
+- The provider-specific legacy scan passes when the provider was removed completely. Otherwise, every remaining finding belongs to an approved, isolated non-search boundary and every identified response has been traced through its downstream consumers.
 - A live call passes when it was explicitly authorized and credentials are available; otherwise the missing live verification is stated clearly.
 - The final report names the migrated boundary, important semantic choices, verification commands, and any external secret cleanup still left to the operator.

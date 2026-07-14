@@ -35,7 +35,7 @@ The Agent API can own more than retrieval. Inventory models, presets, instructio
 | Agent `fetch_url` | Extract API | Preserve URL limits, full-content needs, partial failures, and ordering contracts. |
 | Agent `people_search` | Entity Search for synchronous lookup; consider FindAll or Task for broader discovery | Verify the old result contract and whether the caller expects people-only structured fields. |
 | Agent `finance_search` | No direct structured equivalent in Parallel Search | Stop for a product decision; ordinary web search is not a substitute for structured market data. |
-| Agent model routing, sandbox, computer, MCP, or custom functions | Keep as a separate integration boundary | Replace only the web capability unless the user explicitly requests a broader redesign. |
+| Agent model routing, sandbox, MCP, or existing custom functions | Keep as a separate integration boundary | Replace only the web capability unless the user explicitly requests a broader redesign. |
 | Embeddings | No Parallel Search equivalent | Stop and leave the embedding provider intact or choose another embedding product explicitly. |
 
 ## Migrate Search API requests
@@ -85,17 +85,22 @@ Sonar `search_mode` values such as `academic` and `sec` are vertical search beha
 
 ### Agent API
 
-An Agent request may combine a routed model with multiple tools. Separate the contracts:
+An Agent request may combine a routed model with multiple tools. Perplexity built-in tools are hosted capabilities, not callbacks that can be pointed at another URL. Replacing one requires one of these designs:
+
+- Keep the Agent API as the model router, replace each hosted search tool with a custom `type: "function"` tool, execute the corresponding Parallel API in the application, and return a `function_call_output` with the same `call_id`.
+- Move the model and tool loop into an existing application-owned agent harness, then register Parallel-backed tools there.
+
+In either design, separate the contracts:
 
 1. Preserve the model and non-search tools in their current owner unless broader migration is requested.
-2. Replace `web_search` with a Parallel-backed model tool whose input requires a self-contained `objective` and exactly three diverse keyword `search_queries`.
-3. Replace `fetch_url` with Extract only when the tool result preserves the required full content and per-URL errors.
-4. Route `people_search` only after defining the application-owned person result type.
+2. Replace `web_search` with an application-executed Search tool whose input requires a self-contained `objective` and exactly three diverse keyword `search_queries`.
+3. Replace `fetch_url` with an application-executed Extract tool only when its input and result preserve URL limits, full content, and per-URL errors.
+4. Replace `people_search` only after defining the application-owned person input and result types, then route it to Entity Search, FindAll, or Task as appropriate.
 5. Stop on `finance_search` or embeddings.
 
 Perplexity tool budgets such as `max_tokens` and `max_tokens_per_page` are token-based. Parallel Search and Extract excerpt budgets are character-based. Recalculate and test them; do not preserve the same integers.
 
-Preserve `max_steps`, `tool_choice`, tool-call observability, cancellation, timeouts, and output items at the application boundary. A Parallel Search call replaces retrieval, not a general Responses API orchestration loop.
+When retaining Agent API routing, implement the complete custom-function loop: validate arguments, execute the Parallel call, preserve the original `function_call`, send its result back as `function_call_output` under the same `call_id`, and replay the required prior input items. Preserve `max_steps`, `tool_choice`, tool-call observability, cancellation, timeouts, retries, and output items at the application boundary. A Parallel Search call replaces retrieval, not a general Responses API orchestration loop.
 
 ## Migrate response consumers
 
@@ -128,7 +133,7 @@ Stop before deleting Perplexity code when any of these remains unresolved:
 - domain paths, an upper publication bound, last-updated filtering, or a hard language filter is required;
 - academic or SEC corpus behavior is a product requirement;
 - images/media, related questions, positional citations, or grouped query results are caller-visible and have no approved replacement;
-- Agent model routing, sandbox, computer, MCP, custom functions, or orchestration would be removed as a side effect;
+- Agent model routing, sandbox, MCP, existing custom functions, or orchestration would be removed as a side effect;
 - a token budget has not been re-evaluated as a Parallel character budget;
 - the chosen Chat or Task path changes synchronous, streaming, structured-output, or citation behavior without approval.
 
@@ -143,6 +148,8 @@ Report the exact call site, consumed behavior, and smallest decision required. C
 - [Perplexity Sonar quickstart](https://docs.perplexity.ai/docs/sonar/quickstart)
 - [Perplexity Sonar filters](https://docs.perplexity.ai/docs/sonar/filters)
 - [Perplexity Agent API quickstart](https://docs.perplexity.ai/docs/agent-api/quickstart)
+- [Perplexity Agent tools overview](https://docs.perplexity.ai/docs/agent-api/tools/overview)
+- [Perplexity Agent custom functions](https://docs.perplexity.ai/docs/agent-api/tools/custom-functions)
 - [Perplexity Agent web search](https://docs.perplexity.ai/docs/agent-api/tools/web-search)
 - [Perplexity Agent fetch URL](https://docs.perplexity.ai/docs/agent-api/tools/fetch-url-content)
 - [Perplexity Agent people search](https://docs.perplexity.ai/docs/agent-api/tools/people-search)
@@ -152,3 +159,4 @@ Report the exact call site, consumed behavior, and smallest decision required. C
 - [Parallel Extract reference](https://docs.parallel.ai/api-reference/extract/extract)
 - [Parallel Chat quickstart](https://docs.parallel.ai/chat-api/chat-quickstart)
 - [Parallel Task deep research](https://docs.parallel.ai/task-api/examples/task-deep-research)
+- [Parallel Entity Search](https://docs.parallel.ai/findall-api/entity-search)

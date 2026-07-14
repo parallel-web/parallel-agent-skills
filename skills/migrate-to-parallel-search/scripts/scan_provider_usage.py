@@ -122,17 +122,18 @@ RULES = [
     rule("tavily", "runtime", "tavily-surface-method", r"\.(?:extract|crawl|map|research)\s*\(", contextual=True),
     rule("tavily", "request-contract", "tavily-request-field", r"\b(search_depth|searchDepth|extract_depth|extractDepth|chunks_per_source|chunksPerSource|max_results|maxResults|include_answer|includeAnswer|include_raw_content|includeRawContent|include_images|includeImages|include_image_descriptions|includeImageDescriptions|include_domains|includeDomains|exclude_domains|excludeDomains|include_favicon|includeFavicon|include_usage|includeUsage|auto_parameters|autoParameters|exact_match|exactMatch|safe_search|safeSearch|time_range|timeRange|start_date|startDate|end_date|endDate|days)\b|[\"']?(?:topic|country|format)[\"']?\s*[:=]", contextual=True),
     rule("tavily", "response-contract", "tavily-response-field", r"\b(raw_content|rawContent|response_time|responseTime|request_id|requestId|follow_up_questions|followUpQuestions|published_date|publishedDate)\b|(?:\.|\[['\"])(?:score|content|answer|images|favicon)(?:\b|['\"]\])|[\"'](?:score|content|answer|images|favicon)[\"']\s*:", contextual=True),
-    rule("perplexity", "dependency", "perplexity-package", r"(?<![\w-])(perplexityai|@perplexity-ai/perplexity_ai|@ai-sdk/perplexity|@perplexity-ai/ai-sdk|@perplexity-ai/mcp-server)(?![\w-])"),
-    rule("perplexity", "runtime", "perplexity-import-client", r"\b(from\s+perplexity\s+import\s+(?:Async)?Perplexity\b|ChatPerplexity\b|import\s+Perplexity\s+from\s+[\"']@perplexity-ai/perplexity_ai[\"']|require\s*\(\s*[\"']@perplexity-ai/perplexity_ai[\"']\s*\)|perplexitySearch\s*\()"),
+    rule("perplexity", "dependency", "perplexity-package", r"(?<![\w-])(perplexityai|@perplexity-ai/perplexity_ai|@ai-sdk/perplexity|@perplexity-ai/ai-sdk|@perplexity-ai/mcp-server|langchain[-_]perplexity|llama-index-llms-perplexity|llama_index_llms_perplexity)(?![\w-])"),
+    rule("perplexity", "runtime", "perplexity-import-client", r"\b(from\s+perplexity\s+import\s+(?:Async)?Perplexity\b|from\s+llama_index\.llms\.perplexity\s+import\s+Perplexity\b|ChatPerplexity\b|import\s+Perplexity\s+from\s+[\"']@perplexity-ai/perplexity_ai[\"']|require\s*\(\s*[\"']@perplexity-ai/perplexity_ai[\"']\s*\)|perplexitySearch\s*\()"),
     rule("perplexity", "runtime", "perplexity-endpoint", r"\b(?:https?://)?api\.perplexity\.ai\b"),
     rule("perplexity", "config", "perplexity-api-key", r"\b(?:PERPLEXITY_API_KEY|PPLX_API_KEY)\b"),
     rule("perplexity", "runtime", "perplexity-model", r"(?<![\w-])sonar-(?:pro|deep-research|reasoning(?:-pro)?)(?![\w-])"),
-    rule("perplexity", "runtime", "perplexity-sonar-model", r"\bmodel\s*[:=]\s*[\"']sonar(?:-(?:pro|deep-research|reasoning(?:-pro)?))?[\"']", contextual=True),
+    rule("perplexity", "runtime", "perplexity-routed-model", r"(?<![\w-])perplexity/sonar(?![\w-])"),
+    rule("perplexity", "runtime", "perplexity-sonar-model", r"[\"']?model[\"']?\s*[:=]\s*[\"']sonar[\"']", contextual=True),
     rule("perplexity", "runtime", "perplexity-search-call", r"\.search\.create\s*\(", contextual=True),
     rule("perplexity", "runtime", "perplexity-answer-call", r"\.(?:chat\.completions|responses)\.create\s*\(", contextual=True),
-    rule("perplexity", "runtime", "perplexity-agent-tool", r"(?:[\"']type[\"']|\btype)\s*:\s*[\"'](?:web_search|fetch_url|people_search|finance_search|code_interpreter|computer|mcp|function)[\"']", contextual=True),
-    rule("perplexity", "request-contract", "perplexity-request-field", r"\b(max_results|search_context_size|max_tokens_per_page|search_language_filter|search_domain_filter|search_after_date_filter|search_before_date_filter|last_updated_after_filter|last_updated_before_filter|search_recency_filter|return_images|return_related_questions|search_mode|max_steps|max_output_tokens|response_format|web_search_options)\b|[\"']?(?:query|country|stream|tools|tool_choice|preset)[\"']?\s*[:=]", contextual=True),
-    rule("perplexity", "response-contract", "perplexity-response-field", r"\b(search_results|related_questions|citation_tokens|num_search_queries|reasoning_tokens|last_updated|server_time|output_text)\b|(?:\.|\[['\"])(?:snippet|citations|images|usage)(?:\b|['\"]\])|[\"'](?:snippet|citations|images|usage)[\"']\s*:", contextual=True),
+    rule("perplexity", "runtime", "perplexity-agent-tool", r"(?:[\"']type[\"']|\btype)\s*:\s*[\"'](?:web_search|sandbox|fetch_url|people_search|finance_search|mcp|function)[\"']", contextual=True),
+    rule("perplexity", "request-contract", "perplexity-request-field", r"\b(max_results|search_context_size|max_tokens|max_tokens_per_page|max_urls|max_steps|max_tool_calls|max_output_tokens|parallel_tool_calls|previous_response_id|search_language_filter|search_domain_filter|search_after_date_filter|search_before_date_filter|last_updated_after_filter|last_updated_before_filter|search_recency_filter|return_images|return_related_questions|search_mode|response_format|web_search_options)\b|[\"']?(?:query|country|stream|tools|tool_choice|preset|instructions|reasoning)[\"']?\s*[:=]", contextual=True),
+    rule("perplexity", "response-contract", "perplexity-response-field", r"\b(search_results|related_questions|citation_tokens|num_search_queries|reasoning_tokens|last_updated|server_time|output_text|function_call_output|tool_calls_details|call_id)\b|(?:\.|\[['\"])(?:snippet|citations|images|usage)(?:\b|['\"]\])|[\"'](?:snippet|citations|images|usage)[\"']\s*:", contextual=True),
 ]
 
 
@@ -150,6 +151,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("root", nargs="?", default=".", help="Repository root (default: current directory)")
     parser.add_argument("--format", choices=("markdown", "json"), default="markdown")
+    parser.add_argument("--provider", action="append", choices=PROVIDERS, default=[], help="Scan only this provider; repeatable")
     parser.add_argument("--exclude", action="append", default=[], help="Extra directory name or root-relative path to exclude; repeatable")
     parser.add_argument("--max-file-bytes", type=int, default=10_000_000, help="Skip larger files (default: 10000000)")
     parser.add_argument("--fail-on-legacy", action="store_true", help="Exit 1 when any legacy finding remains")
@@ -249,7 +251,11 @@ def path_provider_hints(relative: Path) -> set[str]:
     }
 
 
-def scan_file(path: Path, root: Path) -> list[Finding]:
+def scan_file(
+    path: Path,
+    root: Path,
+    providers: Optional[set[str]] = None,
+) -> list[Finding]:
     text = read_text(path)
     if text is None:
         return []
@@ -269,6 +275,8 @@ def scan_file(path: Path, root: Path) -> list[Finding]:
     line_starts = [0] + [index + 1 for index, character in enumerate(text) if character == "\n"]
 
     for candidate in RULES:
+        if providers is not None and candidate.provider not in providers:
+            continue
         if candidate.contextual and candidate.provider not in direct_providers:
             continue
         for match in candidate.pattern.finditer(text):
@@ -286,10 +294,15 @@ def scan_file(path: Path, root: Path) -> list[Finding]:
     return findings
 
 
-def scan(root: Path, extra_excludes: set[str], max_bytes: int) -> list[Finding]:
+def scan(
+    root: Path,
+    extra_excludes: set[str],
+    max_bytes: int,
+    providers: Optional[set[str]] = None,
+) -> list[Finding]:
     findings: list[Finding] = []
     for path in iter_files(root, extra_excludes, max_bytes):
-        findings.extend(scan_file(path, root))
+        findings.extend(scan_file(path, root, providers))
     return sorted(findings, key=lambda item: (item.provider, item.path, item.line, item.rule))
 
 
@@ -333,7 +346,7 @@ def render_markdown(root: Path, findings: list[Finding]) -> str:
     lines.extend([
         "",
         "Review response-contract findings manually; generic field names are reported only in files with a direct provider signature.",
-        "Re-run with `--fail-on-legacy` after migration.",
+        "Use `--fail-on-legacy` only for a provider boundary intended for full removal.",
     ])
     return "\n".join(lines)
 
@@ -344,7 +357,8 @@ def main() -> int:
     if not root.is_dir():
         print(f"error: repository root is not a directory: {root}", file=sys.stderr)
         return 2
-    findings = scan(root, set(args.exclude), args.max_file_bytes)
+    providers = set(args.provider) if args.provider else None
+    findings = scan(root, set(args.exclude), args.max_file_bytes, providers)
     if args.format == "json":
         payload = {
             "root": str(root),

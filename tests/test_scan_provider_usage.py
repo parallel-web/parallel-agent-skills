@@ -27,14 +27,14 @@ SPEC.loader.exec_module(SCANNER)
 
 
 class ScannerTestCase(unittest.TestCase):
-    def scan(self, files: dict[str, str]):
+    def scan(self, files: dict[str, str], providers: set[str] | None = None):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             for relative, content in files.items():
                 path = root / relative
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text(content)
-            return SCANNER.scan(root, set(), 10_000_000)
+            return SCANNER.scan(root, set(), 10_000_000, providers)
 
     def legacy_rules(self, files: dict[str, str]) -> set[str]:
         return {finding.rule for finding in self.scan(files) if finding.legacy}
@@ -101,9 +101,9 @@ agent = client.responses.create(input="Research this", tools=[{"type": "fetch_ur
     def test_detects_bare_sonar_model_only_with_perplexity_context(self):
         contextual = self.legacy_rules(
             {
-                "client.py": """
-from perplexity import Perplexity
-response = client.chat.completions.create(model="sonar", messages=messages)
+                "client.ts": """
+const baseURL = "https://api.perplexity.ai";
+const options = {"model": "sonar"};
 """
             }
         )
@@ -114,19 +114,55 @@ response = client.chat.completions.create(model="sonar", messages=messages)
         self.assertIn("perplexity-sonar-model", contextual)
         self.assertNotIn("perplexity-sonar-model", standalone)
 
-    def test_detects_vercel_langchain_and_mcp_signatures(self):
+    def test_detects_ecosystem_packages_and_imports(self):
         rules = self.legacy_rules(
             {
                 "package.json": """
 {"dependencies":{"@ai-sdk/perplexity":"latest","@perplexity-ai/ai-sdk":"latest","@perplexity-ai/mcp-server":"latest"}}
 """,
+                "requirements.txt": """
+langchain-perplexity==1.4.0
+llama-index-llms-perplexity==0.5.1
+""",
                 "app.ts": "import { perplexitySearch } from '@perplexity-ai/ai-sdk';",
                 "chain.py": "from langchain_perplexity import ChatPerplexity",
+                "llama.py": "from llama_index.llms.perplexity import Perplexity",
             }
         )
 
         self.assertIn("perplexity-package", rules)
         self.assertIn("perplexity-import-client", rules)
+
+    def test_detects_agent_budgets_sandbox_and_routed_model(self):
+        findings = self.scan(
+            {
+                "agent.py": """from perplexity import Perplexity
+max_tokens=10000
+tools=[{"type": "sandbox"}, {"type": "function"}]
+model="perplexity/sonar"
+result={"type": "function_call_output", "call_id": "call_123"}
+"""
+            }
+        )
+
+        self.assertTrue(
+            any(
+                finding.rule == "perplexity-request-field" and finding.line == 2
+                for finding in findings
+            )
+        )
+        self.assertTrue(
+            any(
+                finding.rule == "perplexity-agent-tool" and finding.line == 3
+                for finding in findings
+            )
+        )
+        self.assertTrue(
+            any(finding.rule == "perplexity-routed-model" for finding in findings)
+        )
+        self.assertTrue(
+            any(finding.rule == "perplexity-response-field" for finding in findings)
+        )
 
     def test_reports_generic_fields_only_with_perplexity_context(self):
         contextual = self.legacy_rules(
@@ -154,12 +190,16 @@ const snippet = response.results[0].snippet;
 
     def test_fail_on_legacy_returns_one_for_perplexity(self):
         with tempfile.TemporaryDirectory() as directory:
-            Path(directory, ".env.example").write_text("PERPLEXITY_API_KEY=\n")
+            Path(directory, ".env.example").write_text(
+                "EXA_API_KEY=\nPERPLEXITY_API_KEY=\n"
+            )
             result = subprocess.run(
                 [
                     sys.executable,
                     str(SCANNER_PATH),
                     directory,
+                    "--provider",
+                    "perplexity",
                     "--fail-on-legacy",
                 ],
                 check=False,
@@ -169,6 +209,7 @@ const snippet = response.results[0].snippet;
 
         self.assertEqual(1, result.returncode)
         self.assertIn("## Perplexity", result.stdout)
+        self.assertNotIn("## Exa", result.stdout)
 
     def test_ignores_sonarqube_generic_openai_and_ordinary_prose(self):
         findings = self.scan(

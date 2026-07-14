@@ -81,7 +81,7 @@ Do not replace an old synchronous handler with an unbounded blocking call. Choos
 - Exa deep output, Tavily Research, and structured multi-step synthesis can map to Task.
 - Perplexity Search API maps to Search, but grouped multi-query results require separate calls when grouping is caller-visible.
 - Perplexity Sonar or Agent cited answers map to Chat, Task, or the application's existing synthesis layer according to the old latency, streaming, citation, and structured-output contract.
-- Perplexity Agent `web_search` maps to Search, `fetch_url` to Extract, and `people_search` to Entity Search or an explicitly chosen discovery workflow such as FindAll or Task.
+- Perplexity Agent `web_search` maps to Search, `fetch_url` to Extract, and `people_search` to Entity Search or an explicitly chosen discovery workflow such as FindAll or Task. Hosted Agent tools cannot be redirected; expose these routes through application-executed custom functions or move the tool loop to another orchestrator.
 - Perplexity embeddings, structured `finance_search`, and general Agent model/tool orchestration are not Parallel Search replacements. Keep them separate or stop for a product decision.
 - Tavily Crawl/Map and provider-specific images have no verified one-call Parallel Search equivalent. Stop and propose an explicit design instead of silently deleting them.
 
