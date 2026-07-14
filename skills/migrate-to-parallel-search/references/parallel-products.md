@@ -83,6 +83,10 @@ Do not replace an old synchronous handler with an unbounded blocking call. Choos
 - Perplexity Sonar or Agent cited answers map to Chat, Task, or the application's existing synthesis layer according to the old latency, streaming, citation, and structured-output contract.
 - Perplexity Agent `web_search` maps to Search, `fetch_url` to Extract, and `people_search` to Entity Search or an explicitly chosen discovery workflow such as FindAll or Task. Perplexity Search API calls with `search_type="people"` need the same explicit entity route rather than ordinary web Search. Hosted Agent tools cannot be redirected; expose these routes through application-executed custom functions or move the tool loop to another orchestrator.
 - Perplexity embeddings, structured `finance_search`, and general Agent model/tool orchestration are not Parallel Search replacements. Keep them separate or stop for a product decision.
+- Firecrawl Search `web` results generally map to Search. Preserve source-group behavior, query semantics, filters, and any attached `scrapeOptions` content deliberately.
+- Firecrawl Scrape and Batch Scrape can map to Extract only when the caller needs public-URL markdown, focused excerpts, or full content. Chunk more than 20 URLs and preserve per-URL errors, ordering, concurrency, and any asynchronous job contract in the application.
+- Firecrawl Extract can map to Task for multi-page structured research, or to Parallel Extract plus an application-owned model for deterministic structured extraction. Preserve the JSON Schema and asynchronous lifecycle; the similarly named APIs are not one-to-one.
+- Firecrawl Crawl, Map, Parse uploads, Browser, Interact, screenshots, and rich scrape formats have no verified one-call Parallel replacement. Stop or retain those capabilities until an explicit design is approved.
 - Tavily Crawl/Map and provider-specific images have no verified one-call Parallel Search equivalent. Stop and propose an explicit design instead of silently deleting them.
 
 ## Official sources

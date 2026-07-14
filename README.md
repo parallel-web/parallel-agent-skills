@@ -71,7 +71,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 | **parallel-data-enrichment** | Enrich lists of companies, people, products               |
 | **parallel-findall**         | Discover entities matching a natural-language description |
 | **parallel-monitor**         | Continuously track the web for changes (with webhooks)    |
-| **migrate-to-parallel-search** | Migrate Exa, Tavily, or Perplexity search integrations to Parallel |
+| **migrate-to-parallel-search** | Migrate Exa, Tavily, Perplexity, or Firecrawl integrations to Parallel |
 | **parallel-cli-setup**       | Install/update CLI, authenticate, and handle balance      |
 | **status**                   | Check running research task status                        |
 | **result**                   | Get completed research task result                        |
@@ -87,6 +87,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 /parallel:parallel-monitor track price changes for the iPhone 16 Pro
 /parallel:migrate-to-parallel-search migrate this app from Tavily to Parallel
 /parallel:migrate-to-parallel-search migrate this app from Perplexity to Parallel
+/parallel:migrate-to-parallel-search migrate this app from Firecrawl to Parallel
 /parallel:parallel-cli-setup
 ```
 

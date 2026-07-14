@@ -1,6 +1,6 @@
 ---
 name: migrate-to-parallel-search
-description: Migrate Exa, Tavily, or Perplexity web search integrations completely to Parallel while preserving application behavior. Use when replacing these providers' SDKs or REST calls, dependencies, environment variables, request parameters, response parsing, model tools, full-content or answer-synthesis paths, tests, and documentation; auditing for leftover provider usage; or finishing and verifying an in-progress provider migration.
+description: Migrate Exa, Tavily, Perplexity, or Firecrawl web search and retrieval integrations completely to Parallel while preserving application behavior. Use when replacing these providers' SDKs or REST calls, dependencies, environment variables, request parameters, response parsing, model tools, search-plus-scrape paths, full-content or answer-synthesis paths, tests, and documentation; auditing for leftover provider usage; or finishing and verifying an in-progress provider migration.
 ---
 
 # Migrate to Parallel Search
@@ -15,9 +15,10 @@ Resolve `<skill-root>` to the directory containing this `SKILL.md`. Resolve ever
 2. Read [references/exa.md](references/exa.md) when the repository contains Exa.
 3. Read [references/tavily.md](references/tavily.md) when the repository contains Tavily.
 4. Read [references/perplexity.md](references/perplexity.md) when the repository contains Perplexity Search, Sonar, Agent API web tools, or a Perplexity search wrapper.
-5. Read [references/integration-patterns.md](references/integration-patterns.md) when queries are generated dynamically, the provider is exposed as a model tool, provider response types escape into multiple modules, or the application needs full content or synthesized answers.
-6. Read [references/parallel-products.md](references/parallel-products.md) when the migration needs Extract, Chat, Task, streaming, structured output, citations, or entity discovery.
-7. Open current official documentation for any detected SDK, wrapper, parameter, or response field not covered by those references. Do not guess at provider behavior.
+5. Read [references/firecrawl.md](references/firecrawl.md) when the repository contains Firecrawl Search, Scrape, Batch Scrape, Extract, Crawl, Map, Parse, Agent, Interact, Browser, or MCP usage.
+6. Read [references/integration-patterns.md](references/integration-patterns.md) when queries are generated dynamically, the provider is exposed as a model tool, provider response types escape into multiple modules, or the application needs full content or synthesized answers.
+7. Read [references/parallel-products.md](references/parallel-products.md) when the migration needs Extract, Chat, Task, streaming, structured output, citations, or entity discovery.
+8. Open current official documentation for any detected SDK, wrapper, parameter, or response field not covered by those references. Do not guess at provider behavior.
 
 ## Preserve these invariants
 
@@ -33,6 +34,7 @@ Resolve `<skill-root>` to the directory containing this `SKILL.md`. Resolve ever
 - Treat mode mappings as starting points. Verify latency, quality, and output behavior with the application's real queries.
 - Stop before destructive edits when a required behavior has no supported Parallel equivalent and no in-scope substitute. Report the exact gap and the smallest decision needed.
 - Stop when the Perplexity boundary requires embeddings or structured `finance_search`; neither is a Parallel Search replacement. Keep Agent API model routing, sandbox, MCP, and existing custom-function capabilities separate unless the user explicitly expands the migration scope.
+- Stop when the Firecrawl boundary requires complete crawling or URL mapping, local/private file parsing, browser actions or sessions, screenshots or other rich scrape formats, change tracking, or Firecrawl-specific privacy/security controls without an approved replacement. Search and Extract do not reproduce those contracts.
 - Follow repository-local instructions such as `AGENTS.md`, `CLAUDE.md`, and `CONTRIBUTING.md`. Preserve unrelated work and never reset or discard user changes.
 - Complete safe repository-local migration work without stopping after an inventory or plan. Do not commit, push, change hosted secrets, or alter provider accounts unless the user asks.
 
@@ -52,6 +54,7 @@ Use `--format json` for machine-readable output. The scanner intentionally skips
 - environment schemas, examples, deployment config, and docs;
 - request builders, retries, timeouts, caches, observability, and error handling;
 - response fields used for rendering, ranking, thresholds, citations, or model context;
+- Firecrawl crawl, batch, extract, browser, interaction, webhook, and job-lifecycle consumers;
 - tests, mocks, fixtures, and snapshots.
 
 Run the existing focused tests before editing when feasible. Record which behavior is currently covered, which failures are pre-existing, and which behavior must be verified manually.
@@ -102,6 +105,8 @@ Route non-search behavior explicitly:
 - Use the Task API for asynchronous multi-step research or structured synthesis.
 - Use Entity Search for synchronous people or company discovery.
 
+For Firecrawl, classify the product before choosing a route. Search generally maps to Search; public-URL markdown or full content may map to Extract; structured multi-page research may map to Task. Crawl, Map, Parse uploads, Browser, Interact, screenshots, and other rich scrape behavior are not Search field mappings. Follow [references/firecrawl.md](references/firecrawl.md) and preserve separate capabilities until an explicit replacement is approved.
+
 Do not fill missing fields with plausible-looking constants. Remove obsolete consumers, redesign the application contract, or use the appropriate Parallel API.
 
 ## 5. Replace dependencies and configuration
@@ -135,8 +140,8 @@ Then run, in order:
 1. the narrow migration tests;
 2. the repository's formatter, type checker, lint, build, and broader tests as appropriate;
 3. `python3 <skill-root>/scripts/scan_provider_usage.py . --provider <legacy-provider> --fail-on-legacy` when that provider is being removed completely;
-4. when approved non-search Perplexity usage remains, run the provider scan without `--fail-on-legacy`, classify every finding, and then scan only the migrated roots or use narrow `--exclude` paths for isolated retained modules; never exclude a mixed search/non-search boundary;
-5. an independent case-insensitive search for `exa`, `tavily`, `perplexity`, `sonar-`, exact `model` assignments to `sonar`, routed `perplexity/sonar` model IDs, package names, endpoints, and key names, excluding `<skill-root>` if the skill is installed inside the target repository;
+4. when approved non-search Perplexity or Firecrawl usage remains, run the provider scan without `--fail-on-legacy`, classify every finding, and then scan only the migrated roots or use narrow `--exclude` paths for isolated retained modules; never exclude a mixed search/non-search boundary;
+5. an independent case-insensitive search for `exa`, `tavily`, `perplexity`, `sonar-`, `firecrawl`, exact `model` assignments to `sonar`, routed `perplexity/sonar` model IDs, package names, endpoints, and key names, excluding `<skill-root>` if the skill is installed inside the target repository;
 6. a review of the final diff for unintended behavior changes, leaked values, unrelated edits, and stale lockfiles;
 7. a live smoke test only when provider calls are explicitly authorized for this task and `PARALLEL_API_KEY` is already available, without printing it.
 
@@ -148,6 +153,7 @@ Finish only when all applicable statements are true:
 
 - No legacy-provider runtime dependency, import, endpoint, auth header, key reference, tool definition, fixture, or stale setup instruction remains inside the migrated boundary.
 - Any Perplexity model-routing, embeddings, finance, sandbox, MCP, or custom-function capability outside that boundary remains intact or is called out as an explicit blocker.
+- Any Firecrawl crawl, map, file-parse, browser, interaction, rich-format, change-tracking, security/privacy, MCP, or asynchronous-job capability outside that boundary remains intact or is called out as an explicit blocker.
 - Every used request feature and response field has an implemented Parallel path or an explicitly approved behavior change.
 - Query construction preserves the research goal, uses keyword-shaped retrieval probes, and follows the applicable direct-call or model-tool contract.
 - Source-policy migration preserves the intended URL scope; unsupported path or wildcard behavior is implemented explicitly or recorded as an approved gap.
