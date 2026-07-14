@@ -9,7 +9,7 @@ Verified against the official Firecrawl and Parallel documentation on 2026-07-14
 - [Migrate Search](#migrate-search)
 - [Migrate Scrape and Batch Scrape](#migrate-scrape-and-batch-scrape)
 - [Migrate structured Extract and Agent](#migrate-structured-extract-and-agent)
-- [Handle Crawl, Map, Parse, Browser, and Interact](#handle-crawl-map-parse-browser-and-interact)
+- [Handle Research Index, Crawl, Map, Parse, Browser, Interact, and Monitor](#handle-research-index-crawl-map-parse-browser-interact-and-monitor)
 - [Migrate response and operational behavior](#migrate-response-and-operational-behavior)
 - [Detect SDKs, REST, wrappers, and MCP](#detect-sdks-rest-wrappers-and-mcp)
 - [Stop conditions](#stop-conditions)
@@ -25,9 +25,13 @@ Inventory every Firecrawl call, configuration surface, and downstream consumer. 
 - **Extract:** `/v2/extract` or SDK `extract(...)`; uses a prompt and optional JSON Schema to synthesize structured data across URLs. It can expand beyond supplied URLs with web search.
 - **Crawl:** `/v2/crawl` or SDK `crawl(...)` / `startCrawl` / `start_crawl`; discovers and scrapes many pages under traversal rules.
 - **Map:** `/v2/map` or SDK `map(...)`; enumerates and ranks links from a site.
-- **Parse:** `/v2/parse` or SDK `parse(...)`; accepts a local/private file as multipart form data.
-- **Agent / FIRE-1:** `/v2/agent`, SDK `agent(...)`, or MCP agent tools perform agentic search, navigation, and extraction. Current Agent requests require a prompt and can accept URL constraints, a JSON Schema, a credit budget, and a model choice.
-- **Interact and Browser:** persistent or standalone browser sessions, prompts, code execution, Playwright/CDP access, profiles, live view, and page actions.
+- **Parse:** `/v2/parse` or SDK `parse(...)`; accepts a local or non-public file as multipart form data and can return markdown, JSON, HTML, links, images, or a summary.
+- **Agent:** `/v2/agent`, SDK `agent(...)`, or MCP agent tools perform autonomous search, navigation, and extraction. Current Agent requests require a prompt and can accept URL constraints, a JSON Schema, a credit budget, and either `spark-1-mini` or `spark-1-pro`.
+- **FIRE-1:** a separate beta navigation model found in older `/v1/scrape` and `/v1/extract` `agent` options. Do not treat a FIRE-1 call as the current `/v2/agent` API.
+- **Research Index:** `/v2/search/research/...`, JavaScript `research.*`, Python research methods, or CLI research commands search papers, read passages, traverse related-paper structure, and search research-related GitHub history.
+- **Browser:** standalone sessions under `/v2/interact` with SDK `browser(...)`; exposes code execution, Playwright/CDP access, profiles, and live views.
+- **Interact:** `/v2/scrape/{scrapeId}/interact` or SDK `interact(...)`; continues from a scrape and supports prompts or code. Current CLI/MCP agent guidance favors Scrape plus Interact over the hidden legacy Browser CLI.
+- **Monitor:** `/v2/monitor` and SDK monitor methods schedule recurring scrape, crawl, or search targets and deliver page/check events through webhooks or notifications.
 - **MCP and wrappers:** the `firecrawl-mcp` server, hosted `https://mcp.firecrawl.dev/v2/mcp`, LangChain `FireCrawlLoader`, workflow integrations, and model tools can expose several of the products above through one boundary.
 
 Trace which response fields are used. A method named `extract` may mean structured synthesis, while a caller using `scrape` may depend on browser actions, screenshots, cache guarantees, or metadata rather than text alone.
@@ -44,9 +48,10 @@ Trace which response fields are used. A method named `extract` may mean structur
 | Deterministic structured extraction from known page content | Extract plus an application-owned model/parser | Preserve schema validation and per-document errors. Do not imply Parallel Extract itself returns arbitrary schema-shaped JSON. |
 | Agentic research that needs only open-web research and structured synthesis | Task API, after evaluating the exact behavior | Preserve asynchronous lifecycle and source provenance. Approve the processor deliberately; do not map FIRE-1 or `spark-1-*` by name. |
 | Crawl or Map | No direct one-call equivalent | Retain Firecrawl or add an application-owned discovery/crawler layer before Parallel Extract. Search does not guarantee complete site enumeration. |
+| Research Index | No direct one-call equivalent | Parallel Search, Extract, or Task may cover the information need, but not Firecrawl's canonical paper identifiers, paper metadata contract, passage ranking, citation/reference graph expansion, or research-specific GitHub result shape. Retain it or redesign and normalize the caller contract explicitly. |
 | Parse of a local/private uploaded file | No direct equivalent | Keep a file parser or choose an explicit upload/parsing product. Public document URLs may use Extract. |
 | Browser, Interact, scrape actions, screenshots, or live view | No retrieval-only equivalent | Keep a browser-automation boundary or choose a browser product explicitly. |
-| Change tracking | Possibly Parallel Monitor after a product redesign | Compare trigger, snapshot, diff, cadence, webhook, retention, and privacy semantics before changing products. |
+| Firecrawl Monitor or scrape change tracking | Possibly Parallel Monitor after a product redesign | Compare target scope, schedule, trigger, judgment, snapshot, diff, delivery channels, webhook, retention, and privacy semantics before changing products. |
 
 The route is selected from consumed behavior, not the Firecrawl method name. If one wrapper mixes supported and unsupported products, separate the boundary before removing its dependency or key.
 
@@ -58,7 +63,7 @@ Firecrawl Search accepts one `query` string, up to 500 characters. Parallel requ
 
 - If the Firecrawl query is already a concise retrieval probe, it may be used as the one-query compatibility path and should be evaluated.
 - If it is a question, research prompt, or operator-heavy expression, preserve the full goal as `objective` and obtain two or three keyword probes from the existing caller or planner. Do not add a hidden LLM call.
-- Firecrawl documents quoted text, negation, `site:`, `filetype:`, `related:`, and image-size operators. Do not assume Parallel preserves those operators. Translate a hard domain restriction into source policy when the URL scope is equivalent; otherwise stop or implement explicit filtering.
+- Firecrawl documents quoted text, negation, `site:`, `filetype:`, `inurl:`, `allinurl:`, `intitle:`, `allintitle:`, `related:`, and image-size operators. Do not assume Parallel preserves those operators. Translate a hard domain restriction into source policy when the URL scope is equivalent; otherwise stop or implement explicit filtering.
 
 Firecrawl `limit` defaults to 10, accepts 1 through 100, and applies per source type. Parallel `advanced_settings.max_results` limits one jointly ranked result list. A Firecrawl request for 10 web, 10 news, and 10 image results is not equivalent to one Parallel request with 10 results.
 
@@ -82,7 +87,7 @@ Firecrawl `limit` defaults to 10, accepts 1 through 100, and applies per source 
 | `ignoreInvalidURLs` | Validate and reconcile URLs in the application if this behavior matters. Do not silently change fail-fast versus partial-success behavior. |
 | `enterprise`, `anon`, `zdr`, `threatProtection` | No simple request-field mapping. Verify current Parallel privacy/security terms and stop if these are compliance requirements. |
 
-Firecrawl's authentication documentation currently presents two valid-looking paths: the v2 API introduction says every request uses Bearer auth, while product examples allow some Search, Scrape, and Interact calls without a key at lower limits. Detect authenticated, keyless, and self-hosted deployments. Do not promise a production keyless contract or remove self-hosted infrastructure merely because `FIRECRAWL_API_KEY` is absent.
+Firecrawl's API introduction says every request uses Bearer auth, while its current rate-limit and product docs define a rate-limited keyless tier for official SDK, CLI, and MCP clients. That tier includes Scrape, Search, Interact, and Parse; the Research Index also documents keyless use. Detect authenticated, keyless, and self-hosted deployments. Do not treat a missing `FIRECRAWL_API_KEY` as dead code, assume arbitrary REST clients receive the official-client tier, promise keyless production capacity, or remove self-hosted infrastructure.
 
 ### Response mapping
 
@@ -138,7 +143,7 @@ Create one application-owned batch abstraction that:
 
 ## Migrate structured Extract and Agent
 
-Firecrawl Extract is an asynchronous structured-data workflow: it accepts URLs, a prompt, optional JSON Schema, optional web-search expansion, and site-scanning controls. Current SDK `extract(...)` methods wait for completion; `startExtract` / `start_extract` return a job, and `getExtractStatus` / `get_extract_status` reports `processing`, `completed`, `failed`, or `cancelled`.
+Firecrawl Extract is an asynchronous structured-data workflow: it accepts URLs, a prompt, optional JSON Schema, optional web-search expansion, and site-scanning controls. Current SDK `extract(...)` methods wait for completion; `startExtract` / `start_extract` return a job, and `getExtractStatus` / `get_extract_status` reports `processing`, `completed`, `failed`, or `cancelled`. Firecrawl currently recommends Agent for new autonomous work and Scrape JSON mode for one known page, but existing Extract callers still require a complete migration.
 
 Choose one route:
 
@@ -148,9 +153,9 @@ Choose one route:
 
 Preserve the prompt, JSON Schema validation, source disclosure, web-search expansion, subdomain/sitemap behavior, status lifecycle, expiration, token/usage telemetry, cancellation, retries, and partial data deliberately. Parallel Extract's name does not mean it implements Firecrawl's structured Extract contract. Parallel Task processors, schemas, statuses, and research basis are different interfaces and need an application-level normalizer when the caller contract must remain stable.
 
-FIRE-1 and Firecrawl Agent behavior may navigate or interact across pages. Route it to Task only after verifying that the consumed behavior is research and structured synthesis rather than browser action, exhaustive collection, authenticated navigation, or stateful interaction.
+Current Firecrawl Agent can search and navigate across the web. Route it to Task only after verifying that the consumed behavior is research and structured synthesis rather than browser action, exhaustive collection, authenticated navigation, or stateful interaction. Treat legacy FIRE-1 scrape/extract navigation as a separate capability and retain or replace its browser behavior explicitly.
 
-The current REST Agent start call returns a job ID, while SDK `agent(...)` methods provide a waiter-style interface. Preserve polling, credit budgets, URL constraints, `strictConstrainToURLs`, the selected `spark-1-*` model's quality behavior, schema validation, sources, and terminal failures.
+The current REST Agent start call returns a job ID, while SDK `agent(...)` methods provide a waiter-style interface. Agent status can be `processing`, `completed`, `failed`, or `cancelled`; cancellation is cooperative. Preserve polling, cancellation, the default 2,500-credit budget or an explicit `maxCredits`, URL constraints, `strictConstrainToURLs`, the selected `spark-1-mini` or `spark-1-pro` quality behavior, schema validation, sources, and terminal failures.
 
 Treat these Agent fields as migration decisions, not mechanical mappings:
 
@@ -158,12 +163,18 @@ Treat these Agent fields as migration decisions, not mechanical mappings:
 | --- | --- |
 | `urls` with `strictConstrainToURLs=True` | This is exact supplied-URL scope. A Task `source_policy.include_domains` allow-list is broader and must not be substituted silently. If known public URLs plus structured output are sufficient, fetch exactly those URLs with Parallel Extract and pass only that content to an application-owned model/parser. Otherwise retain Firecrawl or block until the user approves broader web research. |
 | `maxCredits` / `max_credits` | Parallel Task has no direct per-run field with equivalent Firecrawl-credit semantics. If this value is a hard spend ceiling, retain or block until an application-owned budget design is approved. Never omit it while claiming behavior preservation, and do not compare Parallel usage SKU counts to Firecrawl credits. |
-| `model="spark-1-*"` | Do not translate this name to `lite`, `base`, `core`, `pro`, or `ultra`. Parallel processors have different price, latency, and research-depth contracts. Choose one only from the application's quality, latency, and cost requirements and representative evaluation, or ask for approval. |
+| `model="spark-1-mini"` or `model="spark-1-pro"` | Do not translate this name to `lite`, `base`, `core`, `pro`, or `ultra`. Parallel processors have different price, latency, and research-depth contracts. Choose one only from the application's quality, latency, and cost requirements and representative evaluation, or ask for approval. |
 | SDK `agent(...)` waiter versus Agent job API | Preserve whether the caller blocks, polls, times out, cancels, receives partial status, and handles terminal failure. A long `task_run.result(...)` timeout is a new lifecycle choice, not automatic equivalence. |
 
 When several of these constraints occur on one call, do not partially migrate it just to remove Firecrawl. Retaining the call is safer than broadening its URL scope, removing its spend ceiling, or guessing a processor. Continue independently separable Search or public-text extraction rows.
 
-## Handle Crawl, Map, Parse, Browser, and Interact
+## Handle Research Index, Crawl, Map, Parse, Browser, Interact, and Monitor
+
+### Research Index
+
+Firecrawl Research is a specialized index, not the ordinary Search endpoint. It searches paper abstracts with research filters, exposes canonical and source-specific paper identifiers and metadata, returns question-relevant full-text passages, expands through similar papers, citers, or references, and searches GitHub issues, pull requests, discussions, and README history.
+
+Parallel Search, Extract, and Task can research scientific or engineering topics, but they do not expose that same entity and graph contract. If callers consume only human-readable evidence, redesign and evaluate a Parallel workflow. If they consume paper IDs, structured metadata, ranked passages, graph-expansion modes, or research-specific GitHub fields, retain Firecrawl or add an application-owned scholarly index and normalizer.
 
 ### Crawl
 
@@ -181,13 +192,15 @@ Firecrawl Parse uploads `.html`, `.htm`, `.pdf`, `.docx`, `.doc`, `.odt`, `.rtf`
 
 ### Browser and Interact
 
-Firecrawl Browser and Interact can expose Playwright or code execution, clicks, form fills, navigation, persistent profiles, CDP URLs, live views, and session lifecycle. Parallel Search, Extract, Chat, and Task do not provide a drop-in browser session. Keep this boundary or select a browser-automation product explicitly.
+Firecrawl Browser is a standalone API/SDK session under `/v2/interact`; Interact continues the browser state created by a scrape under `/v2/scrape/{scrapeId}/interact`. Both can expose Playwright or code execution, clicks, form fills, navigation, profiles, CDP URLs, live views, and session lifecycle. Current Firecrawl docs call the hidden Browser CLI legacy and recommend Scrape plus Interact for CLI/MCP agent workflows. Parallel Search, Extract, Chat, and Task do not provide a drop-in browser session. Keep this boundary or select a browser-automation product explicitly.
 
 The same rule applies when browser actions are nested inside `scrape` options or exposed through MCP. A final text response does not prove retrieval-only behavior.
 
-### Change tracking
+### Monitor and change tracking
 
-Parallel Monitor may be a product candidate, not a field rename. Compare what is monitored, cadence, snapshot ownership, diff format, event triggers, webhook delivery/retry, retention, and privacy requirements. Do not switch products inside a search migration without an explicit behavior design.
+Firecrawl Monitor schedules one or more `scrape`, `crawl`, or `search` targets, can judge changes against a goal, records page states such as `same`, `new`, `changed`, `removed`, or `error`, and can notify through webhooks, email, or Slack. Scrape and crawl targets may also use Firecrawl change-tracking formats.
+
+Parallel Monitor may be a product candidate, not a field rename. Compare target scope, query semantics, cadence, judgment, snapshot ownership, diff and event shape, delivery channels, webhook verification and retry, retention, backfill, and privacy requirements. Do not replace either Firecrawl Monitor or scrape-level change tracking inside a search migration without an explicit behavior design and representative end-to-end tests.
 
 ## Migrate response and operational behavior
 
@@ -210,7 +223,7 @@ Current and legacy signatures can coexist:
 - Legacy JavaScript package/client: `@mendable/firecrawl-js` and `FirecrawlApp`.
 - Python distribution/imports: `firecrawl-py`, `Firecrawl`, `AsyncFirecrawl`, `firecrawl.types`, and `firecrawl.v2.types`. Feature-frozen v1 access can appear under `firecrawl.v1`.
 - Legacy methods include `scrapeUrl` / `scrape_url`, `crawlUrl` / `crawl_url`, `asyncCrawlUrl`, `mapUrl`, `batchScrapeUrls`, status/error methods, and removed LLM-text methods.
-- Current methods include `scrape`, `search`, `map`, `crawl`, `startCrawl`, `batchScrape`, `startBatchScrape`, `extract`, `startExtract`, `agent`, `parse`, `interact`, `browser`, related status/cancel methods, and snake_case Python forms.
+- Current methods include `scrape`, `search`, `map`, `crawl`, `startCrawl`, `batchScrape`, `startBatchScrape`, `extract`, `startExtract`, `agent`, `startAgent`, `parse`, `interact`, `browser`, monitor lifecycle methods, research methods, related status/cancel methods, and snake_case Python forms.
 - LangChain can expose Firecrawl through `FireCrawlLoader` in community document loaders.
 - Current MCP package: `firecrawl-mcp`; the official hosted endpoint is `https://mcp.firecrawl.dev/v2/mcp`. Older configuration may use `@mendableai/mcp-server-firecrawl`. Detect `firecrawl_*` tool names and classify each tool separately.
 - Configuration commonly uses `FIRECRAWL_API_KEY`; self-hosted integrations may also use `FIRECRAWL_API_URL`.
@@ -228,7 +241,7 @@ Stop before deleting Firecrawl code when any of these remains unresolved:
 - Batch Scrape's job, webhook, pagination, ordering, duplicate, cancellation, or partial-failure contract is not implemented;
 - structured Extract's schema, sources, web expansion, site-scanning behavior, or asynchronous lifecycle would change without approval;
 - Agent exact-URL scope would become domain or open-web scope, a hard `maxCredits` ceiling would be dropped, a `spark-1-*` model would be guessed into a Parallel processor, or waiter/job behavior would change without approval;
-- Crawl, Map, local/private Parse, Browser, Interact, Agent navigation, or change tracking remains inside the requested boundary;
+- Research Index entity/graph behavior, Crawl, Map, local/private Parse, Browser, Interact, Agent navigation, Firecrawl Monitor, or scrape change tracking remains inside the requested boundary;
 - MCP exposes any unsupported Firecrawl tool through the same server being removed.
 
 Report the exact call site, consumed behavior, and smallest decision needed. Continue with cleanly separable Search or public-text extraction work when unsupported capabilities can remain isolated.
@@ -245,23 +258,26 @@ Report the exact call site, consumed behavior, and smallest decision needed. Con
 - [Batch Scrape API reference](https://docs.firecrawl.dev/api-reference/endpoint/batch-scrape)
 - [Structured Extract guide](https://docs.firecrawl.dev/features/extract)
 - [Structured Extract API reference](https://docs.firecrawl.dev/api-reference/endpoint/extract)
-- [Extract status API reference](https://docs.firecrawl.dev/api-reference/endpoint/extract-get)
+- [Extract status API source](https://github.com/firecrawl/firecrawl-docs/blob/main/api-reference/endpoint/extract-get.mdx)
 - [Crawl guide](https://docs.firecrawl.dev/features/crawl)
 - [Crawl API reference](https://docs.firecrawl.dev/api-reference/endpoint/crawl-post)
 - [Crawl status API reference](https://docs.firecrawl.dev/api-reference/endpoint/crawl-get)
 - [Map guide](https://docs.firecrawl.dev/features/map)
 - [Map API reference](https://docs.firecrawl.dev/api-reference/endpoint/map)
 - [Parse API reference](https://docs.firecrawl.dev/api-reference/endpoint/parse)
+- [Research Index](https://docs.firecrawl.dev/features/research)
 - [Interact guide](https://docs.firecrawl.dev/features/interact)
 - [Browser guide](https://docs.firecrawl.dev/features/browser)
 - [FIRE-1 Agent](https://docs.firecrawl.dev/agents/fire-1)
 - [Agent guide](https://docs.firecrawl.dev/features/agent)
 - [Agent API reference](https://docs.firecrawl.dev/api-reference/endpoint/agent)
+- [Monitoring guide](https://docs.firecrawl.dev/features/monitoring)
+- [Firecrawl rate limits and keyless access](https://docs.firecrawl.dev/rate-limits)
 - [Firecrawl MCP documentation](https://docs.firecrawl.dev/mcp-server)
 - [Official Firecrawl MCP repository](https://github.com/firecrawl/firecrawl-mcp-server)
 - [Firecrawl Python SDK](https://pypi.org/project/firecrawl-py/)
 - [Firecrawl JavaScript SDK](https://www.npmjs.com/package/firecrawl)
-- [LangChain FireCrawlLoader](https://reference.langchain.com/python/langchain-community/document_loaders/firecrawl/FireCrawlLoader)
+- [Firecrawl LangChain integration](https://docs.firecrawl.dev/integrations/langchain)
 - [Parallel Search reference](https://docs.parallel.ai/api-reference/search/search)
 - [Parallel Extract reference](https://docs.parallel.ai/api-reference/extract/extract)
 - [Parallel Task quickstart](https://docs.parallel.ai/task-api/task-quickstart)

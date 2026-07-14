@@ -1,6 +1,6 @@
 ---
 name: migrate-to-parallel
-description: Migrate Exa, Tavily, Perplexity, or Firecrawl web-data integrations completely to the appropriate Parallel products while preserving application behavior. Use when replacing these providers' SDKs or REST calls, dependencies, environment variables, request parameters, response parsing, model tools, search-plus-scrape paths, full-content or answer-synthesis paths, tests, and documentation; separating unsupported crawl, browser, file-parse, or non-search capabilities; auditing for leftover provider usage; or finishing and verifying an in-progress provider migration.
+description: Migrate Exa, Tavily, Perplexity, or Firecrawl web-data integrations completely to the appropriate Parallel products while preserving application behavior. Use when replacing these providers' SDKs or REST calls, dependencies, environment variables, request parameters, response parsing, model tools, search-plus-scrape paths, full-content or answer-synthesis paths, tests, and documentation; separating unsupported research-index, crawl, browser, file-parse, monitor, or other non-search capabilities; auditing for leftover provider usage; or finishing and verifying an in-progress provider migration.
 ---
 
 # Migrate to Parallel
@@ -14,7 +14,7 @@ Resolve `<skill-root>` to the directory containing this `SKILL.md`. Resolve ever
 1. Read [references/exa.md](references/exa.md) when the repository contains Exa.
 2. Read [references/tavily.md](references/tavily.md) when the repository contains Tavily.
 3. Read [references/perplexity.md](references/perplexity.md) when the repository contains Perplexity Search, Sonar, Agent API web tools, or a Perplexity search wrapper.
-4. Read [references/firecrawl.md](references/firecrawl.md) when the repository contains Firecrawl Search, Scrape, Batch Scrape, Extract, Crawl, Map, Parse, Agent, Interact, Browser, or MCP usage.
+4. Read [references/firecrawl.md](references/firecrawl.md) when the repository contains Firecrawl Search, Scrape, Batch Scrape, Extract, Agent, Research Index, Crawl, Map, Parse, Browser, Interact, Monitor, or MCP usage.
 5. Read [references/parallel-search.md](references/parallel-search.md) when any call may route to Search or needs query, filter, freshness, mode, or result-list migration.
 6. Read [references/parallel-products.md](references/parallel-products.md) when any call may route to Extract, Chat, Task, or entity discovery, or needs streaming, structured output, or citations.
 7. Read [references/integration-patterns.md](references/integration-patterns.md) when queries are generated dynamically, the provider is exposed as a model tool, provider response types escape into multiple modules, or the application needs full content or synthesized answers.
@@ -119,7 +119,7 @@ Route non-search behavior explicitly:
 - Use the Task API for asynchronous multi-step research or structured synthesis.
 - Use Entity Search for synchronous people or company discovery.
 
-For Firecrawl, classify the product before choosing a route. Search generally maps to Search; public-URL markdown or full content may map to Extract; structured multi-page research may map to Task only when Task preserves the required source scope, spend policy, quality choice, and lifecycle. Exact known-URL structured extraction instead favors Extract plus an application-owned model/parser. Crawl, Map, Parse uploads, Browser, Interact, screenshots, and other rich scrape behavior are not Search field mappings. Follow [references/firecrawl.md](references/firecrawl.md) and preserve separate capabilities until an explicit replacement is approved.
+For Firecrawl, classify the product before choosing a route. Search generally maps to Search; public-URL markdown or full content may map to Extract; structured multi-page research may map to Task only when Task preserves the required source scope, spend policy, quality choice, and lifecycle. Exact known-URL structured extraction instead favors Extract plus an application-owned model/parser. Research Index, Crawl, Map, Parse uploads, Browser, Interact, Monitor, screenshots, and other rich scrape behavior are not Search field mappings. Follow [references/firecrawl.md](references/firecrawl.md) and preserve separate capabilities until an explicit replacement is approved.
 
 Do not fill missing fields with plausible-looking constants. Remove obsolete consumers, redesign the application contract, or use the appropriate Parallel API.
 

@@ -418,6 +418,45 @@ result = {"scrape_id": "id", "credits_used": 4, "live_view_url": "https://exampl
             }.issubset(rules)
         )
 
+    def test_detects_firecrawl_research_monitor_and_lifecycle_surfaces(self):
+        findings = self.scan(
+            {
+                "client.py": '''from firecrawl import Firecrawl
+app = Firecrawl()
+papers = app.search_papers("retrieval augmented generation", authors=["Lewis"])
+passages = app.read_paper("arxiv:2005.11401", query="What is RAG?")
+related = app.related_papers("arxiv:2005.11401", intent="retrieval systems")
+monitor = app.create_monitor(
+    name="docs",
+    schedule={"text": "daily"},
+    targets=[{"type": "scrape", "urls": ["https://example.com"]}],
+    goal="Alert on API changes",
+    judge_enabled=True,
+    retention_days=30,
+)
+app.run_monitor(monitor.id)
+app.cancel_agent(agent_id)
+app.cancel_batch_scrape(batch_id)
+app.cancel_crawl(crawl_id)
+app.delete_browser(session_id)
+result = {"paper_id": "arxiv:2005.11401", "next_run_at": "soon"}
+'''
+            }
+        )
+
+        surface_lines = {
+            finding.line
+            for finding in findings
+            if finding.rule == "firecrawl-surface-method"
+        }
+        self.assertTrue({3, 4, 5, 6, 14, 15, 16, 17, 18}.issubset(surface_lines))
+        self.assertTrue(
+            any(finding.rule == "firecrawl-request-field" for finding in findings)
+        )
+        self.assertTrue(
+            any(finding.rule == "firecrawl-response-field" for finding in findings)
+        )
+
     def test_reports_firecrawl_generic_fields_only_with_context(self):
         contextual = self.legacy_rules(
             {
