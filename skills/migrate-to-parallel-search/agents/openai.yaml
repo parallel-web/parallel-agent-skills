@@ -1,4 +1,4 @@
 interface:
   display_name: "Migrate to Parallel Search"
-  short_description: "Migrate Exa or Tavily code to Parallel"
-  default_prompt: "Use $migrate-to-parallel-search to fully migrate this codebase from Exa or Tavily to Parallel Search and verify the result."
+  short_description: "Migrate Exa, Tavily, or Perplexity code"
+  default_prompt: "Use $migrate-to-parallel-search to fully migrate this codebase from Exa, Tavily, or Perplexity to Parallel Search and verify the result."

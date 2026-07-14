@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Inventory Exa and Tavily migration surfaces without exposing secret values."""
+"""Inventory legacy search-provider surfaces without exposing secret values."""
 
 from __future__ import annotations
 
@@ -15,6 +15,8 @@ from typing import Iterable, Optional
 
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent
+
+PROVIDERS = ("exa", "tavily", "perplexity")
 
 
 IGNORED_DIRS = {
@@ -120,6 +122,17 @@ RULES = [
     rule("tavily", "runtime", "tavily-surface-method", r"\.(?:extract|crawl|map|research)\s*\(", contextual=True),
     rule("tavily", "request-contract", "tavily-request-field", r"\b(search_depth|searchDepth|extract_depth|extractDepth|chunks_per_source|chunksPerSource|max_results|maxResults|include_answer|includeAnswer|include_raw_content|includeRawContent|include_images|includeImages|include_image_descriptions|includeImageDescriptions|include_domains|includeDomains|exclude_domains|excludeDomains|include_favicon|includeFavicon|include_usage|includeUsage|auto_parameters|autoParameters|exact_match|exactMatch|safe_search|safeSearch|time_range|timeRange|start_date|startDate|end_date|endDate|days)\b|[\"']?(?:topic|country|format)[\"']?\s*[:=]", contextual=True),
     rule("tavily", "response-contract", "tavily-response-field", r"\b(raw_content|rawContent|response_time|responseTime|request_id|requestId|follow_up_questions|followUpQuestions|published_date|publishedDate)\b|(?:\.|\[['\"])(?:score|content|answer|images|favicon)(?:\b|['\"]\])|[\"'](?:score|content|answer|images|favicon)[\"']\s*:", contextual=True),
+    rule("perplexity", "dependency", "perplexity-package", r"(?<![\w-])(perplexityai|@perplexity-ai/perplexity_ai|@ai-sdk/perplexity|@perplexity-ai/ai-sdk|@perplexity-ai/mcp-server)(?![\w-])"),
+    rule("perplexity", "runtime", "perplexity-import-client", r"\b(from\s+perplexity\s+import\s+(?:Async)?Perplexity\b|ChatPerplexity\b|import\s+Perplexity\s+from\s+[\"']@perplexity-ai/perplexity_ai[\"']|require\s*\(\s*[\"']@perplexity-ai/perplexity_ai[\"']\s*\)|perplexitySearch\s*\()"),
+    rule("perplexity", "runtime", "perplexity-endpoint", r"\b(?:https?://)?api\.perplexity\.ai\b"),
+    rule("perplexity", "config", "perplexity-api-key", r"\b(?:PERPLEXITY_API_KEY|PPLX_API_KEY)\b"),
+    rule("perplexity", "runtime", "perplexity-model", r"(?<![\w-])sonar-(?:pro|deep-research|reasoning(?:-pro)?)(?![\w-])"),
+    rule("perplexity", "runtime", "perplexity-sonar-model", r"\bmodel\s*[:=]\s*[\"']sonar(?:-(?:pro|deep-research|reasoning(?:-pro)?))?[\"']", contextual=True),
+    rule("perplexity", "runtime", "perplexity-search-call", r"\.search\.create\s*\(", contextual=True),
+    rule("perplexity", "runtime", "perplexity-answer-call", r"\.(?:chat\.completions|responses)\.create\s*\(", contextual=True),
+    rule("perplexity", "runtime", "perplexity-agent-tool", r"(?:[\"']type[\"']|\btype)\s*:\s*[\"'](?:web_search|fetch_url|people_search|finance_search|code_interpreter|computer|mcp|function)[\"']", contextual=True),
+    rule("perplexity", "request-contract", "perplexity-request-field", r"\b(max_results|search_context_size|max_tokens_per_page|search_language_filter|search_domain_filter|search_after_date_filter|search_before_date_filter|last_updated_after_filter|last_updated_before_filter|search_recency_filter|return_images|return_related_questions|search_mode|max_steps|max_output_tokens|response_format|web_search_options)\b|[\"']?(?:query|country|stream|tools|tool_choice|preset)[\"']?\s*[:=]", contextual=True),
+    rule("perplexity", "response-contract", "perplexity-response-field", r"\b(search_results|related_questions|citation_tokens|num_search_queries|reasoning_tokens|last_updated|server_time|output_text)\b|(?:\.|\[['\"])(?:snippet|citations|images|usage)(?:\b|['\"]\])|[\"'](?:snippet|citations|images|usage)[\"']\s*:", contextual=True),
 ]
 
 
@@ -228,7 +241,7 @@ def path_provider_hints(relative: Path) -> set[str]:
     path_tokens = lowered_parts | {stem}
     return {
         provider
-        for provider in ("exa", "tavily")
+        for provider in PROVIDERS
         if any(
             re.search(rf"(?<![a-z0-9]){provider}(?![a-z0-9])", token)
             for token in path_tokens
@@ -298,16 +311,16 @@ def counts(findings: list[Finding]) -> dict[str, object]:
 def render_markdown(root: Path, findings: list[Finding]) -> str:
     summary = counts(findings)
     lines = [
-        "# Exa/Tavily migration inventory",
+        "# Legacy provider migration inventory",
         "",
         f"Root: `{root}`",
         f"Legacy findings: **{summary['legacy']}**",
         "",
     ]
     if not findings:
-        lines.extend(["No Exa or Tavily migration signatures found in scanned files.", ""])
+        lines.extend(["No legacy provider migration signatures found in scanned files.", ""])
 
-    for provider in ("exa", "tavily"):
+    for provider in PROVIDERS:
         provider_findings = [item for item in findings if item.provider == provider]
         if not provider_findings:
             continue

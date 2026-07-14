@@ -35,6 +35,9 @@ jobs:
       - name: Run pre-commit
         run: pre-commit run --all-files
 
+      - name: Run scanner tests
+        run: python3 -m unittest discover -s tests
+
       - name: Validate CDN site build
         run: pnpm build
 

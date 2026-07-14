@@ -1,6 +1,6 @@
 ---
 name: migrate-to-parallel-search
-description: Migrate Exa or Tavily web search integrations completely to Parallel while preserving application behavior. Use when replacing Exa or Tavily SDKs or REST calls, dependencies, environment variables, request parameters, response parsing, model tools, full-content or answer-synthesis paths, tests, and documentation; auditing for leftover Exa/Tavily usage; or finishing and verifying an in-progress provider migration.
+description: Migrate Exa, Tavily, or Perplexity web search integrations completely to Parallel while preserving application behavior. Use when replacing these providers' SDKs or REST calls, dependencies, environment variables, request parameters, response parsing, model tools, full-content or answer-synthesis paths, tests, and documentation; auditing for leftover provider usage; or finishing and verifying an in-progress provider migration.
 ---
 
 # Migrate to Parallel Search
@@ -14,9 +14,10 @@ Resolve `<skill-root>` to the directory containing this `SKILL.md`. Resolve ever
 1. Read [references/parallel-search.md](references/parallel-search.md) for every migration.
 2. Read [references/exa.md](references/exa.md) when the repository contains Exa.
 3. Read [references/tavily.md](references/tavily.md) when the repository contains Tavily.
-4. Read [references/integration-patterns.md](references/integration-patterns.md) when queries are generated dynamically, the provider is exposed as a model tool, provider response types escape into multiple modules, or the application needs full content or synthesized answers.
-5. Read [references/parallel-products.md](references/parallel-products.md) when the migration needs Extract, Chat, Task, streaming, structured output, or citations.
-6. Open current official documentation for any detected SDK, wrapper, parameter, or response field not covered by those references. Do not guess at provider behavior.
+4. Read [references/perplexity.md](references/perplexity.md) when the repository contains Perplexity Search, Sonar, Agent API web tools, or a Perplexity search wrapper.
+5. Read [references/integration-patterns.md](references/integration-patterns.md) when queries are generated dynamically, the provider is exposed as a model tool, provider response types escape into multiple modules, or the application needs full content or synthesized answers.
+6. Read [references/parallel-products.md](references/parallel-products.md) when the migration needs Extract, Chat, Task, streaming, structured output, citations, or entity discovery.
+7. Open current official documentation for any detected SDK, wrapper, parameter, or response field not covered by those references. Do not guess at provider behavior.
 
 ## Preserve these invariants
 
@@ -27,10 +28,11 @@ Resolve `<skill-root>` to the directory containing this `SKILL.md`. Resolve ever
 - Do not treat an arbitrary user prompt as a keyword query merely because it fits an API length limit.
 - Keep web-research intent, hard filters, handler policy, and answer-synthesis instructions in their separate contracts.
 - Treat omitted provider parameters as behavior too: inspect their defaults before omitting a Parallel setting.
-- Do not recreate the entire Exa or Tavily SDK behind a compatibility shim. Normalize only the contract the application actually uses.
+- Do not recreate the entire legacy provider SDK behind a compatibility shim. Normalize only the contract the application actually uses.
 - Do not remove credentials from external secret managers or provider dashboards unless the user explicitly asks. Remove obsolete code references and update checked-in templates.
 - Treat mode mappings as starting points. Verify latency, quality, and output behavior with the application's real queries.
 - Stop before destructive edits when a required behavior has no supported Parallel equivalent and no in-scope substitute. Report the exact gap and the smallest decision needed.
+- Stop when the Perplexity boundary requires embeddings or structured `finance_search`; neither is a Parallel Search replacement. Keep Agent API model routing, sandbox, MCP, computer, and custom-function capabilities separate unless the user explicitly expands the migration scope.
 - Follow repository-local instructions such as `AGENTS.md`, `CLAUDE.md`, and `CONTRIBUTING.md`. Preserve unrelated work and never reset or discard user changes.
 - Complete safe repository-local migration work without stopping after an inventory or plan. Do not commit, push, change hosted secrets, or alter provider accounts unless the user asks.
 
@@ -105,7 +107,7 @@ Do not fill missing fields with plausible-looking constants. Remove obsolete con
 ## 5. Replace dependencies and configuration
 
 - Add `parallel-web` with the repository's existing package manager.
-- Remove Exa/Tavily packages and regenerate the lockfile with that package manager.
+- Remove legacy provider packages and regenerate the lockfile with that package manager.
 - Replace provider imports, client initialization, endpoints, headers, and key names.
 - Update checked-in environment templates, validation schemas, setup scripts, deployment manifests, examples, and docs to use `PARALLEL_API_KEY`.
 - Preserve existing timeout, retry, cancellation, and logging behavior where the Parallel SDK supports it; otherwise implement the behavior at the application boundary and test it.
@@ -133,7 +135,7 @@ Then run, in order:
 1. the narrow migration tests;
 2. the repository's formatter, type checker, lint, build, and broader tests as appropriate;
 3. `python3 <skill-root>/scripts/scan_provider_usage.py . --fail-on-legacy`;
-4. an independent case-insensitive search for `exa`, `tavily`, their package names, endpoints, and key names, excluding `<skill-root>` if the skill is installed inside the target repository;
+4. an independent case-insensitive search for `exa`, `tavily`, `perplexity`, `sonar-`, their package names, endpoints, and key names, excluding `<skill-root>` if the skill is installed inside the target repository;
 5. a review of the final diff for unintended behavior changes, leaked values, unrelated edits, and stale lockfiles;
 6. a live smoke test only when provider calls are explicitly authorized for this task and `PARALLEL_API_KEY` is already available, without printing it.
 
@@ -143,7 +145,8 @@ An ambient credential does not by itself authorize a paid network call. When aut
 
 Finish only when all applicable statements are true:
 
-- No Exa/Tavily runtime dependency, import, endpoint, auth header, key reference, tool definition, fixture, or stale setup instruction remains.
+- No legacy-provider runtime dependency, import, endpoint, auth header, key reference, tool definition, fixture, or stale setup instruction remains inside the migrated boundary.
+- Any Perplexity model-routing, embeddings, finance, sandbox, MCP, computer, or custom-function capability outside that boundary remains intact or is called out as an explicit blocker.
 - Every used request feature and response field has an implemented Parallel path or an explicitly approved behavior change.
 - Query construction preserves the research goal, uses keyword-shaped retrieval probes, and follows the applicable direct-call or model-tool contract.
 - Source-policy migration preserves the intended URL scope; unsupported path or wildcard behavior is implemented explicitly or recorded as an approved gap.
