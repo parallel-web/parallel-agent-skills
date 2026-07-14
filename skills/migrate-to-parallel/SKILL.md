@@ -11,13 +11,13 @@ Resolve `<skill-root>` to the directory containing this `SKILL.md`. Resolve ever
 
 ## Load the right references
 
-1. Read [references/parallel-search.md](references/parallel-search.md) for every migration.
-2. Read [references/exa.md](references/exa.md) when the repository contains Exa.
-3. Read [references/tavily.md](references/tavily.md) when the repository contains Tavily.
-4. Read [references/perplexity.md](references/perplexity.md) when the repository contains Perplexity Search, Sonar, Agent API web tools, or a Perplexity search wrapper.
-5. Read [references/firecrawl.md](references/firecrawl.md) when the repository contains Firecrawl Search, Scrape, Batch Scrape, Extract, Crawl, Map, Parse, Agent, Interact, Browser, or MCP usage.
-6. Read [references/integration-patterns.md](references/integration-patterns.md) when queries are generated dynamically, the provider is exposed as a model tool, provider response types escape into multiple modules, or the application needs full content or synthesized answers.
-7. Read [references/parallel-products.md](references/parallel-products.md) when the migration needs Extract, Chat, Task, streaming, structured output, citations, or entity discovery.
+1. Read [references/exa.md](references/exa.md) when the repository contains Exa.
+2. Read [references/tavily.md](references/tavily.md) when the repository contains Tavily.
+3. Read [references/perplexity.md](references/perplexity.md) when the repository contains Perplexity Search, Sonar, Agent API web tools, or a Perplexity search wrapper.
+4. Read [references/firecrawl.md](references/firecrawl.md) when the repository contains Firecrawl Search, Scrape, Batch Scrape, Extract, Crawl, Map, Parse, Agent, Interact, Browser, or MCP usage.
+5. Read [references/parallel-search.md](references/parallel-search.md) when any call may route to Search or needs query, filter, freshness, mode, or result-list migration.
+6. Read [references/parallel-products.md](references/parallel-products.md) when any call may route to Extract, Chat, Task, or entity discovery, or needs streaming, structured output, or citations.
+7. Read [references/integration-patterns.md](references/integration-patterns.md) when queries are generated dynamically, the provider is exposed as a model tool, provider response types escape into multiple modules, or the application needs full content or synthesized answers.
 8. Open current official documentation for any detected SDK, wrapper, parameter, or response field not covered by those references. Do not guess at provider behavior.
 
 ## Preserve these invariants
@@ -78,7 +78,7 @@ Do not use a broader Parallel product merely to eliminate a provider import. A p
 Consider both designs before editing:
 
 - **Direct replacement:** Use when provider calls are few, nearby, and provider-specific response types do not escape. Replace each call and its consumers atomically.
-- **Application-owned search module:** Use when calls are scattered or provider fields escape into the application. Put Parallel request construction, response normalization, retries, and telemetry behind one small caller-facing interface. Make this a deep module that hides provider details; do not add a pass-through wrapper.
+- **Application-owned web-data module:** Use when calls are scattered, several Parallel products are needed, or provider fields escape into the application. Put request construction, response normalization, retries, and telemetry behind one small caller-facing interface. Make this a deep module that hides provider details; do not add a pass-through wrapper.
 
 Prefer the design that localizes future search-provider changes and minimizes edits to unrelated callers. If the application publishes the old provider's raw response, either preserve only the documented application contract through a normalizer or update all consumers together.
 
@@ -125,10 +125,10 @@ Do not fill missing fields with plausible-looking constants. Remove obsolete con
 
 ## 5. Replace dependencies and configuration
 
-- Add `parallel-web` with the repository's existing package manager.
-- Remove legacy provider packages and regenerate the lockfile with that package manager.
-- Replace provider imports, client initialization, endpoints, headers, and key names.
-- Update checked-in environment templates, validation schemas, setup scripts, deployment manifests, examples, and docs to use `PARALLEL_API_KEY`.
+- Add only the SDKs required by the chosen routes: `parallel-web` for Search, Extract, or Task; `openai` for Chat unless the application already has a compatible client; no SDK when direct REST is the simpler existing pattern.
+- Remove a legacy provider package only when no `retain` row still depends on it, then regenerate the lockfile with the repository's package manager.
+- Replace provider imports, client initialization, endpoints, and headers only inside `migrate` rows. Keep shared provider setup until retained calls have their own explicit boundary.
+- Add `PARALLEL_API_KEY` to checked-in environment templates, validation schemas, setup scripts, deployment manifests, examples, and docs. Remove a legacy key from those surfaces only when no retained runtime capability still needs it.
 - Preserve existing timeout, retry, cancellation, and logging behavior where the Parallel SDK supports it; otherwise implement the behavior at the application boundary and test it.
 - Keep error messages provider-neutral unless the provider name helps the operator act.
 

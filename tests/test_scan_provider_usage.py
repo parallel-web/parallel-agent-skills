@@ -377,6 +377,23 @@ const tools = ["firecrawl_search", "firecrawl_scrape", "firecrawl_crawl", "firec
             }.issubset(rules)
         )
 
+    def test_does_not_classify_firecrawl_environment_variables_as_mcp_tools(self):
+        findings = self.scan(
+            {
+                ".env.example": (
+                    "FIRECRAWL_API_KEY=\n"
+                    "FIRECRAWL_API_URL=http://localhost:3002\n"
+                )
+            }
+        )
+
+        self.assertTrue(
+            any(finding.rule == "firecrawl-config" for finding in findings)
+        )
+        self.assertFalse(
+            any(finding.rule == "firecrawl-mcp-tool" for finding in findings)
+        )
+
     def test_detects_firecrawl_non_search_products_and_contract_fields(self):
         rules = self.legacy_rules(
             {
