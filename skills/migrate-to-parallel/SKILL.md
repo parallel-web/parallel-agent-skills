@@ -33,7 +33,7 @@ Resolve `<skill-root>` to the directory containing this `SKILL.md`. Resolve ever
 - Do not remove credentials from external secret managers or provider dashboards unless the user explicitly asks. Remove obsolete code references and update checked-in templates.
 - Treat mode mappings as starting points. Verify latency, quality, and output behavior with the application's real queries.
 - Stop before destructive edits when a required behavior has no supported Parallel equivalent and no in-scope substitute. Report the exact gap and the smallest decision needed.
-- Stop when the Perplexity boundary requires embeddings or structured `finance_search`; neither is a Parallel Search replacement. Keep Agent API model routing, sandbox, MCP, and existing custom-function capabilities separate unless the user explicitly expands the migration scope.
+- Stop when the Perplexity boundary requires embeddings; they are not a Parallel Search replacement. Route `finance_search` through Parallel's general index using Search, Chat, or Task according to the consumed contract, and stop only when a hard market-data coverage, freshness, or raw-result requirement remains unpreserved. Keep Agent API model routing, sandbox, MCP, and existing custom-function capabilities separate unless the user explicitly expands the migration scope.
 - Stop when the Firecrawl boundary requires complete crawling or URL mapping, local/private file parsing, browser actions or sessions, screenshots or other rich scrape formats, change tracking, or Firecrawl-specific privacy/security controls without an approved replacement. Search and Extract do not reproduce those contracts.
 - Follow repository-local instructions such as `AGENTS.md`, `CLAUDE.md`, and `CONTRIBUTING.md`. Preserve unrelated work and never reset or discard user changes.
 - Complete safe repository-local migration work without stopping after an inventory or plan. Do not commit, push, change hosted secrets, or alter provider accounts unless the user asks.
@@ -168,7 +168,8 @@ An ambient credential does not by itself authorize a paid network call. When aut
 Finish only when all applicable statements are true:
 
 - No legacy-provider runtime dependency, import, endpoint, auth header, key reference, tool definition, fixture, or stale setup instruction remains inside the migrated boundary.
-- Any Perplexity model-routing, embeddings, finance, sandbox, MCP, or custom-function capability outside that boundary remains intact or is called out as an explicit blocker.
+- Any Perplexity model-routing, embeddings, sandbox, MCP, or custom-function capability outside that boundary remains intact or is called out as an explicit blocker.
+- Any migrated `finance_search` path preserves the consumed final-answer or `finance_results` contract through an evaluated Parallel route and, when needed, an application-owned normalizer; unresolved hard coverage or freshness requirements are explicit blockers.
 - Any Firecrawl crawl, map, file-parse, browser, interaction, rich-format, change-tracking, security/privacy, MCP, or asynchronous-job capability outside that boundary remains intact or is called out as an explicit blocker.
 - Every inventoried call has a recorded `migrate`, `retain`, or `block` decision, and no `block` row was edited as though the gap were resolved.
 - Firecrawl exact-URL constraints, per-run credit ceilings, `spark-1-*` model choices, and synchronous/asynchronous behavior are preserved or changed only with explicit approval; a domain allow-list, omitted budget, or guessed Task processor does not satisfy this gate.

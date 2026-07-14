@@ -30,12 +30,13 @@ The Agent API can own more than retrieval. Inventory models, presets, instructio
 | --- | --- | --- |
 | Search API ranked results | Search API | Preserve result count, filters, grouped-query behavior, and response fields. |
 | Search API with `search_type="people"` | Entity Search for typed synchronous lookup; consider FindAll or Task for broader discovery | Preserve the people-only retrieval requirement and the old generic result shape. Do not silently turn it into general web search. |
-| Sonar or Agent cited answer | Chat API or the application's existing synthesis step over Search excerpts | Preserve streaming, structured output, conversation history, citations, and answer ownership. |
+| Sonar cited answer | Chat API or the application's existing synthesis step over Search excerpts | Default to Chat for a foreground OpenAI-compatible answer flow, but preserve streaming, structured output, conversation history, citations, `search_results`, media, and answer ownership. |
 | Sonar deep research, reasoning workflows, or asynchronous research | Task API | Preserve asynchronous lifecycle, progress, output schema, and research basis. Do not map a model name directly to a Parallel mode. |
+| Agent preset used for web research and synthesis | Task API after choosing a processor from the effective behavior; Chat when a foreground latency contract rules out Task | Inspect overrides, tools, step depth, output, latency, and freshness before using the preset starting points below. Task creation is asynchronous even when the old Agent request returned a completed response inline. |
 | Agent `web_search` | Search API | Move model-selected query planning into the model tool schema or preserve the existing explicit planner. |
 | Agent `fetch_url` | Extract API | Preserve URL limits, full-content needs, partial failures, and ordering contracts. |
 | Agent `people_search` | Entity Search for synchronous lookup; consider FindAll or Task for broader discovery | Preserve both the final answer and any consumed `people_search_results` item. Its results are search-result records, not normalized person objects. |
-| Agent `finance_search` | No direct structured equivalent in Parallel Search | Stop for a product decision; ordinary web search is not a substitute for structured market data. |
+| Agent `finance_search` | Search for source results, Chat for an interactive answer, or Task for multi-step or schema-shaped financial research | Use Parallel's general index, then preserve the consumer's actual contract. Raw `finance_results` need an application-owned output type and normalizer; hard coverage or freshness requirements need a representative evaluation. |
 | Agent model routing, sandbox, MCP, or existing custom functions | Keep as a separate integration boundary | Replace only the web capability unless the user explicitly requests a broader redesign. |
 | Embeddings | No Parallel Search equivalent | Stop and leave the embedding provider intact or choose another embedding product explicitly. |
 
@@ -96,13 +97,52 @@ An Agent request may combine a routed model with multiple tools. Perplexity buil
 - Keep the Agent API as the model router, replace each hosted search tool with a custom `type: "function"` tool, execute the corresponding Parallel API in the application, and return a `function_call_output` with the same `call_id`.
 - Move the model and tool loop into an existing application-owned agent harness, then register Parallel-backed tools there.
 
+#### Choose from effective preset behavior
+
+Perplexity presets are dynamic, unversioned bundles of a model, tools, search configuration, reasoning, step limits, output limits, and a system prompt. Their underlying configuration can change while the preset name stays the same. Detect both current names and older names still present in code:
+
+| Previous name | Current name | Documented profile |
+| --- | --- | --- |
+| `fast-search` | `fast` | Single-fact lookups and short summaries where latency matters most |
+| `pro-search` | `low` | Everyday research with light multi-step tool use |
+| `deep-research` | `medium` | Multi-hop browsing and aggregation across many sources |
+| `advanced-deep-research` | `high` | Expert reasoning and exhaustive source coverage |
+| None | `xhigh` | Open-ended agentic work with sandbox execution and long tool-use loops |
+
+Do not select a Parallel product or processor from that name alone. A request can override a preset's model, tools, step limit, reasoning effort, output budget, or search configuration. It can also copy the preset into a frozen configuration and omit `preset` entirely. Inventory the effective configuration and the behavior consumed by the caller, then decide:
+
+1. Keep or rebuild the model/tool loop when sandbox, MCP, custom functions, or other non-research orchestration is caller-visible.
+2. Use Chat when the application needs a foreground answer and cannot accept Task's create-and-retrieve lifecycle.
+3. Use Task when the consumed behavior is web research or structured synthesis and the application can preserve the asynchronous lifecycle.
+4. Only after choosing Task, use these as evaluation starting points rather than equivalences:
+
+| Effective Perplexity profile | Candidate Task starting point | Evaluation gate |
+| --- | --- | --- |
+| `fast` | `base-fast`; consider `lite-fast` only for a very small, simple output | Verify foreground latency and answer quality; use Chat `speed` instead when Task's lifecycle is unacceptable. |
+| `low` | `core-fast` | Verify light multi-step coverage, latency, and output complexity. Use standard `core` when freshness matters more than speed. |
+| `medium` | `pro-fast` or `pro` | Choose fast versus standard from the caller's latency and freshness contract, then evaluate multi-hop coverage. |
+| `high` | `ultra-fast` or `ultra` | Prefer the standard family when exhaustive coverage and freshness matter more than latency. |
+| `xhigh` | No processor-only equivalent | Route only the open-web research slice to an evaluated `ultra*` processor; retain or rebuild sandbox execution and the long-running tool loop. |
+
+Parallel processor tiers are selected by task complexity and output shape, while `-fast` variants trade some freshness priority for latency. Do not preserve a Perplexity preset's cost, model, tool-call count, token budget, or latency by copying a name. Record the selected processor as an application policy and evaluate it with representative requests.
+
+#### Route finance through the consumed contract
+
+Do not retain `finance_search` solely because it is a specialized Perplexity tool. Parallel's general index can support the financial research path, but choose the product from what the application reads:
+
+- If the caller reads only the final generated answer, use Chat for a foreground answer or Task for multi-step, cited, or schema-shaped financial research.
+- If the caller reads raw `finance_results`, define an application-owned type for the required categories, tickers, result content, and source URLs. Produce it with an explicit Task output schema, or with Search evidence plus the application's existing synthesis layer, then normalize it at the provider boundary. Do not substitute the final assistant message for those output items.
+- If quotes, near-real-time or historical prices, OHLCV intervals, pre-market or after-hours data, statements, ratios, ETF constituents, or another coverage/freshness guarantee is contractual, test representative symbols, categories, regions, missing data, and timestamps. Retain or block only when the general-index route cannot satisfy that named requirement.
+
+When `finance_search` appears beside `web_search`, `fetch_url`, or other tools, preserve one owner for the combined orchestration. Do not migrate one tool in isolation if the caller consumes their ordering, shared step budget, intermediate outputs, or final synthesis.
+
 In either design, separate the contracts:
 
 1. Preserve the model and non-search tools in their current owner unless broader migration is requested.
 2. Replace `web_search` with an application-executed Search tool whose input requires a self-contained `objective` and exactly three diverse keyword `search_queries`.
 3. Replace `fetch_url` with an application-executed Extract tool only when its input and result preserve URL limits, full content, and per-URL errors.
 4. Replace `people_search` only after defining the application-owned person input and result types. The Agent response can include a `people_search_results` output item with model-generated queries and generic search-result entries before the final assistant message; it does not guarantee typed `name`, `company`, or `job_title` fields. Route it to Entity Search, FindAll, or Task as appropriate and normalize deliberately.
-5. Stop on `finance_search` or embeddings.
+5. Route `finance_search` through the final-answer or structured-result path above, and stop on embeddings.
 
 Perplexity tool budgets such as `max_tokens` and `max_tokens_per_page` are token-based. Parallel Search and Extract excerpt budgets are character-based. Recalculate and test them; do not preserve the same integers.
 
@@ -128,6 +168,7 @@ When retaining Agent API routing, implement the complete custom-function loop: v
 - Preserve citations as provenance, including the UI's link-to-claim behavior. Sonar exposes a `citations` URL array and citation markers in generated text. Agent output has an `annotations` schema with URL and position fields, but annotations can be empty and cited Agent text may instead contain inline source markers. Trace the actual consumer rather than assuming either shape. Parallel Chat research basis or Task research basis is not automatically the same contract.
 - Preserve streaming at the caller boundary; chunk and event shapes are not one-to-one.
 - `search_results`, images/media, and related questions need explicit consumers or approved removal. Search excerpts alone do not reproduce them.
+- Preserve consumed `finance_results` through the application-owned finance type and normalizer. A Task result, research basis, or final answer is not automatically the same output-item contract.
 - Map usage only into an application-owned telemetry type. Perplexity tokens/search counts and Parallel SKU counts are not interchangeable costs.
 
 ## Stop conditions
@@ -135,7 +176,7 @@ When retaining Agent API routing, implement the complete custom-function loop: v
 Stop before deleting Perplexity code when any of these remains unresolved:
 
 - embeddings are inside the requested boundary;
-- `finance_search` supplies structured market data;
+- `finance_search` has a hard market-data coverage, freshness, raw-result, or source contract that the evaluated general-index route and application normalizer do not preserve;
 - domain paths, an upper publication bound, last-updated filtering, or a hard language filter is required;
 - academic or SEC corpus behavior is a product requirement;
 - image or document inputs, image/video outputs, related questions, citation markers or annotations, or grouped query results are caller-visible and have no approved replacement;
@@ -157,6 +198,7 @@ Report the exact call site, consumed behavior, and smallest decision required. C
 - [Perplexity Sonar filters](https://docs.perplexity.ai/docs/sonar/filters)
 - [Perplexity Sonar media and attachments](https://docs.perplexity.ai/docs/sonar/media)
 - [Perplexity Agent API quickstart](https://docs.perplexity.ai/docs/agent-api/quickstart)
+- [Perplexity Agent presets](https://docs.perplexity.ai/docs/agent-api/presets)
 - [Perplexity Agent tools overview](https://docs.perplexity.ai/docs/agent-api/tools/overview)
 - [Perplexity Agent custom functions](https://docs.perplexity.ai/docs/agent-api/tools/custom-functions)
 - [Perplexity Agent web search](https://docs.perplexity.ai/docs/agent-api/tools/web-search)
@@ -169,5 +211,8 @@ Report the exact call site, consumed behavior, and smallest decision required. C
 - [Parallel Search reference](https://docs.parallel.ai/api-reference/search/search)
 - [Parallel Extract reference](https://docs.parallel.ai/api-reference/extract/extract)
 - [Parallel Chat quickstart](https://docs.parallel.ai/chat-api/chat-quickstart)
+- [Parallel Task processors](https://docs.parallel.ai/task-api/guides/choose-a-processor)
+- [Parallel Task lifecycle](https://docs.parallel.ai/task-api/guides/execute-task-run)
+- [Parallel Task quickstart](https://docs.parallel.ai/task-api/task-quickstart)
 - [Parallel Task deep research](https://docs.parallel.ai/task-api/examples/task-deep-research)
 - [Parallel Entity Search](https://docs.parallel.ai/findall-api/entity-search)

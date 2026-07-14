@@ -80,9 +80,11 @@ Do not replace an old synchronous handler with an unbounded blocking call. Choos
 - Tavily `include_answer`, Exa Answer, and other interactive synthesis can map to Chat or the application's existing model.
 - Exa deep output, Tavily Research, and structured multi-step synthesis can map to Task.
 - Perplexity Search API maps to Search, but grouped multi-query results require separate calls when grouping is caller-visible.
-- Perplexity Sonar or Agent cited answers map to Chat, Task, or the application's existing synthesis layer according to the old latency, streaming, citation, and structured-output contract.
+- Perplexity Sonar cited answers default to Chat or the application's existing synthesis layer for foreground answer flows; use Task when the consumed behavior is deep, structured, or asynchronous research. Preserve latency, streaming, citations, `search_results`, media, and structured output rather than treating OpenAI-compatible request shapes as behavioral equivalence.
+- Perplexity Agent presets are research profiles, not stable equivalents of Parallel processors. When the Agent call's consumed behavior is web research and synthesis, select a Task processor from the actual effective tools, step depth, latency, freshness, and output contract. Use the behavior-first starting points in [perplexity.md](perplexity.md), and preserve any synchronous handler through an explicit lifecycle design.
 - Perplexity Agent `web_search` maps to Search, `fetch_url` to Extract, and `people_search` to Entity Search or an explicitly chosen discovery workflow such as FindAll or Task. Perplexity Search API calls with `search_type="people"` need the same explicit entity route rather than ordinary web Search. Hosted Agent tools cannot be redirected; expose these routes through application-executed custom functions or move the tool loop to another orchestrator.
-- Perplexity embeddings, structured `finance_search`, and general Agent model/tool orchestration are not Parallel Search replacements. Keep them separate or stop for a product decision.
+- Perplexity Agent `finance_search` can use Parallel's general index: Search for source results, Chat for an interactive financial answer, or Task for multi-step or schema-shaped research. If the caller consumes raw `finance_results`, add an application-owned normalizer and verify the required market-data coverage and freshness instead of treating the final answer as the same contract.
+- Perplexity embeddings and general Agent model/tool orchestration are not Parallel Search replacements. Keep them separate or stop for a product decision.
 - Firecrawl Search `web` results generally map to Search. Preserve source-group behavior, query semantics, filters, and any attached `scrapeOptions` content deliberately.
 - Firecrawl Scrape and Batch Scrape can map to Extract only when the caller needs public-URL markdown, focused excerpts, or full content. Chunk more than 20 URLs and preserve per-URL errors, ordering, concurrency, and any asynchronous job contract in the application.
 - Firecrawl Extract can map to Task for multi-page open-web structured research, or to Parallel Extract plus an application-owned model for deterministic structured extraction from known public URLs. Preserve the JSON Schema and asynchronous lifecycle; the similarly named APIs are not one-to-one.
@@ -96,6 +98,8 @@ Do not replace an old synchronous handler with an unbounded blocking call. Choos
 - [Extract quickstart](https://docs.parallel.ai/extract/extract-quickstart)
 - [Extract API reference](https://docs.parallel.ai/api-reference/extract/extract)
 - [Chat quickstart](https://docs.parallel.ai/chat-api/chat-quickstart)
+- [Task processors](https://docs.parallel.ai/task-api/guides/choose-a-processor)
+- [Task lifecycle](https://docs.parallel.ai/task-api/guides/execute-task-run)
 - [Task deep research quickstart](https://docs.parallel.ai/task-api/examples/task-deep-research)
 - [Task polling, webhooks, and SSE](https://docs.parallel.ai/task-api/examples/task-deep-research#polling-vs-webhooks-vs-sse)
 - [Research basis](https://docs.parallel.ai/task-api/guides/access-research-basis)
