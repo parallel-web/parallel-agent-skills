@@ -4,7 +4,9 @@
 
 ## Prerequisites
 
-The `parallel-cli` tool (installed + authenticated, with a non-zero balance) is required to run the skills. The [`parallel-cli-setup`](skills/parallel-cli-setup/SKILL.md) skill walks an agent through install, auth, balance, and skills install end-to-end — install the plugin/skills below, then run `/parallel:parallel-cli-setup` from your agent.
+Most execution skills require `parallel-cli` (installed, authenticated, and funded). The [`parallel-cli-setup`](skills/parallel-cli-setup/SKILL.md) skill walks an agent through install, auth, balance, and skills install end-to-end — install the plugin/skills below, then run `/parallel:parallel-cli-setup` from your agent.
+
+`migrate-to-parallel` updates an application's own web-data integration. It uses the appropriate Parallel API or SDK and needs `PARALLEL_API_KEY` only for an explicitly authorized live smoke test.
 
 ## Installation
 
@@ -69,6 +71,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 | **parallel-data-enrichment** | Enrich lists of companies, people, products               |
 | **parallel-findall**         | Discover entities matching a natural-language description |
 | **parallel-monitor**         | Continuously track the web for changes (with webhooks)    |
+| **migrate-to-parallel**      | Migrate Exa, Tavily, Perplexity, or Firecrawl integrations to Parallel |
 | **parallel-cli-setup**       | Install/update CLI, authenticate, and handle balance      |
 | **status**                   | Check running research task status                        |
 | **result**                   | Get completed research task result                        |
@@ -82,6 +85,9 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 /parallel:parallel-data-enrichment Apple, Microsoft, Google - get CEO names
 /parallel:parallel-findall AI startups that raised Series A in 2026
 /parallel:parallel-monitor track price changes for the iPhone 16 Pro
+/parallel:migrate-to-parallel migrate this app from Tavily to Parallel
+/parallel:migrate-to-parallel migrate this app from Perplexity to Parallel
+/parallel:migrate-to-parallel migrate this app from Firecrawl to Parallel
 /parallel:parallel-cli-setup
 ```
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Migrate to Parallel"
+  short_description: "Migrate competitor web-data integrations"
+  default_prompt: "Use $migrate-to-parallel to fully migrate this codebase from Exa, Tavily, Perplexity, or Firecrawl to the appropriate Parallel products and verify the result."
