@@ -1,6 +1,6 @@
 # Exa migration reference
 
-Verified against Exa Public API OpenAPI 2.0.0 and official SDK docs on 2026-07-10. Treat mappings as semantic decisions, not mechanical renames.
+Verified against Exa Public API OpenAPI 2.0.0 and official SDK docs on 2026-07-14. Treat mappings as semantic decisions, not mechanical renames.
 
 ## Detect the integration
 
@@ -27,7 +27,7 @@ Important: the current direct Exa SDKs add a 10,000-character text request when 
 | `systemPrompt` | Classify its purpose. Move soft source/freshness preferences into `objective`; keep hard source restrictions in source policy; preserve output instructions in the chosen synthesis layer. Implement and test duplicate suppression or other agent behavior at that boundary; Search has no one-field equivalent. Do not route every `systemPrompt` to Chat or Task. |
 | Exa `/answer`, `stream_answer`, or `streamAnswer` | Use the Chat API for an interactive answer or the Task API for deeper/structured research; preserve citations and streaming behavior explicitly. |
 | `numResults` / `num_results` | `advanced_settings.max_results`. Exa permits up to 100; do not assume Parallel accepts the same upper range without validation. Current public defaults are 10 in both APIs, but inspect SDK-wrapper behavior before relying on omission. |
-| `includeDomains` / `excludeDomains` | Map a single list directly. If both are set, reconcile the effective legacy behavior and send only one Parallel list: Parallel applies only `include_domains` when both are present. Reject, redesign, or explicitly approve oversized/ambiguous runtime lists; never truncate silently. |
+| `includeDomains` / `excludeDomains` | Apply the domain normalization rules in [parallel-search.md](parallel-search.md); do not copy strings mechanically. Exa permits up to 1,200 entries per list and supports schemes, path-qualified filters, and subdomain wildcards that are not one-to-one with Parallel source policy. If both lists are set, reconcile their effective legacy behavior and send one Parallel list. Never truncate or broaden scope silently. |
 | `startPublishedDate` | Convert the ISO timestamp to `advanced_settings.source_policy.after_date` (`YYYY-MM-DD`) only if loss of time-of-day precision is acceptable. Exa says “after”; Parallel's boundary is inclusive, so test the boundary. |
 | `endPublishedDate` | No direct Search API equivalent. Use an explicit post-filter only if missing `publish_date` values are handled safely, or choose another research path. |
 | deprecated `startCrawlDate` / `endCrawlDate` | No direct equivalent. These filter when Exa discovered a link, not when it was published, and Parallel results do not expose a crawl date for post-filtering. Remove only if the behavior is confirmed unused; otherwise stop for an explicit design decision. |
@@ -73,5 +73,6 @@ Do not fabricate a numeric relevance score. If the application sorts by score, p
 - [Exa raw OpenAPI](https://exa.ai/docs/exa-spec.json)
 - [Search API reference for coding agents](https://exa.ai/docs/reference/search-api-guide-for-coding-agents)
 - [Search endpoint](https://exa.ai/docs/reference/search)
+- [Domain path filter support](https://exa.ai/docs/changelog/domain-path-filter)
 - [Python SDK](https://exa.ai/docs/sdks/python-sdk)
 - [JavaScript SDK](https://exa.ai/docs/sdks/javascript-sdk)

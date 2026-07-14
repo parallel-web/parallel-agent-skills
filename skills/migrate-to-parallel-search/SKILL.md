@@ -118,6 +118,7 @@ Never expose or rewrite real secret values in logs, reports, patches, or fixture
 Add or update tests for:
 
 - request construction, including `search_queries`, mode, filters, dates, and location;
+- source-policy normalization for apex domains, subdomains, schemes, paths, wildcards, conflicting lists, and provider-specific limits;
 - query-design behavior: static requests, direct one-query compatibility paths, and model-tool schemas;
 - omitted legacy defaults, dual domain lists, and any approved semantic change;
 - target-limit validation for dynamic queries and domain lists;
@@ -145,6 +146,7 @@ Finish only when all applicable statements are true:
 - No Exa/Tavily runtime dependency, import, endpoint, auth header, key reference, tool definition, fixture, or stale setup instruction remains.
 - Every used request feature and response field has an implemented Parallel path or an explicitly approved behavior change.
 - Query construction preserves the research goal, uses keyword-shaped retrieval probes, and follows the applicable direct-call or model-tool contract.
+- Source-policy migration preserves the intended URL scope; unsupported path or wildcard behavior is implemented explicitly or recorded as an approved gap.
 - Tests and static checks pass, or unrelated pre-existing failures are identified with evidence.
 - The legacy scan passes and every identified provider response has been traced through its downstream consumers.
 - A live call passes when it was explicitly authorized and credentials are available; otherwise the missing live verification is stated clearly.

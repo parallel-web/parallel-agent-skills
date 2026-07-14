@@ -1,10 +1,11 @@
 # Parallel Search reference
 
-Verified against the official Parallel V1 OpenAPI and docs on 2026-07-10. Recheck the linked sources when the installed SDK or API has changed.
+Verified against the official Parallel V1 OpenAPI and docs on 2026-07-14. Recheck the linked sources when the installed SDK or API has changed.
 
 ## Contents
 
 - [Request contract](#request-contract)
+- [Domain policy normalization](#domain-policy-normalization)
 - [Mode and default decisions](#mode-and-default-decisions)
 - [Auth and SDKs](#auth-and-sdks)
 - [Response contract](#response-contract)
@@ -23,11 +24,24 @@ Verified against the official Parallel V1 OpenAPI and docs on 2026-07-10. Rechec
 | `session_id` | Optional string up to 1,000 characters. Reuse it across Search API and Extract API calls for one logical task. |
 | `advanced_settings.max_results` | Optional upper bound; default is 10. |
 | `advanced_settings.location` | ISO 3166-1 alpha-2 code such as `us`, `gb`, `de`, or `jp`. Support is a subset; inspect response warnings. |
-| `advanced_settings.source_policy` | `include_domains`, `exclude_domains`, and `after_date`. Use one domain-list type per request: `include_domains` is a hard allow-list, and it takes precedence if both are sent. The combined limit is 200. `after_date` is an inclusive `YYYY-MM-DD` lower bound. |
+| `advanced_settings.source_policy` | `include_domains`, `exclude_domains`, and `after_date`. Use one domain-list type per request: `include_domains` is a hard allow-list, and it takes precedence if both are sent. The combined limit is 200. Normalize entries with the rules below. `after_date` is an inclusive `YYYY-MM-DD` lower bound. |
 | `advanced_settings.excerpt_settings` | `max_chars_per_result`. Omit unless the application has a real per-result budget. |
 | `advanced_settings.fetch_policy` | `max_age_seconds`, `timeout_seconds`, and `disable_cache_fallback`. Live fetch increases latency; documented minimum cache age is 600 seconds. |
 
-Do not copy the draft guide's English/Japanese-only guard into migrated code. Current official public Search guidance says query input can be in any language, and the current V1 OpenAPI/docs expose no `turbo`-specific language restriction. Recheck if a product requirement depends on a mode-specific language guarantee. The V1 OpenAPI is authoritative when older prose pages lag newly added values such as `turbo`.
+Search generally supports multilingual queries, but Turbo currently supports only queries in English and Japanese. Use Basic or Advanced for broader multilingual coverage. Treat this as part of mode selection when the legacy input language is dynamic.
+
+## Domain policy normalization
+
+Preserve the set of allowed or blocked URLs, not just the strings in the old array. Parallel's OpenAPI accepts plain domains, including subdomains, and bare domain extensions such as `.org`. Current source-policy guidance recommends apex domains, omitting schemes and `www.`, and does not support paths. An apex entry includes all of its subdomains, so converting an exact subdomain or path-qualified rule to an apex domain can silently broaden access.
+
+Classify every legacy entry before translating it:
+
+- Map a plain domain or subdomain only when Parallel's matching scope is equivalent.
+- Do not mechanically strip a scheme, `www.`, or another subdomain prefix when doing so changes the allowed or blocked set.
+- Treat URL paths as unsupported by source policy. Preserve them with an application-owned URL filter only if the resulting retrieval and recall behavior is acceptable; otherwise stop for a design decision.
+- Translate wildcard or suffix patterns only after verifying that they match the same host set. Do not assume provider forms such as `*.example.com` or `*.com` are equivalent to Parallel's bare-extension form.
+- If both include and exclude lists were effective in the legacy request, derive the intended combined policy before sending one Parallel list. Parallel ignores `exclude_domains` when `include_domains` is present.
+- Reject, split with an explicit merge contract, or obtain approval for more than 200 combined entries. Never truncate or silently broaden the policy.
 
 ## Mode and default decisions
 
@@ -120,6 +134,7 @@ The Search API OpenAPI declares a `422` validation response shaped as `{type: "e
 - [Search API reference](https://docs.parallel.ai/api-reference/search/search)
 - [Search quickstart](https://docs.parallel.ai/search/search-quickstart)
 - [Search best practices](https://docs.parallel.ai/search/best-practices)
+- [Search modes](https://docs.parallel.ai/search/modes)
 - [Advanced Search settings](https://docs.parallel.ai/search/advanced-search-settings)
 - [Source policy](https://docs.parallel.ai/resources/source-policy)
 - [Beta-to-V1 migration guide](https://docs.parallel.ai/search/search-migration-guide)

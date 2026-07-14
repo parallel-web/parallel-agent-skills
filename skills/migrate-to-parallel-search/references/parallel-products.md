@@ -1,6 +1,6 @@
 # Parallel product contracts
 
-Verified against the official Parallel OpenAPI and product docs on 2026-07-10. Use this reference only when Search excerpts do not preserve the old behavior.
+Verified against the official Parallel OpenAPI and product docs on 2026-07-14. Use this reference only when Search excerpts do not preserve the old behavior.
 
 ## Contents
 
