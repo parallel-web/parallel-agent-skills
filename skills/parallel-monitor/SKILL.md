@@ -13,11 +13,11 @@ metadata:
 
 Action: $ARGUMENTS
 
-> Requires `parallel-cli` ≥ 0.4.0 for the GA Monitor commands. If a Monitor command or option is missing, tell the user to run `parallel-cli update` (or `pipx upgrade parallel-web-tools` if installed via pipx), then retry.
+> Requires `parallel-cli` ≥ 0.4.0 for the GA Monitor commands. If a Monitor command or option is missing, tell the user to update through their installation method (see <https://docs.parallel.ai/integrations/cli>), then retry.
 
 ## What this skill does
 
-Monitors are long-running, server-side jobs that re-check the web on a cadence and emit events when something changes. Unlike search/research/findall (one-shot lookups), monitors persist until cancelled and can optionally fire a webhook on each event.
+Monitors are long-running, server-side jobs that re-check the web on a cadence and emit events when something changes. Unlike search/research/findall (one-shot lookups), monitors persist until cancelled and can optionally deliver detected events through a webhook.
 
 ## Decide the action
 
@@ -44,15 +44,15 @@ Frequency accepts `<n><unit>` with `h`, `d`, or `w` (for example `1h`, `1d`, or 
 
 Optional flags:
 
-- `--webhook https://example.com/hook` — POST events to a URL as they happen
+- `--webhook https://example.com/hook` — deliver detected events to a URL
 - `--metadata '{"team":"competitive-intel"}'` — attach JSON metadata for your own bookkeeping
 - `--output-schema '<json>'` — structure the event payload (advanced)
 
 Parse the JSON to extract the `monitor_id`. Tell the user:
 
 - The monitor has been created with its ID
-- The frequency (so they know when to expect first event)
-- That events accumulate server-side — they can run `parallel-cli monitor events $MONITOR_ID` later to see what changed
+- The frequency (so they know how often the monitor checks)
+- That recent events are available server-side — they can run `parallel-cli monitor events $MONITOR_ID` later to see what changed
 
 ## List monitors
 
@@ -60,7 +60,7 @@ Parse the JSON to extract the `monitor_id`. Tell the user:
 parallel-cli monitor list -n 10 --json
 ```
 
-Default to `-n 10` — accounts with many historical monitors can return megabytes of JSON otherwise. Raise the limit only if the user explicitly asks for "all" or a larger set. Present as a table: ID, query (truncated), frequency, created.
+Default to `-n 10` for concise output. `list` returns active monitors only by default; add `--status active --status cancelled` when the user asks to include cancelled monitors. Raise the limit only for a larger set. Present as a table: ID, query or Task Run (truncated), frequency, created.
 
 > Note: `monitor list` is sorted newest-first. If a user is verifying creation, prefer `monitor get $MONITOR_ID` (using the ID returned by create) over scanning the list.
 
@@ -78,7 +78,7 @@ For deeper detail on a specific event group:
 parallel-cli monitor events "$MONITOR_ID" --event-group-id "$EVENT_GROUP_ID" --json
 ```
 
-Summarize for the user: count of events, then a bulleted list of what changed with timestamps. Cite source URLs from the event payload.
+Summarize for the user: count of events, then a bulleted list of what changed with dates or timestamps. Cite source URLs from the event payload.
 
 ## Get / update / trigger / cancel
 
