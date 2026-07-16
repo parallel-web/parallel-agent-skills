@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import unittest
@@ -12,8 +13,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_PATH = REPO_ROOT / "skills" / "parallel-monitor" / "SKILL.md"
 
 # This matrix intentionally mirrors the Monitor surface documented by the skill.
-# The tests below also derive commands and flags from SKILL.md so the matrix cannot
-# silently drift away from the documentation it protects.
+# The tests derive its command and flag inventory from SKILL.md and validate each
+# concrete invocation against the mapping below.
 MONITOR_CONTRACT: dict[str, tuple[str, ...]] = {
     "create": ("--frequency", "--webhook", "--metadata", "--output-schema", "--json"),
     "list": ("-n", "--status", "--json"),
@@ -26,6 +27,17 @@ MONITOR_CONTRACT: dict[str, tuple[str, ...]] = {
 
 OBSOLETE_COMMANDS = ("simulate", "delete", "event-group")
 OBSOLETE_FLAGS = ("--cadence", "--lookback")
+
+
+def documented_monitor_invocations(skill_text: str) -> list[tuple[str, tuple[str, ...], str]]:
+    invocations: list[tuple[str, tuple[str, ...], str]] = []
+    for match in re.finditer(r"(?m)(?:^|`)(parallel-cli monitor [^`\n]+)", skill_text):
+        invocation = match.group(1).strip()
+        tokens = shlex.split(invocation)
+        command = tokens[2]
+        flags = tuple(token.split("=", 1)[0] for token in tokens[3:] if token.startswith("-"))
+        invocations.append((command, flags, invocation))
+    return invocations
 
 
 class ParallelMonitorCliContractTestCase(unittest.TestCase):
@@ -81,9 +93,9 @@ class ParallelMonitorCliContractTestCase(unittest.TestCase):
             "argument-hint and Monitor contract matrix disagree",
         )
 
-        invoked_commands = set(
-            re.findall(r"\bparallel-cli\s+monitor\s+([a-z][a-z-]*)", self.skill_text)
-        )
+        invocations = documented_monitor_invocations(self.skill_text)
+        self.assertTrue(invocations, "parallel-monitor has no concrete CLI examples")
+        invoked_commands = {command for command, _, _ in invocations}
         self.assertLessEqual(
             invoked_commands,
             expected_commands,
@@ -115,6 +127,20 @@ class ParallelMonitorCliContractTestCase(unittest.TestCase):
             "documented Monitor flags and contract matrix disagree",
         )
 
+        for command, flags, invocation in documented_monitor_invocations(self.skill_text):
+            with self.subTest(invocation=invocation):
+                self.assertIn(
+                    command,
+                    MONITOR_CONTRACT,
+                    f"{invocation!r} uses a command missing from the contract matrix",
+                )
+                undocumented_for_command = set(flags) - set(MONITOR_CONTRACT[command])
+                self.assertFalse(
+                    undocumented_for_command,
+                    f"{invocation!r} assigns flags to the wrong Monitor command: "
+                    f"{sorted(undocumented_for_command)}",
+                )
+
         for command, flags in MONITOR_CONTRACT.items():
             result = self.run_cli("monitor", command, "--help")
             self.assert_cli_succeeded(result, f"parallel-cli monitor {command} --help")
@@ -135,6 +161,10 @@ class ParallelMonitorCliContractTestCase(unittest.TestCase):
         self.assertNotRegex(
             self.skill_text,
             rf"\*\*(?:{obsolete_command_pattern})\*\*",
+        )
+        self.assertNotRegex(
+            self.skill_text,
+            rf"`monitor\s+(?:{obsolete_command_pattern})\b",
         )
         for flag in OBSOLETE_FLAGS:
             with self.subTest(flag=flag):

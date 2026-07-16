@@ -30,7 +30,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install released Parallel CLI
-        run: python3 -m pip install parallel-web-tools
+        run: python3 -m pip install --upgrade parallel-web-tools
 
       - name: Install pre-commit
         run: python3 -m pip install pre-commit
