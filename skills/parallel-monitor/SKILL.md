@@ -29,7 +29,7 @@ Parse the user's request and pick one:
 | "What am I monitoring?" / "List monitors" | **list** |
 | "What changed?" / "Show me events for monitor X" | **events** |
 | "Show monitor X" / "Get details for X" | **get** |
-| "Change cadence / webhook / metadata for X" | **update** |
+| "Change cadence / webhook for X" | **update** |
 | "Check monitor X now" / "Run it now" | **trigger** |
 | "Show me the full payload for event group X" | **events** with `--event-group-id` |
 | "Stop / delete monitor X" | **cancel** (always confirm before cancelling) |
@@ -40,7 +40,7 @@ Parse the user's request and pick one:
 parallel-cli monitor create "<query>" --frequency 1d --json
 ```
 
-Frequency accepts `<n><unit>` with `h`, `d`, or `w` (for example `1h`, `1d`, or `1w`). The aliases `hourly`, `daily`, `weekly`, and `every_two_weeks` are also accepted. Match the cadence to how often the source actually changes — hourly for prices/news, weekly for filings/staffing.
+Frequency accepts `<n><unit>` with `h`, `d`, or `w` (for example `1h`, `1d`, or `1w`). The aliases `hourly`, `daily`, `weekly`, and `every_two_weeks` are also accepted. Match cadence to how often the source actually changes — hourly for prices/news, weekly for filings/staffing.
 
 Optional flags:
 
