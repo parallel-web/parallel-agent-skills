@@ -1,9 +1,9 @@
 ---
 name: parallel-monitor
-description: "Continuously track the web for changes on a recurring cadence. Use when the user asks to 'monitor', 'track changes to', 'watch', or 'alert me when' something on the web changes — e.g., 'Track price changes for iPhone 16', 'Alert me when Tesla files a new 8-K', 'Monitor competitor pricing pages weekly'. Also use to list, inspect, update, or delete existing monitors."
+description: "Continuously track the web for changes on a recurring frequency. Use when the user asks to 'monitor', 'track changes to', 'watch', or 'alert me when' something on the web changes — e.g., 'Track price changes for iPhone 16', 'Alert me when Tesla files a new 8-K', 'Monitor competitor pricing pages weekly'. Also use to list, inspect, update, trigger, or cancel existing monitors and retrieve their events."
 user-invocable: true
-argument-hint: <create|list|events|get|update|simulate|event-group|delete> [args]
-compatibility: Requires parallel-cli >= 0.3.0 and internet access.
+argument-hint: <create|list|events|get|update|trigger|cancel> [args]
+compatibility: Requires parallel-cli >= 0.4.0 and internet access.
 allowed-tools: Bash(parallel-cli:*)
 metadata:
   author: parallel
@@ -13,11 +13,11 @@ metadata:
 
 Action: $ARGUMENTS
 
-> Requires `parallel-cli` ≥ 0.3.0 (the `monitor` command was added in 0.3.0). If `parallel-cli monitor` errors with `no such command` or similar, tell the user to run `parallel-cli update` (or `pipx upgrade parallel-web-tools` if installed via pipx), then retry.
+> Requires `parallel-cli` ≥ 0.4.0 for the GA Monitor commands. If a Monitor command or option is missing, tell the user to run `parallel-cli update` (or `pipx upgrade parallel-web-tools` if installed via pipx), then retry.
 
 ## What this skill does
 
-Monitors are long-running, server-side jobs that re-check the web on a cadence and emit events when something changes. Unlike search/research/findall (one-shot lookups), monitors persist until deleted and can optionally fire a webhook on each event.
+Monitors are long-running, server-side jobs that check the web on a fixed frequency and emit events when a material change is detected. They persist until cancelled. Events accumulate server-side for polling and can optionally be delivered through a webhook.
 
 ## Decide the action
 
@@ -29,75 +29,96 @@ Parse the user's request and pick one:
 | "What am I monitoring?" / "List monitors" | **list** |
 | "What changed?" / "Show me events for monitor X" | **events** |
 | "Show monitor X" / "Get details for X" | **get** |
-| "Change cadence / query / webhook for X" | **update** |
-| "Test the webhook" / "Fire a test event" | **simulate** (requires a webhook on the monitor) |
-| "Show me the full payload for event group X" | **event-group** |
-| "Stop / delete monitor X" | **delete** (always confirm before deleting) |
+| "Change frequency / webhook / metadata for X" | **update** |
+| "Check monitor X now" / "Run it now" | **trigger** |
+| "Show the events from execution X" | **events** with `--event-group-id` |
+| "Stop / cancel monitor X" | **cancel** (always confirm first) |
 
 ## Create a monitor
 
+Create an `event_stream` monitor for a natural-language query:
+
 ```bash
-parallel-cli monitor create "<query>" --cadence daily --json
+parallel-cli monitor create "<query>" --frequency 1d --json
 ```
 
-Cadence options: `hourly`, `daily` (default), `weekly`, `every_two_weeks`. Match cadence to how often the source actually changes — hourly for prices/news, weekly for filings/staffing.
+Frequency uses `<n><unit>` with `h`, `d`, or `w` (for example `1h`, `6h`, `1d`, or `2w`). The aliases `hourly`, `daily`, `weekly`, and `every_two_weeks` are also accepted. Match the frequency to how often the subject changes.
 
-Optional flags:
+Useful options:
 
-- `--webhook https://example.com/hook` — POST events to a URL as they happen
-- `--metadata '{"team":"competitive-intel"}'` — attach JSON metadata for your own bookkeeping
-- `--output-schema '<json>'` — structure the event payload (advanced)
+- `--processor lite|base` — `lite` is the default; use `base` for harder queries that need greater recall
+- `--webhook https://example.com/hook` — deliver detected events to a webhook
+- `--metadata '{"team":"competitive-intel"}'` — attach bookkeeping metadata
+- `--output-schema '<json>'` — structure `event_stream` event output
+- `--include-backfill` — include a historical sample on the first `event_stream` run
 
-Parse the JSON to extract the `monitor_id`. Tell the user:
-
-- The monitor has been created with its ID
-- The cadence (so they know when to expect first event)
-- That events accumulate server-side — they can run `parallel-cli monitor events $MONITOR_ID` later to see what changed
-
-If they configured a webhook, suggest testing it:
+To monitor changes to an existing Task Run output, create a `snapshot` monitor without a query:
 
 ```bash
-parallel-cli monitor simulate "$MONITOR_ID"
+parallel-cli monitor create --type snapshot --task-run-id trun_abc --frequency 1d --json
 ```
 
-`simulate` requires a webhook to be configured on the monitor. Without one it errors with `Webhook not configured for this monitor` — do not run it on monitors created without `--webhook`.
+Parse the JSON to extract the `monitor_id`. Tell the user the ID, type, frequency, and delivery method. Events can always be retrieved later with `parallel-cli monitor events "$MONITOR_ID" --json`, even without a webhook.
 
-## List monitors
-
-```bash
-parallel-cli monitor list -n 10 --json
-```
-
-Default to `-n 10` — accounts with many historical monitors can return megabytes of JSON otherwise. Raise the limit only if the user explicitly asks for "all" or a larger set. Present as a table: ID, query (truncated), cadence, created.
-
-> Note: `monitor list` is not guaranteed to be sorted newest-first, so a monitor you just created may not appear in the first page of results. If a user is verifying creation, prefer `monitor get $MONITOR_ID` (using the ID returned by create) over scanning the list.
-
-## View events for a monitor
+## List and inspect monitors
 
 ```bash
-parallel-cli monitor events "$MONITOR_ID" --lookback 10d --json
-```
-
-Lookback format: `Nd` (days) or `Nw` (weeks). Default `10d`.
-
-For deeper detail on a specific event group:
-
-```bash
-parallel-cli monitor event-group "$MONITOR_ID" "$EVENT_GROUP_ID" --json
-```
-
-Summarize for the user: count of events in the period, then a bulleted list of what changed with timestamps. Cite source URLs from the event payload.
-
-## Get / update / delete
-
-```bash
+parallel-cli monitor list --limit 10 --json
 parallel-cli monitor get "$MONITOR_ID" --json
-parallel-cli monitor update "$MONITOR_ID" --cadence weekly --json
-parallel-cli monitor delete "$MONITOR_ID" --json
 ```
 
-**Always confirm before deleting** — deletion is permanent.
+`list` returns active monitors newest first by default. Use repeated `--status` flags to include both active and cancelled monitors, and use the returned `next_cursor` for another page:
+
+```bash
+parallel-cli monitor list --status active --status cancelled --limit 10 --json
+parallel-cli monitor list --cursor "$NEXT_CURSOR" --limit 10 --json
+```
+
+Present monitors as a compact table with ID, type, tracked query or Task Run, frequency, and status. When verifying a newly created monitor, prefer `get` with the ID returned by `create`.
+
+## View events
+
+```bash
+parallel-cli monitor events "$MONITOR_ID" --limit 20 --json
+```
+
+Events are returned newest first. If the response has `next_cursor`, pass it with `--cursor` to retrieve another page. To include executions where no material change was detected, add `--include-completions`.
+
+Restrict results to one execution with its event group ID:
+
+```bash
+parallel-cli monitor events "$MONITOR_ID" --event-group-id "$EVENT_GROUP_ID" --json
+```
+
+Summarize what changed and when. Cite URLs from `output.basis[].citations[].url`. For repeated polling, deduplicate detected changes by stable `event_id`; do not invent a time-based lookback because the GA events endpoint uses cursor pagination.
+
+## Update a monitor
+
+```bash
+parallel-cli monitor update "$MONITOR_ID" --frequency 1w --json
+parallel-cli monitor update "$MONITOR_ID" --webhook https://example.com/hook --json
+```
+
+Frequency, webhook, metadata, and `event_stream` advanced settings are mutable. The query and snapshot Task Run ID are immutable; create a new monitor to change either one.
+
+## Trigger a run now
+
+```bash
+parallel-cli monitor trigger "$MONITOR_ID" --json
+```
+
+`trigger` starts a real off-schedule run without changing the regular schedule. It emits a detected event only if a material change is found. It is not a synthetic webhook test, and cancelled monitors cannot be triggered.
+
+## Cancel a monitor
+
+Cancellation permanently stops future runs. Always confirm with the user immediately before executing:
+
+```bash
+parallel-cli monitor cancel "$MONITOR_ID" --json
+```
+
+Cancellation is irreversible. Create a new monitor if the user later wants to resume tracking.
 
 ## Setup
 
-Requires `parallel-cli` (installed and authenticated). If `parallel-cli --version` fails, or if a later command fails with an authentication error, tell the user to see <https://docs.parallel.ai/integrations/cli> and stop.
+Requires `parallel-cli` installed and authenticated. If `parallel-cli --version` fails, or if a later command fails with an authentication error, tell the user to see <https://docs.parallel.ai/integrations/cli> and stop.
