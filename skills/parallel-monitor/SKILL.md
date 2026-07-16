@@ -1,6 +1,6 @@
 ---
 name: parallel-monitor
-description: "Continuously track the web for changes on a recurring cadence. Use when the user asks to 'monitor', 'track changes to', 'watch', or 'alert me when' something on the web changes — e.g., 'Track price changes for iPhone 16', 'Alert me when Tesla files a new 8-K', 'Monitor competitor pricing pages weekly'. Also use to list, inspect, update, or delete existing monitors."
+description: "Continuously track the web for changes on a recurring cadence. Use when the user asks to 'monitor', 'track changes to', 'watch', or 'alert me when' something on the web changes — e.g., 'Track price changes for iPhone 16', 'Alert me when Tesla files a new 8-K', 'Monitor competitor pricing pages weekly'. Also use to list, inspect, update, or stop existing monitors, including requests to delete them."
 user-invocable: true
 argument-hint: <create|list|events|get|update|trigger|cancel> [args]
 compatibility: Requires parallel-cli >= 0.4.0 and internet access.
