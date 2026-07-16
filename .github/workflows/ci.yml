@@ -29,13 +29,16 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install released Parallel CLI
+        run: python3 -m pip install parallel-web-tools
+
       - name: Install pre-commit
         run: python3 -m pip install pre-commit
 
       - name: Run pre-commit
         run: pre-commit run --all-files
 
-      - name: Run scanner tests
+      - name: Run Python tests
         run: python3 -m unittest discover -s tests
 
       - name: Validate CDN site build
