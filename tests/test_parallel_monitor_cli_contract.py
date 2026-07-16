@@ -13,8 +13,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_PATH = REPO_ROOT / "skills" / "parallel-monitor" / "SKILL.md"
 
 # This matrix intentionally mirrors the Monitor surface documented by the skill.
-# The tests derive its command and flag inventory from SKILL.md and validate each
-# concrete invocation against the mapping below.
+# The tests derive its command and flag inventory from SKILL.md and validate its
+# command sections and concrete invocations against the mapping below.
 MONITOR_CONTRACT: dict[str, tuple[str, ...]] = {
     "create": ("--frequency", "--webhook", "--metadata", "--output-schema", "--json"),
     "list": ("-n", "--status", "--json"),
@@ -27,6 +27,30 @@ MONITOR_CONTRACT: dict[str, tuple[str, ...]] = {
 
 OBSOLETE_COMMANDS = ("simulate", "delete", "event-group")
 OBSOLETE_FLAGS = ("--cadence", "--lookback")
+
+
+def documented_flags(text: str) -> set[str]:
+    long_flags = re.findall(r"(?<![\w-])--[a-z][a-z-]*", text)
+    short_flags = re.findall(r"(?<![\w-])-[a-z](?=[\s,])", text)
+    return set(long_flags) | set(short_flags)
+
+
+def documented_command_sections(skill_text: str) -> list[tuple[str, tuple[str, ...], str]]:
+    sections: list[tuple[str, tuple[str, ...], str]] = []
+    headings = list(re.finditer(r"(?m)^##\s+(.+)$", skill_text))
+    for index, heading_match in enumerate(headings):
+        heading = heading_match.group(1).strip()
+        commands = tuple(
+            command
+            for command in MONITOR_CONTRACT
+            if re.search(rf"\b{re.escape(command)}\b", heading, re.IGNORECASE)
+        )
+        if not commands:
+            continue
+
+        section_end = headings[index + 1].start() if index + 1 < len(headings) else len(skill_text)
+        sections.append((heading, commands, skill_text[heading_match.end() : section_end]))
+    return sections
 
 
 def documented_monitor_invocations(skill_text: str) -> list[tuple[str, tuple[str, ...], str]]:
@@ -114,18 +138,27 @@ class ParallelMonitorCliContractTestCase(unittest.TestCase):
 
     def test_documented_flags_exist_under_the_correct_commands(self):
         monitor_documentation = self.skill_text.partition("## Setup")[0]
-        documented_long_flags = set(re.findall(r"(?<![\w-])--[a-z][a-z-]*", monitor_documentation))
-        expected_long_flags = {
-            flag
-            for flags in MONITOR_CONTRACT.values()
-            for flag in flags
-            if flag.startswith("--")
-        }
+        actual_flags = documented_flags(monitor_documentation)
+        expected_flags = {flag for flags in MONITOR_CONTRACT.values() for flag in flags}
         self.assertEqual(
-            expected_long_flags,
-            documented_long_flags,
+            expected_flags,
+            actual_flags,
             "documented Monitor flags and contract matrix disagree",
         )
+
+        for heading, commands, section_text in documented_command_sections(self.skill_text):
+            allowed_flags = {
+                flag
+                for command in commands
+                for flag in MONITOR_CONTRACT[command]
+            }
+            unexpected_flags = documented_flags(section_text) - allowed_flags
+            with self.subTest(section=heading):
+                self.assertFalse(
+                    unexpected_flags,
+                    f"{heading!r} documents flags for the wrong Monitor command: "
+                    f"{sorted(unexpected_flags)}",
+                )
 
         for command, flags, invocation in documented_monitor_invocations(self.skill_text):
             with self.subTest(invocation=invocation):
