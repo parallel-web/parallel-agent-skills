@@ -17,7 +17,7 @@ Action: $ARGUMENTS
 
 ## What this skill does
 
-Monitors are long-running, server-side jobs that check the web on a fixed frequency and emit events when a material change is detected. They persist until cancelled. Events accumulate server-side for polling and can optionally be delivered through a webhook.
+Monitors are long-running, server-side jobs that check the web on a fixed frequency and emit events when a material change is detected. They persist until cancelled. Recent events are available server-side for polling and can optionally be delivered through a webhook.
 
 ## Decide the action
 
@@ -58,7 +58,9 @@ To monitor changes to an existing Task Run output, create a `snapshot` monitor w
 parallel-cli monitor create --type snapshot --task-run-id trun_abc --frequency 1d --json
 ```
 
-Parse the JSON to extract the `monitor_id`. Tell the user the ID, type, frequency, and delivery method. Events can always be retrieved later with `parallel-cli monitor events "$MONITOR_ID" --json`, even without a webhook.
+The monitor runs once immediately when created, then continues on its configured schedule. Parse the JSON to extract the `monitor_id`, and tell the user the ID, type, frequency, and delivery method.
+
+Events can be retrieved without a webhook through `parallel-cli monitor events "$MONITOR_ID" --json`, but the API exposes only a bounded recent history. Poll or persist events downstream when durable history matters.
 
 ## List and inspect monitors
 
@@ -90,7 +92,9 @@ Restrict results to one execution with its event group ID:
 parallel-cli monitor events "$MONITOR_ID" --event-group-id "$EVENT_GROUP_ID" --json
 ```
 
-Summarize what changed and when. Cite URLs from `output.basis[].citations[].url`. For repeated polling, deduplicate detected changes by stable `event_id`; do not invent a time-based lookback because the GA events endpoint uses cursor pagination.
+Summarize what changed and when. For `event_stream` events, cite URLs from `output.basis[].citations[].url`. For `snapshot` events, cite URLs from `changed_output.basis[].citations[].url`. Surface `error` events; a `completion` event means the run found no material change.
+
+For repeated polling, deduplicate detected changes by stable `event_id`; do not invent a time-based lookback because the GA events endpoint uses cursor pagination.
 
 ## Update a monitor
 
@@ -99,7 +103,7 @@ parallel-cli monitor update "$MONITOR_ID" --frequency 1w --json
 parallel-cli monitor update "$MONITOR_ID" --webhook https://example.com/hook --json
 ```
 
-Frequency, webhook, metadata, and `event_stream` advanced settings are mutable. The query and snapshot Task Run ID are immutable; create a new monitor to change either one.
+The current CLI exposes updates to frequency, webhook, metadata, and `event_stream` advanced settings. It does not expose query or snapshot Task Run ID updates; create a new monitor to change the tracked target through the CLI.
 
 ## Trigger a run now
 
@@ -107,7 +111,7 @@ Frequency, webhook, metadata, and `event_stream` advanced settings are mutable. 
 parallel-cli monitor trigger "$MONITOR_ID" --json
 ```
 
-`trigger` starts a real off-schedule run without changing the regular schedule. It emits a detected event only if a material change is found. It is not a synthetic webhook test, and cancelled monitors cannot be triggered.
+`trigger` enqueues a real off-schedule run without changing the regular schedule. Its success response confirms enqueueing, not completion. Retrieve events afterward; a detected event appears only if the run finds a material change. It is not a synthetic webhook test, and cancelled monitors cannot be triggered.
 
 ## Cancel a monitor
 
