@@ -18,7 +18,7 @@ Action: $ARGUMENTS
 ## When to use
 
 - Inspect memory only when prior Parallel work may help fulfill the request or the user asks to retrieve, evict, or clear it.
-- Memory results are excerpts from past runs; fetch the source run for full records, and launch a fresh run for time-sensitive claims.
+- Memory results are excerpts from past runs; fetch the source run for full records, and launch a fresh run when current information is required.
 
 ## Choose the operation
 
