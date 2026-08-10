@@ -41,6 +41,12 @@ class RepositoryLayoutTestCase(unittest.TestCase):
         self.assertTrue(link.is_symlink())
         self.assertTrue(link.exists())
 
+    def test_memory_skill_is_project_discoverable(self):
+        link = PROJECT_SKILLS_ROOT / "parallel-memory"
+
+        self.assertTrue(link.is_symlink())
+        self.assertTrue(link.exists())
+
 
 if __name__ == "__main__":
     unittest.main()
