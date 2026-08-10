@@ -71,6 +71,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 | **parallel-data-enrichment** | Enrich lists of companies, people, products               |
 | **parallel-findall**         | Discover entities matching a natural-language description |
 | **parallel-monitor**         | Continuously track the web for changes (with webhooks)    |
+| **parallel-memory**          | Recall and manage saved Parallel runs                     |
 | **migrate-to-parallel**      | Migrate Exa, Tavily, Perplexity, or Firecrawl integrations to Parallel |
 | **parallel-cli-setup**       | Install/update CLI, authenticate, and handle balance      |
 | **status**                   | Check running research task status                        |
@@ -85,6 +86,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 /parallel:parallel-data-enrichment Apple, Microsoft, Google - get CEO names
 /parallel:parallel-findall AI startups that raised Series A in 2026
 /parallel:parallel-monitor track price changes for the iPhone 16 Pro
+/parallel:parallel-memory retrieve past research about AI code assistants
 /parallel:migrate-to-parallel migrate this app from Tavily to Parallel
 /parallel:migrate-to-parallel migrate this app from Perplexity to Parallel
 /parallel:migrate-to-parallel migrate this app from Firecrawl to Parallel

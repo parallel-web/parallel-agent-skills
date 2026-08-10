@@ -3,7 +3,7 @@ name: parallel-memory
 description: "Recall past Parallel Task, Monitor, and FindAll runs when they may help; evict runs or clear memory when asked."
 user-invocable: true
 argument-hint: <retrieve|evict|clear> [args]
-compatibility: Requires parallel-cli with memory support and internet access.
+compatibility: Requires parallel-cli >=0.8.1 and internet access.
 allowed-tools: Bash(parallel-cli:*)
 metadata:
   author: parallel
@@ -13,7 +13,7 @@ metadata:
 
 Action: $ARGUMENTS
 
-> Requires `parallel-cli` with memory commands. If `parallel-cli memory --help` fails with `no such command` or similar, tell the user to update `parallel-cli`, then retry.
+> Requires `parallel-cli >=0.8.1`. If the installed version is older, or `parallel-cli memory --help` fails with `no such command` or similar, tell the user to update `parallel-cli`, then retry.
 
 ## When to use
 
@@ -67,11 +67,11 @@ Handle each result by its `kind`:
 - `monitor`: use the monitor `id`, status, query excerpt, and matching event IDs, timestamps, and excerpts.
 - `findall`: use `id`, `updated_at`, objective excerpt, and `matched_count`.
 
-* Fetch the original Task result, Monitor events, or FindAll result when exact output, entities, citations, or provenance matter.
-* Summarize the useful findings and unresolved questions.
-* Lead with what the prior work established, then list the contributing saved runs with kind, ID, and timestamp.
-* Distinguish recalled information from any fresh verification.
-* If launching a new run and the recalled context is helpful, put it explicitly into the new run input; retrieval does not inject memory automatically.
+- Fetch the original Task result, Monitor events, or FindAll result when exact output, entities, citations, or provenance matter.
+- Summarize the useful findings and unresolved questions.
+- Lead with what the prior work established, then list the contributing saved runs with kind, ID, and timestamp.
+- Distinguish recalled information from any fresh verification.
+- If launching a new run and the recalled context is helpful, put it explicitly into the new run input; retrieval does not inject memory automatically.
 
 Expect ingestion to be asynchronous. Do not promise that a newly completed run will be immediately retrievable.
 
