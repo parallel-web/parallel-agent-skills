@@ -27,7 +27,7 @@ Action: $ARGUMENTS
 | Recall prior work about a topic | Retrieve with a concise query |
 | Show recent past runs | Retrieve without `query` |
 | Remove one saved Task, Monitor, or FindAll source | Evict by exact `kind` and `id` |
-| Permanently remove every saved entry | Clear memory |
+| Permanently remove all entries from your personal Memory | Clear memory |
 | Turn memory off | Direct the user to account settings; do not clear as a substitute |
 
 ## Use the CLI
@@ -77,7 +77,7 @@ Expect ingestion to be asynchronous. Do not promise that a newly completed run w
 
 ## Evict or clear memory
 
-Evict a single run from memory, or clear all memory entries. These do not delete the underlying Parallel runs. Ask for confirmation before clearing unless the user already asked for it.
+Evict a single run from your personal Memory, or clear it entirely. These do not delete the underlying Parallel runs. Ask for confirmation before clearing unless the user already asked for it.
 
 ```bash
 parallel-cli memory evict \
