@@ -1,4 +1,0 @@
-interface:
-  display_name: "Parallel Memory"
-  short_description: "Recall past Parallel runs"
-  default_prompt: "Use $parallel-memory to retrieve and reuse my past Parallel runs about this topic."
