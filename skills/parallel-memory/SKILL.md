@@ -61,7 +61,7 @@ parallel-cli memory retrieve \
 
 ## Use results
 
-Handle each result by its `kind`:
+Available fields vary by `kind`:
 
 - `task`: use `id`, `updated_at`, `input_excerpt`, and `output_excerpt`.
 - `monitor`: use the monitor `id`, status, query excerpt, and matching event IDs, timestamps, and excerpts.
@@ -71,7 +71,7 @@ Handle each result by its `kind`:
 - Summarize the useful findings and unresolved questions.
 - Lead with what the prior work established, then list the contributing saved runs with kind, ID, and timestamp.
 - Distinguish recalled information from any fresh verification.
-- If launching a new run and the recalled context is helpful, put it explicitly into the new run input; retrieval does not inject memory automatically.
+- Parallel runs do not consult Memory. If recalled information may be useful, include the relevant details in the new run's input.
 
 Expect ingestion to be asynchronous. Do not promise that a newly completed run will be immediately retrievable.
 
