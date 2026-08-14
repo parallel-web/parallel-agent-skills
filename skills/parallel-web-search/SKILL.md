@@ -37,6 +37,7 @@ Options if needed:
 - `--include-domains domain1.com,domain2.com` to limit to specific sources
 - `--exclude-domains domain.com` to filter out noisy sources
 - `--mode turbo` for simple fact lookups where speed and cost matter most (p50 ~200ms, lowest cost). English and Japanese queries only
+- `--mode fast` for high-quality search within a ~1s latency budget
 - `--mode advanced` for harder questions (multi-step, agentic search). Default `basic` is right for almost everything; escalate to `advanced` only when basic results are insufficient, and drop to `turbo` for high-volume simple lookups
 - `--location us` (ISO 3166-1 alpha-2) for geo-targeted results
 
