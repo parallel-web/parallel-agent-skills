@@ -1,6 +1,6 @@
 {
   "name": "parallel",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Parallel Web Search and Task API integration. Provides web search, content extraction, deep research, data enrichment, entity discovery (FindAll), and web monitoring.",
   "author": {
     "name": "Parallel Web Systems",
