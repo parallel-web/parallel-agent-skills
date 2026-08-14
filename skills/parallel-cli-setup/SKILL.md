@@ -109,11 +109,11 @@ Install the skills for the user:
 parallel-cli skills install
 ```
 
-The user may need to restart their agent if it doesn't support hot reloading (e.g. Claude).
+The user may need to restart their agent if it doesn't support hot reloading.
 
 ## Step 5: Suggest a first run
 
-Prompt the user to use the newly installed skills to run a search or extract right away. Suggest one of:
+Prompt the user to use the newly installed skills to run a search or extract right away. Suggest one of (use `$` instead of `/` for Codex):
 
 - `/parallel-web-search <query>` — fast web search
 - `/parallel-web-extract <url>` — extract content from a URL
