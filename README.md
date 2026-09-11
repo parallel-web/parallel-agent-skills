@@ -67,6 +67,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 | ---------------------------- | --------------------------------------------------------- |
 | **parallel-web-search**      | Web search (default for most research queries)            |
 | **parallel-web-extract**     | Extract content from URLs, articles, PDFs                 |
+| **parallel-api-routing**     | Choose the right Parallel API, tier, and configuration    |
 | **parallel-deep-research**   | Comprehensive research and analysis                       |
 | **parallel-data-enrichment** | Enrich lists of companies, people, products               |
 | **parallel-findall**         | Discover entities matching a natural-language description |
