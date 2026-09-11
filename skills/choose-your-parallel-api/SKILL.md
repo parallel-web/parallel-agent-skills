@@ -1,24 +1,24 @@
 ---
-name: parallel-api-routing
-description: "Choose the right Parallel API — Search and Extract, which belong together, plus Responses and Task — and the configuration that decides cost, latency, and answer quality. Use when adding live web data to an app: current events and prices, a cited answer in a chat, grounding an agent in sources it can read in full, reading a URL or PDF, deep research reports, researching or enriching every row of a list or CRM. Use when picking a search mode, reasoning effort, or Task processor. Also use when an integration is too slow, costs more than expected, or misses answers that are on the web."
+name: choose-your-parallel-api
+description: "Choose the right Parallel API and configuration for cost, latency, and answer quality. Use when adding live web data to an app: current events and prices, a cited answer in a chat, grounding an agent in sources it can read in full, reading a URL or PDF, deep research reports, researching or enriching every row of a list or CRM. Use when picking among Search and Extract, Responses, and Task, or when choosing a search mode, reasoning effort, or Task processor. Also use when an integration is too slow, costs more than expected, or misses answers that are on the web."
 ---
 
-# Routing to the right Parallel API
+# Choose the right Parallel API and configuration
 
-Four APIs give an app live web data. Search finds pages, Extract reads them,
+Parallel offers four APIs for adding live web data to an app. Search finds pages, Extract reads them,
 Responses answers a question, Task fills a schema.
 
 **Search and Extract are one pattern, not two choices.** Search locates the pages
 and returns excerpts; Extract returns the full content of the ones worth reading.
 Most agent integrations want both.
 
-Route once, while writing the integration — not on every request. A live
+Choose once, while writing the integration — not on every request. A live
 classifier in the request path buys flexibility nobody asked for and charges a
 model round-trip for it on every call. Decide here; hard-code the result.
 
-Most disappointing results are routing or configuration errors, not quality errors:
-the right API at the wrong tier, or the right tier with the wrong knobs. Route
-first, tier second, knobs third — in that order.
+Most disappointing results come from choosing the wrong API or configuration, not
+from the underlying quality: the right API at the wrong tier, or the right tier
+with the wrong knobs. Choose the API first, tier second, knobs third — in that order.
 
 ## Setup
 
@@ -43,17 +43,17 @@ everything above `pro` is gated on the user's explicit consent — see Step 3. I
 requirement needs something outside this list, say it is not supported rather than
 building against it.
 
-Then fix the rest of the envelope before routing — ask, or read from the
+Then establish the rest of the requirements before choosing — ask, or read from the
 deployment, and state the answers back:
 
 - **Is a human or agent waiting?** A synchronous need eliminates Task regardless of
   everything else.
 - **Is there a concurrency or budget cap?** A ceiling on in-flight Task runs, or a
   cost-per-row target, changes the answer.
-- **How many units of work?** One question routes differently from fifty thousand
-  rows.
+- **How many units of work?** One question may need a different API and configuration
+  than fifty thousand rows.
 
-## Step 2 — Route the job
+## Step 2 — Choose the API
 
 Answer in order; the first decisive answer wins.
 
@@ -65,7 +65,7 @@ Answer in order; the first decisive answer wins.
 4. **One subject, or one row per entity?** A list of entities, each needing the same
    fields → Task, one run per row.
 
-| Job | Route | Shape |
+| Job | API | Shape |
 | --- | --- | --- |
 | Pages and excerpts for an agent to reason over | **Search** | sync, 200 ms – 3 s |
 | Contents of URLs already in hand, including PDFs and JS-rendered pages | **Extract** | sync, 1 – 20 s |
@@ -80,8 +80,8 @@ batched, or schema-per-row work gets Task. Task earns its latency when the resul
 a filled schema, when the work is batched across many rows, or when nobody is
 watching the request.
 
-**Deep research is a delivery question, not an API.** The phrase names a depth, not
-a route, and the depth is available both ways: Responses at `high` effort when
+**Deep research is a delivery question, not an API.** The phrase names a depth, and
+that depth is available both ways: Responses at `high` effort when
 someone is watching a spinner, Task at `pro` when the report can land in the
 background. Ask who is waiting before reaching for either.
 
@@ -110,7 +110,7 @@ the answer.
 **Start one tier below where instinct lands, measure on 10–20 real inputs, and
 escalate only on observed failures.** Each step up is 2–5× the cost; quality does
 not scale with it. Escalating on anticipation — buying depth against a difficulty
-that never materializes — is the most expensive routing error there is.
+that never materializes — is the most expensive configuration mistake there is.
 
 ### Search modes
 
@@ -268,13 +268,13 @@ a smaller evidence set than it thinks it has.
 
 Cost for the pair above: $0.001 for the search plus $0.005 for five extracted URLs.
 
-## Known misroutes
+## Common mistakes
 
 | Symptom | Actual cause | Fix |
 | --- | --- | --- |
 | "It missed an answer that exists on the web" | `max_results` or `max_chars_per_result` too low — the model never saw the evidence | Raise the evidence budget before changing anything else |
 | Answers are shallow, or miss what a page actually argues | Reasoning from search excerpts alone, which compress the gist and drop the argument | Extract the top results in full and reason from those |
-| Cost is high and quality did not improve | Routed to a processor or effort well above the need | Drop a tier and measure; escalate only on observed failure |
+| Cost is high and quality did not improve | Selected a processor or effort well above the need | Drop a tier and measure; escalate only on observed failure |
 | A batch job cost far more than anyone expected | A tier above `pro` was chosen without the user seeing the multiplier | Gate `ultra` and up on explicit consent, with the volume arithmetic shown |
 | A capability "is missing" | The knob was never surfaced — date filters and output schemas are the usual two | Configure explicitly rather than inferring from defaults |
 | Search got slower and pricier right after adding an API key | Anonymous MCP traffic ran `fast`; an authenticated client inherits the `advanced` default | Pin `mode` on the MCP URL or config header |
@@ -284,19 +284,19 @@ Cost for the pair above: $0.001 for the search plus $0.005 for five extracted UR
 
 ## What to produce
 
-A routing answer is not a name. Give:
+A complete recommendation includes:
 
-- **Route and tier**, with the one sentence that decided each.
+- **API and tier**, with the one sentence that decided each.
 - **A concrete request body**, with the Step 4 knobs set explicitly.
 - **Expected latency and cost per unit of work**, arithmetic shown.
 - **The escalation path** — the measured failure that would justify the next tier up.
-- **A question instead of code** when the route lands above `pro`: the volume
+- **A question instead of code** when the recommendation lands above `pro`: the volume
   arithmetic and the cheaper alternative, not a request body.
 - **What the caller's app still owns** — polling, `errors`, persisting run IDs,
   displaying citations.
 
-If the need is too vague to route, ask exactly one question: the earliest unanswered
-one in Step 2.
+If the need is too vague to choose, ask exactly one question: the earliest
+unanswered one in Step 2.
 
 ## Reference
 
