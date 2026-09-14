@@ -309,6 +309,22 @@ A complete recommendation includes:
 If the need is too vague to choose, ask exactly one question: the earliest
 unanswered one in Step 2.
 
+## After choosing
+
+When the user asks to build or fix an integration, continue beyond the recommendation
+within the requested scope:
+
+- Read the selected API's current quickstart and inspect the application's existing
+  integration. Use the documentation index below to find the guide.
+- Implement the smallest working path using the chosen configuration, including
+  response handling, errors, citations, and the run lifecycle where applicable.
+- Run relevant local checks. If a live request is authorized and credentials are
+  available, verify one representative input and report the result. Otherwise state
+  what remains unverified. Keep the spending guidance in Step 3 in effect.
+
+If the user only asks for advice, return the recommendation and a link to the
+relevant quickstart or cookbook example. Do not change their application.
+
 ## Reference
 
 - Every documentation page is available as markdown by appending `.md` to its URL.
