@@ -35,6 +35,36 @@ class RepositoryLayoutTestCase(unittest.TestCase):
                 self.assertEqual(expected_target.resolve(), link.resolve())
                 self.assertTrue((link / "SKILL.md").is_file())
 
+    def test_every_skill_has_a_project_discovery_link(self):
+        skill_names = {
+            directory.name
+            for directory in SKILLS_ROOT.iterdir()
+            if (directory / "SKILL.md").is_file()
+        }
+        link_names = {link.name for link in PROJECT_SKILLS_ROOT.iterdir()}
+
+        self.assertEqual(skill_names, link_names)
+
+    def test_relative_skill_links_resolve_within_the_skill(self):
+        markdown_link = re.compile(r"\]\(([^)]+)\)")
+
+        for skill_file in sorted(SKILLS_ROOT.glob("*/SKILL.md")):
+            for raw_target in markdown_link.findall(
+                skill_file.read_text(encoding="utf-8")
+            ):
+                if raw_target.startswith(("#", "http://", "https://")):
+                    continue
+
+                relative_target = raw_target.split("#", 1)[0]
+                if not relative_target.lower().endswith(".md"):
+                    continue
+
+                target = (skill_file.parent / relative_target).resolve()
+
+                with self.subTest(skill=skill_file.parent.name, target=raw_target):
+                    self.assertTrue(target.is_file(), f"broken skill link: {raw_target}")
+                    self.assertTrue(target.is_relative_to(skill_file.parent.resolve()))
+
     def test_migration_skill_is_project_discoverable(self):
         link = PROJECT_SKILLS_ROOT / "migrate-to-parallel"
 
