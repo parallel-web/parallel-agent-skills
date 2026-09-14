@@ -5,7 +5,7 @@ description: "Choose the right Parallel API and configuration for cost, latency,
 
 # Choose the right Parallel API and configuration
 
-Parallel offers four APIs for adding live web data to an app. Search finds pages, Extract reads them,
+This skill covers four Parallel APIs for adding web data to an app. Search finds pages, Extract reads them,
 Responses answers a question, Task fills a schema.
 
 **Search and Extract are one pattern, not two choices.** Search locates the pages
@@ -37,17 +37,21 @@ GET  /v1/tasks/runs/{run_id}/input       # echo the input
 GET  /v1/tasks/runs/{run_id}/events      # progress stream
 ```
 
-Anything else is rejected before it reaches Parallel. Search runs in `turbo`,
-`fast`, or `advanced`; `basic` is not enabled. Task runs on any processor, but
-everything above `pro` is gated on the user's explicit consent — see Step 3. If a
-requirement needs something outside this list, say it is not supported rather than
-building against it.
+These are the endpoints covered here, not an exhaustive API list. For entity
+discovery, use `parallel-findall`; for recurring monitoring, use `parallel-monitor`.
+Task Groups also support batch orchestration. Consult the current API docs for
+requirements outside this list before declaring them unsupported.
+
+Search supports `turbo`, `fast`, `basic`, and `advanced`; the recommendations below
+focus on `turbo`, `fast`, and `advanced`. For Task processors above `pro`, follow
+this skill's explicit-consent guidance in Step 3.
 
 Then establish the rest of the requirements before choosing — ask, or read from the
 deployment, and state the answers back:
 
-- **Is a human or agent waiting?** A synchronous need eliminates Task regardless of
-  everything else.
+- **What capabilities are required, and how long can the caller wait?** Check
+  source freshness, research depth, and output requirements before choosing by
+  latency. A waiting caller may still need an asynchronous Task workflow.
 - **Is there a concurrency or budget cap?** A ceiling on in-flight Task runs, or a
   cost-per-row target, changes the answer.
 - **How many units of work?** One question may need a different API and configuration
@@ -55,15 +59,18 @@ deployment, and state the answers back:
 
 ## Step 2 — Choose the API
 
-Answer in order; the first decisive answer wins.
+Choose the appropriate branch, checking capabilities before latency.
 
 1. **Who writes the answer — the caller's agent, or Parallel?** The agent writes it,
    from evidence → Search or Extract. Parallel writes it → Responses or Task.
-2. **Do they already have the URLs?** Yes → Extract. No → Search first, then
+2. **If the caller writes the answer, do they already have the URLs?** Yes → Extract. No → Search first, then
    Extract the results worth reading in full.
-3. **Is a caller waiting on the answer?** Yes → Responses. No → Task.
-4. **One subject, or one row per entity?** A list of entities, each needing the same
-   fields → Task, one run per row.
+3. **If Parallel writes the answer, what evidence and output are needed?** Live
+   fetching during research or fields researched per entity favor Task. For a list,
+   use one run per row, optionally orchestrated with Task Groups.
+4. **Can Responses meet those requirements within the latency budget?** If so,
+   prefer it for a caller waiting on a cited answer. Otherwise use Task with
+   asynchronous delivery and progress updates.
 
 | Job | API | Shape |
 | --- | --- | --- |
@@ -71,19 +78,18 @@ Answer in order; the first decisive answer wins.
 | Contents of URLs already in hand, including PDFs and JS-rendered pages | **Extract** | sync, 1 – 20 s |
 | Grounding an agent in sources it can read in full — the common case | **Search → Extract** | sync, add the two |
 | A cited answer inside the request — chat, or an agent loop | **Responses** | sync, 5 – 60 s |
-| Deep research with a caller waiting | **Responses** at `high` | sync, 30 – 60 s |
+| Research with a caller waiting, when cached sources meet the need | **Responses** at `high` | sync, 30 – 60 s |
 | Deep research in the background; structured fields researched per row | **Task** | async, 10 s – 2 hr |
 
-**Responses vs Task is the confusion worth spending time on.** Same research
-capability, different delivery contract. A waiting caller gets Responses; background,
-batched, or schema-per-row work gets Task. Task earns its latency when the result is
-a filled schema, when the work is batched across many rows, or when nobody is
-watching the request.
+**Responses and Task differ in research configuration as well as delivery.**
+Responses `high` uses a latency-focused engine with cache-only extraction; Task
+`pro` can fetch live pages during research. A source that requires a live fetch
+therefore makes them non-interchangeable, even if a caller is waiting.
 
-**Deep research is a delivery question, not an API.** The phrase names a depth, and
-that depth is available both ways: Responses at `high` effort when
-someone is watching a spinner, Task at `pro` when the report can land in the
-background. Ask who is waiting before reaching for either.
+**Deep research needs a capability check.** Start with the evidence, freshness,
+depth, and output the job requires. Then choose Responses `high` when its
+capabilities fit a synchronous answer, or Task `pro` for an asynchronous research
+workflow. Validate on representative inputs rather than assuming equal quality.
 
 ### Pairing Search with Extract
 
@@ -123,12 +129,16 @@ that never materializes — is the most expensive configuration mistake there is
 `advanced` is what you get when `mode` is omitted from a REST call, which means
 omitting it quietly costs 5× and adds ~2 s. **Set it explicitly, always.**
 
-Through the Search MCP server the default depends on who is calling: anonymous
-free-tier traffic runs `fast`, while an authenticated client inherits the API
-default of `advanced`. Adding a key to raise rate limits therefore re-tiers a
-working integration underneath itself — identical tool calls, 5× the cost and ~2 s
-more latency. Pin it on the server URL (`?mode=fast`) or in the configuration
-header (`x-parallel-search-config: {"mode":"fast"}`); the URL wins if both set it.
+Search MCP has its own defaults: anonymous free-tier traffic defaults to `fast`;
+authenticated traffic defaults to `basic` when `client_model` is absent or
+unrecognized. Certain recognized `client_model` values select `advanced`, and
+server-side routing can override unpinned defaults. Adding a key does not by itself
+select `advanced` or imply a fixed cost or latency multiplier.
+
+For authenticated calls, pin the mode on the server URL (`?mode=fast`) or in the
+configuration header (`x-parallel-search-config: {"mode":"fast"}`); the URL wins
+if both set it. Anonymous calls with search overrides are rejected: remove the
+overrides or authenticate before setting them.
 
 ### Responses reasoning effort
 
@@ -157,8 +167,9 @@ fields it fills, and failed runs are not billed.
 
 Field count is a guideline, not the selector. **Research depth per field selects the
 processor**: five analytical fields are more work than fifteen lookups. `-fast`
-processor variants exist and remain supported, but are not recommended for new
-workloads — for low latency, use Responses instead.
+processor variants exist and remain supported. For low latency, evaluate Responses
+when it meets the workload's capability requirements; it is not a universal
+replacement for Task.
 
 #### Above `pro`, ask before you spend
 
@@ -277,7 +288,7 @@ Cost for the pair above: $0.001 for the search plus $0.005 for five extracted UR
 | Cost is high and quality did not improve | Selected a processor or effort well above the need | Drop a tier and measure; escalate only on observed failure |
 | A batch job cost far more than anyone expected | A tier above `pro` was chosen without the user seeing the multiplier | Gate `ultra` and up on explicit consent, with the volume arithmetic shown |
 | A capability "is missing" | The knob was never surfaced — date filters and output schemas are the usual two | Configure explicitly rather than inferring from defaults |
-| Search got slower and pricier right after adding an API key | Anonymous MCP traffic ran `fast`; an authenticated client inherits the `advanced` default | Pin `mode` on the MCP URL or config header |
+| Search behavior changed after adding an API key | Anonymous MCP defaults to `fast`; authenticated MCP has separate defaults influenced by `client_model` and server routing | Pin `mode` on authenticated MCP calls; measure cost and latency |
 | Results are stale | Indexed content is served by default | `fetch_policy` for live content, `after_date` for a hard floor |
 | It researched the wrong entity | Ambiguous Task input | Disambiguate the input; do not escalate the processor |
 | Pages are silently missing from Extract | Only `results` was read | Read `errors` too |
