@@ -76,6 +76,17 @@ class RepositoryLayoutTestCase(unittest.TestCase):
 
         self.assertEqual("productivity", marketplace["plugins"][0]["category"])
 
+    def test_codex_manifest_uses_live_policy_urls(self):
+        manifest = json.loads(CODEX_PLUGIN_MANIFEST.read_text(encoding="utf-8"))
+        interface = manifest["interface"]
+
+        self.assertEqual(
+            "https://parallel.ai/privacy-policy", interface["privacyPolicyURL"]
+        )
+        self.assertEqual(
+            "https://parallel.ai/terms-of-service", interface["termsOfServiceURL"]
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
