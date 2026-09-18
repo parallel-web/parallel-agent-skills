@@ -1,0 +1,13 @@
+interface:
+  display_name: "Parallel Web Research"
+  short_description: "Search and fetch the web with sourced results"
+  default_prompt: "Use $parallel-web-research to research this topic with sources."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "parallel-search"
+      description: "Parallel Search MCP tools for public web search and page fetching"
+      transport: "streamable_http"
+      url: "https://search.parallel.ai/mcp"
+policy:
+  allow_implicit_invocation: true

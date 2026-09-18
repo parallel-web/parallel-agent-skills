@@ -1,0 +1,41 @@
+{
+  "name": "parallel",
+  "version": "1.0.0",
+  "description": "Search and fetch the public web with Parallel and turn results into sourced answers.",
+  "author": {
+    "name": "Parallel Web Systems",
+    "email": "support@parallel.ai",
+    "url": "https://parallel.ai"
+  },
+  "homepage": "https://docs.parallel.ai/home",
+  "repository": "https://github.com/parallel-web/parallel-agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "web-search",
+    "web-fetch",
+    "research",
+    "citations",
+    "parallel"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Parallel",
+    "shortDescription": "Search the web with sources",
+    "longDescription": "Search the public web, fetch relevant pages, and synthesize current information into concise answers with source links. Parallel Search works without an account or API key.",
+    "developerName": "Parallel Web Systems",
+    "category": "Productivity",
+    "capabilities": [
+      "Search the public web",
+      "Fetch content from public URLs",
+      "Synthesize research with source links"
+    ],
+    "websiteURL": "https://parallel.ai",
+    "privacyPolicyURL": "https://parallel.ai/privacy-policy",
+    "termsOfServiceURL": "https://parallel.ai/terms-of-service",
+    "defaultPrompt": [
+      "Research the latest developments in a topic and cite the strongest sources.",
+      "Compare current information from authoritative sources on the web.",
+      "Find the official documentation that answers my technical question."
+    ]
+  }
+}
