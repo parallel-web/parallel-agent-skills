@@ -1,7 +1,7 @@
 {
   "name": "parallel",
   "version": "0.9.0",
-  "description": "Parallel Web Search and Task API integration. Provides web search, content extraction, deep research, data enrichment, entity discovery (FindAll), and web monitoring.",
+  "description": "Web search and page fetching through Parallel's hosted MCP server — free, no account or API key needed — plus CLI-backed deep research, data enrichment, entity discovery (FindAll), and web monitoring.",
   "author": {
     "name": "Parallel Web Systems",
     "email": "support@parallel.ai",
@@ -22,10 +22,11 @@
     "content-extraction"
   ],
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Parallel",
     "shortDescription": "Web search, deep research, data enrichment, entity discovery, and web monitoring",
-    "longDescription": "AI-native web infrastructure for coding agents. Search the web, extract content from URLs, run deep multi-source research tasks, bulk-enrich datasets with web-sourced fields, discover entities matching a natural-language description (FindAll), and continuously monitor the web for changes — all through the parallel-cli.",
+    "longDescription": "AI-native web infrastructure for coding agents. Web search and page fetching work the moment you install, through Parallel's hosted MCP server — no account, API key, or CLI required. Add parallel-cli to run deep multi-source research tasks, bulk-enrich datasets with web-sourced fields, discover entities matching a natural-language description (FindAll), and continuously monitor the web for changes.",
     "developerName": "Parallel Web Systems",
     "category": "Productivity",
     "capabilities": [
