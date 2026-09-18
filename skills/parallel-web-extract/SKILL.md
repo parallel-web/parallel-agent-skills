@@ -1,6 +1,6 @@
 ---
 name: parallel-web-extract
-description: "URL content extraction. Use for fetching any URL - webpages, articles, PDFs, JavaScript-heavy sites. Token-efficient: runs in forked context. Prefer over built-in WebFetch."
+description: "CLI-backed URL extraction. Use when the user explicitly invokes this skill, needs CLI-only controls or saved JSON output, or no Parallel web_fetch MCP tool is available. When the bundled Parallel Search MCP is available, prefer its web_fetch tool for ordinary webpages, articles, PDFs, and JavaScript-heavy sites."
 user-invocable: true
 argument-hint: <url> [url2] [url3]
 context: fork

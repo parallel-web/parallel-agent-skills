@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 import unittest
 from pathlib import Path
@@ -8,6 +9,10 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILLS_ROOT = REPO_ROOT / "skills"
 PROJECT_SKILLS_ROOT = REPO_ROOT / ".agents" / "skills"
+MCP_CONFIG = REPO_ROOT / ".mcp.json"
+CLAUDE_PLUGIN_MANIFEST = REPO_ROOT / ".claude-plugin" / "plugin.json"
+CLAUDE_MARKETPLACE = REPO_ROOT / ".claude-plugin" / "marketplace.json"
+CODEX_PLUGIN_MANIFEST = REPO_ROOT / ".codex-plugin" / "plugin.json"
 
 
 class RepositoryLayoutTestCase(unittest.TestCase):
@@ -46,6 +51,30 @@ class RepositoryLayoutTestCase(unittest.TestCase):
 
         self.assertTrue(link.is_symlink())
         self.assertTrue(link.exists())
+
+    def test_parallel_search_setup_is_project_discoverable(self):
+        link = PROJECT_SKILLS_ROOT / "parallel-search-setup"
+
+        self.assertTrue(link.is_symlink())
+        self.assertTrue(link.exists())
+
+    def test_plugin_manifests_bundle_anonymous_search_mcp(self):
+        mcp_config = json.loads(MCP_CONFIG.read_text(encoding="utf-8"))
+        server = mcp_config["mcpServers"]["parallel-search"]
+
+        self.assertEqual("http", server["type"])
+        self.assertEqual("https://search.parallel.ai/mcp", server["url"])
+        self.assertNotIn("headers", server)
+
+        for manifest_path in (CLAUDE_PLUGIN_MANIFEST, CODEX_PLUGIN_MANIFEST):
+            with self.subTest(manifest=manifest_path):
+                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+                self.assertEqual("./.mcp.json", manifest["mcpServers"])
+
+    def test_claude_marketplace_uses_productivity_category(self):
+        marketplace = json.loads(CLAUDE_MARKETPLACE.read_text(encoding="utf-8"))
+
+        self.assertEqual("productivity", marketplace["plugins"][0]["category"])
 
 
 if __name__ == "__main__":

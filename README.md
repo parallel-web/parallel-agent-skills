@@ -84,8 +84,8 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 | ---------------------------- | --------------------------------------------------------- |
 | **parallel-search-setup**    | Verify, use, and troubleshoot the bundled anonymous Search MCP server     |
 | **parallel-mcp-setup** | Set up authenticated Parallel MCP connections; Bifrost Search MCP is the first supported path |
-| **parallel-web-search**      | Web search (default for most research queries)            |
-| **parallel-web-extract**     | Extract content from URLs, articles, PDFs                 |
+| **parallel-web-search**      | CLI-backed search for explicit CLI use or when MCP is unavailable |
+| **parallel-web-extract**     | CLI-backed extraction for explicit CLI use or when MCP is unavailable |
 | **choose-your-parallel-api** | Choose the right Parallel API and configuration           |
 | **parallel-deep-research**   | Comprehensive research and analysis                       |
 | **parallel-data-enrichment** | Enrich lists of companies, people, products               |
@@ -121,12 +121,19 @@ limits. The free tier is intended for personal agents, hobby projects, and
 exploration.
 
 For higher search limits, usage analytics, and production workloads, create an
-account at [platform.parallel.ai](https://platform.parallel.ai) and connect the
-**Parallel Search** connector, which signs in with that account. Authenticated
-usage is billed under your account's pricing and limits — see
-[parallel.ai/pricing](https://parallel.ai/pricing). Don't add an API key to the
-bundled server or point it at an authenticated endpoint; the connector handles
-sign-in natively.
+account at [platform.parallel.ai](https://platform.parallel.ai), then add a
+separate authenticated Search MCP connection. The same service supports a
+Parallel API key on `https://search.parallel.ai/mcp` or OAuth through
+`https://search.parallel.ai/mcp-oauth`. Authenticated usage is billed under your
+account's pricing and limits — see
+[parallel.ai/pricing](https://parallel.ai/pricing).
+
+Keep the plugin-provided connection anonymous rather than editing the installed
+plugin. After the authenticated connection works, use `/mcp` to ensure only one
+Parallel Search connection is enabled; if both appear, toggle the bundled
+anonymous server off. See
+[`parallel-search-setup`](skills/parallel-search-setup/SKILL.md) for the upgrade
+steps.
 
 The CLI-backed skills are separate: deep research, enrichment, FindAll, and
 Monitor run through `parallel-cli` against your own funded Parallel account and
@@ -134,11 +141,15 @@ are billed as ordinary API usage.
 
 ## Privacy and terms
 
-Parallel hosts the search service. Search queries and requested URLs are sent to
-Parallel and handled under the [Customer Terms](https://parallel.ai/customer-terms)
-and [Privacy Policy](https://parallel.ai/privacy-policy). The MCP server receives
-only what the tools send it — search queries and the URLs you ask it to fetch —
-and does not read your conversation, files, or other context.
+Parallel hosts the search service. Tool arguments sent to Parallel can include
+objectives, search queries, requested URLs, and optional session and model
+metadata. Parallel also receives standard connection and MCP client metadata.
+This data is handled under the
+[Customer Terms](https://parallel.ai/customer-terms) and
+[Privacy Policy](https://parallel.ai/privacy-policy). The MCP server does not
+automatically receive the rest of your conversation or local files, but an agent
+can include context in tool arguments when it is relevant. Do not send secrets,
+credentials, or sensitive local content through search or fetch tools.
 
 The CLI-backed skills run `parallel-cli` locally using credentials you have
 already configured. They send task inputs to Parallel's API under the same terms.
