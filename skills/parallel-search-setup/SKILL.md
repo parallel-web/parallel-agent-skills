@@ -17,6 +17,19 @@ The plugin's other skills are CLI-backed and do require `parallel-cli` to be
 installed, authenticated, and funded. Those are a separate concern; see
 `parallel-cli-setup`. Nothing in this skill depends on the CLI.
 
+## Skills-only installation
+
+Installing with `parallel-cli skills install` or Codex's skill installer does
+not register the MCP server. Before verification, check the current client's
+registered servers. If absent, add the anonymous endpoint to that client:
+
+- **Claude Code:** `claude mcp add --scope user --transport http parallel-search https://search.parallel.ai/mcp`
+- **Codex:** `codex mcp add parallel-search --url https://search.parallel.ai/mcp`
+- **Other clients:** register `https://search.parallel.ai/mcp` with Streamable
+  HTTP transport and no authorization header.
+
+Reload or restart the client if needed, then verify below.
+
 ## Verify the connection
 
 After install, confirm the server works rather than assuming it does:
@@ -79,19 +92,28 @@ Keep the plugin-provided server anonymous; do not edit the installed plugin's
 Ask which authentication method the user prefers before configuring it:
 
 - **OAuth:** add `https://search.parallel.ai/mcp-oauth` as an HTTP server named
-  `parallel-search-auth`, then run `claude mcp login parallel-search-auth` or
-  complete sign-in from `/mcp`.
+  `parallel-search-auth` in the current client. In Claude Code, run
+  `claude mcp login parallel-search-auth` or complete sign-in from `/mcp`.
+  In Codex, run `codex mcp login parallel-search-auth` if needed. For other clients,
+  complete their OAuth sign-in flow.
 - **API key:** point `parallel-search-auth` at
   `https://search.parallel.ai/mcp` and set
   `Authorization: Bearer ${PARALLEL_API_KEY}` from the user's environment. Do
   not paste or commit the key in a plugin or project file.
 
-After the authenticated connection succeeds, open `/mcp` and make sure only one
+In Claude Code, after the authenticated connection succeeds, open `/mcp` and make sure only one
 Parallel Search connection is enabled. Recent Claude Code versions deduplicate
 connections to the same endpoint by precedence, but `/mcp-oauth` is a distinct
 endpoint and older clients may show both. If both are active, toggle the
 plugin-provided anonymous `parallel-search` server off; do not uninstall the
 plugin, because its skills remain useful.
+
+In Codex, disable the bundled anonymous server by setting `enabled = false`
+under `[plugins."<installed-plugin-key>".mcp_servers.parallel-search]` in
+`~/.codex/config.toml`, using the actual installed plugin key. For a manually
+registered anonymous server, use `[mcp_servers.parallel-search]` instead.
+Reload or restart Codex if needed. Other clients should use their MCP settings
+to disable the anonymous connection.
 
 Never modify the user's MCP or plugin configuration without telling them what
 will change, and never touch unrelated MCP servers.
@@ -103,8 +125,8 @@ will change, and never touch unrelated MCP servers.
 | HTTP 429 | Free-tier rate limit reached | Wait and retry, reduce query volume, or move to an authenticated account (see above) |
 | HTTP 401 on bundled server | The plugin configuration was changed or routed to an auth-required endpoint | Restore the bundled server to anonymous `https://search.parallel.ai/mcp` with no authorization header |
 | HTTP 401 on authenticated server | The API key or OAuth session is missing, invalid, or expired | Refresh the key or re-authenticate `parallel-search-auth`; do not fall back silently to anonymous access |
-| Tools not listed | Plugin installed but the server is toggled off for this session | Ask the user to enable Parallel Search in this session's connector settings, then restart |
-| Duplicate tools | Both the bundled anonymous server and a separate authenticated connection are enabled | Verify the authenticated connection works, then toggle the plugin-provided anonymous server off in `/mcp` |
+| Tools not listed | Server absent or disabled | Register it using **Skills-only installation** above if absent; otherwise enable it in the current client's MCP settings, then restart |
+| Duplicate tools | Both anonymous and authenticated connections are enabled | Verify the authenticated connection works, then disable the anonymous server using the client-specific steps above |
 | Empty or irrelevant results | Query too narrow or too long | Rewrite as two or three shorter queries and pass them together in one call |
 
 ## Terms
