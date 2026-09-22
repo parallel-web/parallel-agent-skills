@@ -6,14 +6,14 @@
     "url": "https://parallel.ai"
   },
   "metadata": {
-    "description": "Official Parallel Web Systems plugin for Claude Code - web search, content extraction, deep research, data enrichment, entity discovery, and web monitoring.",
+    "description": "Official Parallel Web Systems plugin for Claude Code — free web search and page fetching over MCP, plus CLI-backed deep research, data enrichment, entity discovery, and web monitoring.",
     "version": "0.9.0",
     "pluginRoot": "./"
   },
   "plugins": [
     {
       "name": "parallel",
-      "description": "Parallel CLI integration for web search, URL extraction, deep research, bulk data enrichment, entity discovery (FindAll), and continuous web monitoring — powered by Parallel's AI-native web infrastructure.",
+      "description": "Web search and page fetching through Parallel's hosted MCP server — free, no account or API key needed — plus CLI-backed deep research, bulk data enrichment, entity discovery (FindAll), and continuous web monitoring. Powered by Parallel's AI-native web infrastructure.",
       "version": "0.9.0",
       "source": "./",
       "author": {
@@ -34,10 +34,11 @@
         "ai-tools",
         "content-extraction"
       ],
-      "category": "External integrations",
+      "category": "productivity",
       "tags": [
         "search",
         "web",
+        "mcp",
         "research",
         "enrichment",
         "findall",

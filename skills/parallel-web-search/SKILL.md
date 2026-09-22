@@ -1,6 +1,6 @@
 ---
 name: parallel-web-search
-description: "DEFAULT for all research and web queries. Use for any lookup, research, investigation, or question needing current info. Fast and cost-effective. Only use parallel-deep-research if user explicitly requests 'deep' or 'exhaustive' research."
+description: "CLI-backed web search. Use when the user explicitly invokes this skill, needs CLI-only controls or saved JSON output, or no Parallel web_search MCP tool is available. When the bundled Parallel Search MCP is available, prefer its web_search tool for ordinary lookups and current-information queries. Only use parallel-deep-research if the user explicitly requests deep or exhaustive research."
 user-invocable: true
 argument-hint: <query>
 context: fork
