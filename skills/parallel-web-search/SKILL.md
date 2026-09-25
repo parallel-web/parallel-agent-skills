@@ -36,19 +36,20 @@ Options if needed:
 - `--after-date YYYY-MM-DD` for time-sensitive queries
 - `--include-domains domain1.com,domain2.com` to limit to specific sources
 - `--exclude-domains domain.com` to filter out noisy sources
-- `--mode turbo` for simple fact lookups where speed and cost matter most (p50 ~200ms, lowest cost). English and Japanese queries only
-- `--mode fast` for high-quality search within a ~1s latency budget
-- `--mode advanced` for harder questions (multi-step, agentic search). Default `basic` is right for almost everything; escalate to `advanced` only when basic results are insufficient, and drop to `turbo` for high-volume simple lookups
+- `--mode turbo` for simple fact lookups where speed matters most; supports English and Japanese queries
+- `--mode fast` for high-quality search within an approximately one-second latency budget; requires CLI ≥ 0.9.2, and latency is not guaranteed
+- `--mode advanced` for harder questions (multi-step, agentic search). Keep the default `basic` unless the request needs another mode
 - `--location us` (ISO 3166-1 alpha-2) for geo-targeted results
+- `--session-id "<returned-session-id>"` to group related Search/Extract calls when a prior response returned one. A `session_id` or `search_id` is not a Task interaction ID or research run ID; never send it to research status/poll or `--previous-interaction-id`
 
 ## Parsing results
 
-Do not set `max_output_tokens` on the command execution — the output is already bounded by `--max-results` and `--excerpt-max-chars-total`. Capping output tokens will truncate the JSON and break parsing.
+**Read the saved `-o` JSON file as the authoritative payload.** Result and excerpt limits bound requested content, but stdout can still exceed the tool's output limit. Truncated stdout is not parseable JSON and is not proof of incomplete saved results. Inspect an existing output path before using it because Search overwrites that file. For each result, extract:
 
-**Prefer reading from the saved `-o` file**, not stdout. Even bounded output regularly exceeds harness stdout limits and gets truncated. Read `/tmp/$FILENAME.json` for the authoritative payload. For each result, extract:
-
-- title, url, publish_date
+- title, url, and publish_date if provided; omit unknown dates
 - Useful content from excerpts (skip navigation noise like menus, footers, "Skip to content")
+
+Check the exit status, returned API error and `warnings` before presenting results. On an error or empty `results`, report what happened and do not fabricate an answer. An old output file is not evidence that a failed request succeeded. For sparse results, state the coverage limits; refine the objective or queries only when useful for the user's request.
 
 ## Response format
 
@@ -71,6 +72,8 @@ Sources:
 
 This Sources section is mandatory. Do not omit it.
 
+Only include source dates that were returned or verified in the retrieved content. Leave the date out when unknown.
+
 After the Sources section, mention the output file path (`/tmp/$FILENAME.json`) so the user knows it's available for follow-up questions.
 
 ## Setup
@@ -81,4 +84,6 @@ If `parallel-cli` is not found, install and authenticate:
 /parallel:parallel-cli-setup
 ```
 
-If `parallel-cli search` returns `403`, tell the user balance is likely required. Offer to run `parallel-cli balance get`, and if needed ask for explicit confirmation before running `parallel-cli balance add <amount_cents>`. Then retry the original search command.
+If a documented command or option is missing, check the installed version and upgrade through its installation method: standalone `parallel-cli update`, pipx `pipx upgrade parallel-web-tools`, uv `uv tool upgrade parallel-web-tools`, Homebrew `brew upgrade parallel-web/tap/parallel-cli`, or npm `npm update -g parallel-web-cli`. Verify help in the same terminal before retrying.
+
+For authentication errors, inspect `parallel-cli auth --json` and its `authenticated` boolean; exit zero alone does not prove authentication. A `403` can indicate permissions, policy or billing. Report the actual error; check balance only for a billing-specific failure and never add funds without explicit confirmation.

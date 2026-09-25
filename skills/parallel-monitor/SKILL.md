@@ -17,7 +17,9 @@ Action: $ARGUMENTS
 
 ## What this skill does
 
-Monitors are long-running, server-side jobs that re-check the web on a cadence and emit events when something changes. Unlike search/research/findall (one-shot lookups), monitors persist until cancelled and can optionally deliver detected events through a webhook.
+Monitors are long-running, server-side jobs that re-check the web on a cadence and emit events when something changes. Unlike search/research/findall (one-shot lookups), monitors persist until cancelled and can optionally deliver detected events through a webhook. Creation does not establish an ongoing agent notification service: explain how to read server-side events or use the configured webhook, without promising chat or email alerts.
+
+The default type is `event_stream`, with frequency `1d` and server processor `lite`. A `snapshot` monitor requires an existing Task run ID. Create or modify only the resource requested by the user; do not create a monitor just to demonstrate the skill.
 
 ## Decide the action
 
@@ -32,7 +34,7 @@ Parse the user's request and pick one:
 | "Change cadence / webhook for X" | **update** |
 | "Check monitor X now" / "Run it now" | **trigger** |
 | "Show me the full payload for event group X" | **events** with `--event-group-id` |
-| "Stop / delete monitor X" | **cancel** (always confirm before cancelling) |
+| "Stop / delete monitor X" | **cancel** (permanent; verify authority and exact ID) |
 
 ## Create a monitor
 
@@ -40,7 +42,7 @@ Parse the user's request and pick one:
 parallel-cli monitor create "<query>" --frequency 1d --json
 ```
 
-Frequency accepts `<n><unit>` with `h`, `d`, or `w` (for example `1h`, `1d`, or `1w`). The aliases `hourly`, `daily`, `weekly`, and `every_two_weeks` are also accepted. Match cadence to how often the source actually changes — hourly for prices/news, weekly for filings/staffing.
+Frequency accepts `<n><unit>` with `h`, `d`, or `w` (for example `1h`, `1d`, or `1w`), within the supported range of 1 hour to 30 days. The aliases `hourly`, `daily`, `weekly`, and `every_two_weeks` are also accepted. Match cadence to the user's request and how often the source actually changes.
 
 Optional flags:
 
@@ -48,11 +50,13 @@ Optional flags:
 - `--metadata '{"team":"competitive-intel"}'` — attach JSON metadata for your own bookkeeping
 - `--output-schema '<json>'` — structure the event payload (advanced)
 
-Parse the JSON to extract the `monitor_id`. Tell the user:
+Capture the returned `monitor_id` immediately with the query, frequency and requested settings. Verify creation with `get` using that ID. Tell the user:
 
 - The monitor has been created with its ID
 - The frequency (so they know how often the monitor checks)
 - That recent events are available server-side — they can run `parallel-cli monitor events $MONITOR_ID` later to see what changed
+
+If creation or another mutation times out or the response is lost, resolve the existing monitor/action before retrying. Resume with the saved ID, `get` and `events`; do not automatically recreate it. Recreating can duplicate persistent monitoring and billing.
 
 ## List monitors
 
@@ -72,29 +76,40 @@ parallel-cli monitor events "$MONITOR_ID" --json
 
 Events are returned newest-first. If the response contains `next_cursor`, pass it with `--cursor` to retrieve another page.
 
+An empty event list does not prove that a check completed without changes. To inspect completion history as well as detected events:
+
+```bash
+parallel-cli monitor events "$MONITOR_ID" --include-completions --limit 10 --json
+```
+
+Distinguish typed detected events, no-change `completion` events and `error` events. Use their actual timestamps and report failures. An empty completion history is not execution proof. Retain `event_id` and `event_group_id` when present; these identify events and executions, not monitor IDs.
+
 For deeper detail on a specific event group:
 
 ```bash
 parallel-cli monitor events "$MONITOR_ID" --event-group-id "$EVENT_GROUP_ID" --json
 ```
 
-Summarize for the user: count of events, then a bulleted list of what changed with dates or timestamps. Cite source URLs from the event payload.
+Event-group detail ignores pagination arguments. Summarize detected changes separately from completions/errors, with dates or timestamps. Read typed `output` or `changed_output` and available `basis`; cite its source URLs for factual claims. Do not invent provenance when the payload lacks basis. Surface response warnings and continue pagination only as needed for the requested period.
 
 ## Get / update / trigger / cancel
 
 ```bash
 parallel-cli monitor get "$MONITOR_ID" --json
 parallel-cli monitor update "$MONITOR_ID" --frequency 1w --json
+parallel-cli monitor update "$MONITOR_ID" --webhook https://example.com/hook --json
 parallel-cli monitor trigger "$MONITOR_ID" --json
 parallel-cli monitor cancel "$MONITOR_ID" --json
 ```
 
-The current CLI does not expose query updates; create a new monitor to change the query.
+Only supply fields the user requested to update. A webhook-only update leaves frequency unchanged; update has no default frequency. Metadata and advanced event-stream settings can also be updated through the CLI, but query and Task run identity are immutable. A different query needs a new monitor with separate authority and a deliberate decision about the old monitor; do not silently recreate or cancel it.
 
-`trigger` enqueues a real off-schedule run without changing the regular schedule. It is not a synthetic webhook test, and it emits an event only if the run detects a material change.
+`trigger` enqueues a real billed off-schedule execution without changing the regular schedule. It is not a synthetic webhook test and must not substitute for a request to test notification delivery. A successful trigger response confirms enqueueing, not completion. It emits a detected event only if material change is found; inspect completion history for no-change execution. Cancelled monitors cannot be triggered.
 
-**Always confirm before cancelling** — cancellation is permanent.
+Cancellation is irreversible, not deletion or a temporary pause. Explain this and obtain confirmation for the exact monitor ID unless the user has already authorized that permanent cancellation or cleanup of the specific disposable monitor. After cancelling, verify its state with `get`. Never recreate it automatically to resume monitoring.
+
+On authentication or API errors, report the actual error and retain IDs for recovery. Do not classify every error as an outdated CLI or every permission error as insufficient credit. Failed reads are not evidence that a monitor stopped; reading events does not cancel it.
 
 ## Setup
 
-Requires `parallel-cli` (installed and authenticated). If `parallel-cli --version` fails, or if a later command fails with an authentication error, tell the user to see <https://docs.parallel.ai/integrations/cli> and stop.
+Requires an installed and authenticated `parallel-cli`. Check `parallel-cli --version` and `parallel-cli auth --json`; auth can exit successfully while `authenticated` is false. Missing binary, unsupported command/option, and authentication failure need different remedies: installation, upgrade through the existing installation method, or terminal login respectively. See <https://docs.parallel.ai/integrations/cli>. Stop the affected request on auth failure, do not ask for secrets in chat, and do not change account policy to work around blocked setup.
