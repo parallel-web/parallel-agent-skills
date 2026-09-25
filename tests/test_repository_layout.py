@@ -84,7 +84,7 @@ class RepositoryLayoutTestCase(unittest.TestCase):
             "https://parallel.ai/privacy-policy", interface["privacyPolicyURL"]
         )
         self.assertEqual(
-            "https://parallel.ai/terms-of-service", interface["termsOfServiceURL"]
+            "https://parallel.ai/customer-terms", interface["termsOfServiceURL"]
         )
 
 
