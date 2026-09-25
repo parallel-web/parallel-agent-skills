@@ -7,10 +7,11 @@ Differences between the two repos:
 - Cursor skills replace the trailing "## Setup" section (which has full
   install commands inline) with a brief "## If `parallel-cli` is not
   found" stanza that delegates to the cursor /parallel-setup command
-- Cursor has 4 skills (search/extract/research/enrichment); setup/status/
-  result are slash commands in cursor, not skills, so they are skipped
-  by this sync. Skills new to agent-skills (findall, monitor) get both a
-  synced SKILL.md AND a freshly-generated command wrapper
+- Cursor has six CLI skills; setup/status/result are slash commands,
+  not skills, so they are skipped. Search/extract descriptions use the CLI
+  as the default because this package does not bundle the source's MCP.
+- Missing command wrappers are generated; existing wrappers and version
+  remain owned by the Cursor repository.
 
 Usage:
     python3 scripts/sync-to-cursor.py [--dry-run] [--cursor-repo PATH]
@@ -41,18 +42,34 @@ SKILLS_TO_SYNC = [
 # Frontmatter fields that only make sense in Claude Code agent-skills.
 CC_ONLY_FIELDS = {"user-invocable", "argument-hint", "context", "agent"}
 
+CURSOR_DESCRIPTIONS = {
+    "parallel-web-search": (
+        "CLI web search, the default for lookups, current information and research queries. "
+        "Save retrieved sources as JSON and cite them. Only use parallel-deep-research "
+        "when the user explicitly requests deep or exhaustive research."
+    ),
+    "parallel-web-extract": (
+        "CLI content extraction from one or more URLs, including webpages, articles and PDFs. "
+        "Save JSON, preserve successful content and report per-URL failures."
+    ),
+}
+
 # Replacement for the agent-skills "## Setup" trailing section.
 # Heading is intentionally specific to "binary not installed" so it doesn't
 # get conflated with the in-body "errors with `no such command`" guidance,
-# which covers a separate failure mode (stale CLI) and routes to
-# `parallel-cli update`, not `/parallel-setup`.
+# which covers a separate failure mode (stale CLI). Setup also explains
+# installation-method-specific upgrades and authentication recovery.
 CURSOR_SETUP_SECTION = """## If the `parallel-cli` binary is not installed
 
-If the shell reports `command not found: parallel-cli` (i.e. the binary itself is missing — distinct from a `No such command` error from a stale CLI, which the in-body guidance above covers), **stop immediately**. Do NOT search the web yourself, do NOT use any built-in search tools, and do NOT try to answer the query from your own knowledge. Instead, tell the user:
+If the shell reports `command not found: parallel-cli`, stop and tell the user to run `/parallel-setup`, then retry their request. Do not substitute built-in search, another provider or an answer from memory.
 
-1. `parallel-cli` is not installed
-2. Run `/parallel-setup` to install it
-3. Then retry their request
+### Command and authentication failures
+
+`No such command`, `No such option` or `unrecognized arguments` from an installed CLI indicate a stale or mismatched interface. Check its version and upgrade through its installation method using `/parallel-setup`; `parallel-cli update` is for standalone installs only. Verify the required command in the same Cursor terminal before retrying.
+
+For authentication errors, run `parallel-cli auth --json` and inspect `authenticated`; exit zero alone does not prove authentication. Use `/parallel-setup` for terminal login or environment-key guidance, without requesting credentials in chat. A `403` can be an authorization or billing error: report the actual error and do not assume insufficient balance or add funds automatically.
+
+For other API/input errors, report the error without calling it a version problem. Reuse saved run IDs to resume asynchronous work. After an ambiguous creation failure, resolve whether a job exists before retrying creation.
 """
 
 # Skill → cursor command wrapper config. Heading-label is the noun the
@@ -98,7 +115,9 @@ COMMAND_WRAPPERS = {
 
 
 def transform_frontmatter(fm: str) -> str:
-    """Drop CC-only fields. fm is the inner frontmatter, no leading/trailing ---."""
+    """Adapt platform fields and routing; retain all other source metadata."""
+    name_match = re.search(r"(?m)^name:\s*([^\s]+)", fm)
+    description = CURSOR_DESCRIPTIONS.get(name_match.group(1)) if name_match else None
     out: list[str] = []
     skip_continuation = False
     for line in fm.splitlines():
@@ -106,6 +125,10 @@ def transform_frontmatter(fm: str) -> str:
         if m:
             skip_continuation = m.group(1) in CC_ONLY_FIELDS
             if skip_continuation:
+                continue
+            if m.group(1) == "description" and description is not None:
+                out.append(f"description: {json.dumps(description)}")
+                skip_continuation = True
                 continue
         elif skip_continuation and (line.startswith((" ", "\t")) or line.strip() == ""):
             # multi-line value continuation of a skipped field

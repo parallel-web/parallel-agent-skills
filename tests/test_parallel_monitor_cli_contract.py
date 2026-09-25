@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import re
 import shlex
@@ -7,6 +8,7 @@ import shutil
 import subprocess
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -18,7 +20,7 @@ SKILL_PATH = REPO_ROOT / "skills" / "parallel-monitor" / "SKILL.md"
 MONITOR_CONTRACT: dict[str, tuple[str, ...]] = {
     "create": ("--frequency", "--webhook", "--metadata", "--output-schema", "--json"),
     "list": ("-n", "--status", "--json"),
-    "events": ("--cursor", "--event-group-id", "--json"),
+    "events": ("--cursor", "--event-group-id", "--include-completions", "--limit", "--json"),
     "get": ("--json",),
     "update": ("--frequency", "--webhook", "--json"),
     "trigger": ("--json",),
@@ -202,6 +204,34 @@ class ParallelMonitorCliContractTestCase(unittest.TestCase):
         for flag in OBSOLETE_FLAGS:
             with self.subTest(flag=flag):
                 self.assertNotIn(flag, self.skill_text)
+
+    def test_documented_no_change_history_invocation_requests_completions(self):
+        from click.testing import CliRunner
+        from parallel_web_tools.cli import commands
+
+        examples = [
+            invocation
+            for command, flags, invocation in documented_monitor_invocations(self.skill_text)
+            if command == "events" and "--include-completions" in flags
+        ]
+        self.assertTrue(examples, "the no-change history example must request completion events")
+        completion = {"event_type": "completion", "timestamp": "2026-09-24T12:00:00Z"}
+        for example in examples:
+            tokens = shlex.split(example.replace("$MONITOR_ID", "mon_fixture"))
+            with self.subTest(example=example), patch.object(
+                commands, "list_monitor_events", return_value={"events": [completion]}
+            ) as events:
+                result = CliRunner().invoke(commands.main, tokens[1:])
+                self.assertEqual(0, result.exit_code, result.output)
+                self.assertEqual("mon_fixture", events.call_args.args[0])
+                self.assertTrue(events.call_args.kwargs["include_completions"])
+                self.assertEqual(10, events.call_args.kwargs["limit"])
+                self.assertEqual([completion], json.loads(result.output)["events"])
+
+        with patch.object(commands, "list_monitor_events", return_value={"events": []}) as events:
+            result = CliRunner().invoke(commands.main, ["monitor", "events", "mon_fixture", "--json"])
+            self.assertEqual(0, result.exit_code, result.output)
+            self.assertFalse(events.call_args.kwargs["include_completions"])
 
 
 if __name__ == "__main__":
