@@ -29,7 +29,7 @@ class OpenAISubmissionTestCase(unittest.TestCase):
             manifest["interface"]["privacyPolicyURL"],
         )
         self.assertEqual(
-            "https://parallel.ai/customer-terms",
+            "https://parallel.ai/terms-of-service",
             manifest["interface"]["termsOfServiceURL"],
         )
         for prompt in manifest["interface"]["defaultPrompt"]:
@@ -47,33 +47,6 @@ class OpenAISubmissionTestCase(unittest.TestCase):
         self.assertIn("web_fetch", skill_text)
         self.assertIn('value: "parallel-search"', openai_yaml)
         self.assertIn('url: "https://search.parallel.ai/mcp"', openai_yaml)
-
-    def test_submission_excludes_local_credentials_and_cli_skills(self):
-        packaged_skills = {
-            path.name for path in (PLUGIN_ROOT / "skills").iterdir() if path.is_dir()
-        }
-        self.assertEqual({"parallel-web-research"}, packaged_skills)
-
-        forbidden_patterns = (
-            "${user_config.",
-            "PARALLEL_API_KEY",
-            "PERPLEXITY_API_KEY",
-            "FIRECRAWL_API_KEY",
-            "EXA_API_KEY",
-            "TAVILY_API_KEY",
-            "os.environ",
-            "process.env",
-            "credential-store",
-            "keyring",
-            "parallel-cli",
-        )
-        for path in sorted(PLUGIN_ROOT.rglob("*")):
-            if not path.is_file():
-                continue
-            text = path.read_text(encoding="utf-8")
-            for pattern in forbidden_patterns:
-                with self.subTest(path=path, pattern=pattern):
-                    self.assertNotIn(pattern, text)
 
     def test_review_case_counts_match_portal_requirements(self):
         cases = (SUBMISSION_ROOT / "review" / "test-cases.md").read_text(

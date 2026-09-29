@@ -17,12 +17,6 @@ The portal owns the MCP connection for a public submission. The uploaded
 package therefore contains the OpenAI-facing skill and listing metadata but
 does not include or depend on the Claude plugin's `.mcp.json`.
 
-Upload only the ZIP produced by `scripts/build_submission.py`. Do not upload
-the repository root, a GitHub source archive, or the general Claude plugin:
-those packages include CLI-backed skills and development tests that legitimately
-describe vendor authentication but are not part of this anonymous OpenAI
-submission.
-
 ## Prepared materials
 
 - `parallel/` — uploadable plugin and skill bundle
@@ -66,8 +60,6 @@ python3 /path/to/skill-creator/scripts/quick_validate.py submission/openai/paral
 
 The generated ZIP contains one top-level `parallel/` directory so the package
 can be inspected or extracted without mixing its contents into another folder.
-The builder rejects local credential access patterns and any skill other than
-the credential-free `parallel-web-research` workflow.
 
 ## Official references
 
