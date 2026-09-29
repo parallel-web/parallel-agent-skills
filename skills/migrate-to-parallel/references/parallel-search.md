@@ -51,21 +51,18 @@ Inspect omitted provider values too. For example, a legacy provider's default re
 
 ## Auth and SDKs
 
-REST:
-
-```bash
-curl https://api.parallel.ai/v1/search \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: $PARALLEL_API_KEY" \
-  -d '{"objective":"...","search_queries":["..."]}'
-```
+REST callers send requests to `POST https://api.parallel.ai/v1/search` with
+`Content-Type: application/json` and an `x-api-key` header. The migration skill
+must not read the installer's environment or credential store. Wire that header
+from the target application's existing secret-management boundary, using a value
+the application owner explicitly configured for Parallel.
 
 Python:
 
 ```python
 from parallel import Parallel
 
-client = Parallel()  # reads PARALLEL_API_KEY
+client = Parallel(api_key=parallel_api_key)
 response = client.search(
     objective="Find the latest official release information.",
     search_queries=["official release notes", "latest product release"],
@@ -82,7 +79,7 @@ TypeScript:
 ```typescript
 import Parallel from "parallel-web";
 
-const client = new Parallel(); // reads PARALLEL_API_KEY
+const client = new Parallel({ apiKey: parallelApiKey });
 const response = await client.search({
   objective: "Find the latest official release information.",
   search_queries: ["official release notes", "latest product release"],

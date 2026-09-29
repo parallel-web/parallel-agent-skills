@@ -78,9 +78,8 @@ into the limit:
 
 - **Higher search limits:** create a Parallel account at
   <https://platform.parallel.ai>, then create a separate authenticated Search
-  MCP connection using either a Parallel API key on `/mcp` or OAuth through
-  `/mcp-oauth`. Usage is attributed to the account and authenticated search
-  overrides are honored.
+  MCP connection using OAuth through `/mcp-oauth`. Usage is attributed to the
+  account and authenticated search overrides are honored.
 - **Research, enrichment, FindAll, Monitor:** these are not MCP tools. They run
   through `parallel-cli` via this plugin's other skills. Start with
   `parallel-cli-setup`.
@@ -88,18 +87,12 @@ into the limit:
   `parallel-mcp-setup`.
 
 Keep the plugin-provided server anonymous; do not edit the installed plugin's
-`.mcp.json`. For authenticated access, add a separate user-scoped connection.
-Ask which authentication method the user prefers before configuring it:
-
-- **OAuth:** add `https://search.parallel.ai/mcp-oauth` as an HTTP server named
-  `parallel-search-auth` in the current client. In Claude Code, run
-  `claude mcp login parallel-search-auth` or complete sign-in from `/mcp`.
-  In Codex, run `codex mcp login parallel-search-auth` if needed. For other clients,
-  complete their OAuth sign-in flow.
-- **API key:** point `parallel-search-auth` at
-  `https://search.parallel.ai/mcp` and set
-  `Authorization: Bearer ${PARALLEL_API_KEY}` from the user's environment. Do
-  not paste or commit the key in a plugin or project file.
+`.mcp.json`. For authenticated access, add
+`https://search.parallel.ai/mcp-oauth` as a separate user-scoped HTTP server
+named `parallel-search-auth`, then use the current client's interactive OAuth
+flow. In Claude Code, complete sign-in from `/mcp`; in other clients, use their
+equivalent MCP sign-in UI. Do not inspect environment variables, credential
+files, keychains, or other local credentials while setting this up.
 
 In Claude Code, after the authenticated connection succeeds, open `/mcp` and make sure only one
 Parallel Search connection is enabled. Recent Claude Code versions deduplicate

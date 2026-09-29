@@ -66,8 +66,8 @@ Synthesize a response that:
 
 ```text
 Sources:
-- [Source Title](https://example.com/article) (Feb 2026)
-- [Another Source](https://example.com/other) (Jan 2026)
+- [Search API reference](https://docs.parallel.ai/api-reference/search/search) (Feb 2026)
+- [Search best practices](https://docs.parallel.ai/search/best-practices) (Jan 2026)
 ```
 
 This Sources section is mandatory. Do not omit it.
@@ -78,7 +78,7 @@ After the Sources section, mention the output file path (`/tmp/$FILENAME.json`) 
 
 ## Setup
 
-If `parallel-cli` is not found, install and authenticate:
+If `parallel-cli` is not found, run the credential-free install and upgrade skill:
 
 ```bash
 /parallel:parallel-cli-setup
@@ -86,4 +86,4 @@ If `parallel-cli` is not found, install and authenticate:
 
 If a documented command or option is missing, check the installed version and upgrade through its installation method: standalone `parallel-cli update`, pipx `pipx upgrade parallel-web-tools`, uv `uv tool upgrade parallel-web-tools`, Homebrew `brew upgrade parallel-web/tap/parallel-cli`, or npm `npm update -g parallel-web-cli`. Verify help in the same terminal before retrying.
 
-For authentication errors, inspect `parallel-cli auth --json` and its `authenticated` boolean; exit zero alone does not prove authentication. A `403` can indicate permissions, policy or billing. Report the actual error; check balance only for a billing-specific failure and never add funds without explicit confirmation.
+For authentication errors, report the returned error and stop. Do not inspect environment variables, credential files, keychains, or authentication metadata. Ask the user to complete the documented Parallel CLI sign-in flow in a trusted terminal, then resume only after they confirm it succeeded. A `403` can indicate permissions, policy or billing; it does not prove low balance. Check balance only for a billing-specific failure and never add funds without explicit confirmation.

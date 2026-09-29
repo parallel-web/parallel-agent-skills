@@ -13,9 +13,9 @@ You can use the first without ever setting up the second.
 
 Nothing, for web search and fetch. The bundled MCP server is anonymous.
 
-The execution skills require `parallel-cli` (installed, authenticated, and funded). The [`parallel-cli-setup`](skills/parallel-cli-setup/SKILL.md) skill walks an agent through install, auth, balance, and skills install end-to-end — install the plugin/skills below, then run `/parallel:parallel-cli-setup` from your agent.
+The execution skills require `parallel-cli` (installed, authenticated, and funded). The [`parallel-cli-setup`](skills/parallel-cli-setup/SKILL.md) skill installs or upgrades the CLI, checks balance after sign-in, and installs skills without reading or handling credentials. Authentication remains a user-controlled step in a trusted terminal — install the plugin/skills below, then run `/parallel:parallel-cli-setup` from your agent.
 
-`migrate-to-parallel` updates an application's own web-data integration. It uses the appropriate Parallel API or SDK and needs `PARALLEL_API_KEY` only for an explicitly authorized live smoke test.
+`migrate-to-parallel` updates an application's own web-data integration. It uses the appropriate Parallel API or SDK and accepts a target-application credential only for an explicitly authorized live smoke test; it never reads the plugin installer's credentials.
 
 ## Installation
 
@@ -42,12 +42,16 @@ Web search and fetch work immediately after the restart — run `/mcp` to confir
 `parallel-search` is connected. No account or API key is required.
 
 For the CLI-backed skills (deep research, enrichment, FindAll, Monitor), install
-and authenticate the CLI:
+or update the CLI:
 
 ```bash
-# this will install/update CLI and authenticate if not done already
+# this installs or updates the CLI without reading credentials
 /parallel:parallel-cli-setup
 ```
+
+If a CLI command reports that authentication is required, complete the
+[documented CLI sign-in flow](https://docs.parallel.ai/integrations/cli) in a
+trusted terminal, then return to Claude Code. Do not paste a key into chat.
 
 ### OpenAI Codex
 
@@ -57,7 +61,8 @@ Install skills using the built-in skill installer (run inside Codex):
 $skill-installer parallel-web/parallel-agent-skills
 ```
 
-Then run the setup skill to install/auth the CLI:
+Then run the setup skill to install or update the CLI. Authentication remains a
+user-controlled step in a trusted terminal:
 
 ```text
 /parallel:parallel-cli-setup
