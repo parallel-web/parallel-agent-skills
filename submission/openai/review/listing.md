@@ -37,7 +37,7 @@ Long description:
 - Website: <https://parallel.ai>
 - Documentation: <https://docs.parallel.ai/home>
 - Privacy policy: <https://parallel.ai/privacy-policy>
-- Terms of service: <https://parallel.ai/terms-of-service>
+- Customer terms: <https://parallel.ai/customer-terms>
 - Source repository: <https://github.com/parallel-web/parallel-agent-skills>
 - Support: input required; provide the public URL users should use for help
 

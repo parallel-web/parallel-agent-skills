@@ -12,6 +12,20 @@ from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 SUBMISSION_ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_ROOT = SUBMISSION_ROOT / "parallel"
 MANIFEST = PLUGIN_ROOT / ".codex-plugin" / "plugin.json"
+EXPECTED_SKILLS = {"parallel-web-research"}
+FORBIDDEN_CREDENTIAL_PATTERNS = (
+    "${user_config.",
+    "PARALLEL_API_KEY",
+    "PERPLEXITY_API_KEY",
+    "FIRECRAWL_API_KEY",
+    "EXA_API_KEY",
+    "TAVILY_API_KEY",
+    "os.environ",
+    "process.env",
+    "credential-store",
+    "keyring",
+    "parallel-cli",
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -24,10 +38,30 @@ def validate_source() -> None:
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     if manifest.get("name") != PLUGIN_ROOT.name:
         raise SystemExit("plugin folder and manifest name must match")
-    if not (PLUGIN_ROOT / "skills" / "parallel-web-research" / "SKILL.md").is_file():
+    skills_root = PLUGIN_ROOT / "skills"
+    packaged_skills = {
+        path.name for path in skills_root.iterdir() if path.is_dir()
+    }
+    if packaged_skills != EXPECTED_SKILLS:
+        raise SystemExit(
+            f"unexpected packaged skills: {sorted(packaged_skills)}; "
+            f"expected {sorted(EXPECTED_SKILLS)}"
+        )
+    if not (skills_root / "parallel-web-research" / "SKILL.md").is_file():
         raise SystemExit("parallel-web-research skill is missing")
     if (PLUGIN_ROOT / ".mcp.json").exists() or "mcpServers" in manifest:
         raise SystemExit("portal package must not rely on bundled MCP configuration")
+
+    for path in sorted(PLUGIN_ROOT.rglob("*")):
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for pattern in FORBIDDEN_CREDENTIAL_PATTERNS:
+            if pattern in text:
+                relative = path.relative_to(PLUGIN_ROOT)
+                raise SystemExit(
+                    f"credential access pattern {pattern!r} found in {relative}"
+                )
 
 
 def build(output: Path) -> None:
