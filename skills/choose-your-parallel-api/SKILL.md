@@ -22,9 +22,9 @@ with the wrong knobs. Choose the API first, tier second, knobs third — in that
 
 ## Setup
 
-Use a Parallel credential supplied by the target application's server-side secret
-boundary. Never read or reuse a credential from the plugin installer's environment
-or files.
+`PARALLEL_API_KEY` is the server-side connection secret. Load it using the target
+application's existing pattern for server-side environment variables or managed
+secrets. Never hardcode, print, or expose it to client-side code.
 
 ## Step 1 — Know the available surface
 
