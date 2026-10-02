@@ -101,11 +101,6 @@ class RepositoryLayoutTestCase(unittest.TestCase):
 
         for path in CLAUDE_CREDENTIAL_REVIEW_FILES:
             content = path.read_text(encoding="utf-8")
-            if path == SKILLS_ROOT / "choose-your-parallel-api" / "SKILL.md":
-                documented_rest_auth = "REST auth: `x-api-key: $PARALLEL_API_KEY`"
-                self.assertEqual(1, content.count(documented_rest_auth))
-                content = content.replace(documented_rest_auth, "")
-
             with self.subTest(path=path.relative_to(REPO_ROOT)):
                 for pattern in forbidden:
                     self.assertNotIn(pattern, content)
