@@ -105,6 +105,13 @@ class RepositoryLayoutTestCase(unittest.TestCase):
                 for pattern in forbidden:
                     self.assertNotIn(pattern, content)
 
+    def test_cli_setup_does_not_preapprove_shell_commands(self):
+        content = (SKILLS_ROOT / "parallel-cli-setup" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertNotIn("allowed-tools:", content)
+
     def test_codex_manifest_uses_live_policy_urls(self):
         manifest = json.loads(CODEX_PLUGIN_MANIFEST.read_text(encoding="utf-8"))
         interface = manifest["interface"]

@@ -2,7 +2,6 @@
 name: parallel-cli-setup
 description: Install or upgrade the Parallel CLI and install its skills without reading, requesting, or handling credentials. Authentication stays in the user's trusted terminal.
 user-invocable: true
-allowed-tools: Bash(command:*), Bash(brew:*), Bash(uv:*), Bash(npm:*), Bash(pipx:*), Bash(curl:*), Bash(rm:*), Bash(parallel-cli:*)
 metadata:
   author: parallel
 ---
