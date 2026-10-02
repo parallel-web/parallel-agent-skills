@@ -57,6 +57,11 @@ must not read the installer's environment or credential store. Wire that header
 from the target application's existing secret-management boundary, using a value
 the application owner explicitly configured for Parallel.
 
+The `parallel_api_key` identifiers below stand for the target application's
+existing settings, dependency-injection, or secret-access value. Replace them with
+that application-owned binding during migration; do not leave them undefined and
+do not resolve them from the plugin installer's environment.
+
 Python:
 
 ```python

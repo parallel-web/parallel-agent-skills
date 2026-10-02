@@ -24,7 +24,9 @@ Resolve `<skill-root>` to the directory containing this `SKILL.md`. Resolve ever
 
 - Preserve caller-visible behavior unless the user explicitly authorizes a change.
 - Never silently drop a filter, content field, synthesized answer, image, safety control, or score-based decision.
-- Never print API keys or secret values. Check only whether a key is present.
+- Never inspect, print, or copy live API keys or secret values. Treat the target
+  application's secret-injection boundary as opaque; verify configuration wiring
+  and missing-secret behavior without resolving the value.
 - Do not add a hidden LLM call merely to manufacture `search_queries`.
 - Do not treat an arbitrary user prompt as a keyword query merely because it fits an API length limit.
 - Keep web-research intent, hard filters, handler policy, and answer-synthesis instructions in their separate contracts.
@@ -128,7 +130,7 @@ Do not fill missing fields with plausible-looking constants. Remove obsolete con
 - Add only the SDKs required by the chosen routes: `parallel-web` for Search, Extract, or Task; `openai` for Chat unless the application already has a compatible client; no SDK when direct REST is the simpler existing pattern.
 - Remove a legacy provider package only when no `retain` row still depends on it, then regenerate the lockfile with the repository's package manager.
 - Replace provider imports, client initialization, endpoints, and headers only inside `migrate` rows. Keep shared provider setup until retained calls have their own explicit boundary.
-- Add the target application's chosen Parallel credential setting to checked-in environment templates, validation schemas, setup scripts, deployment manifests, examples, and docs. Recommend the canonical variable name in generated application documentation, but do not read or reuse any credential from the plugin installer's environment. Remove a legacy key from those surfaces only when no retained runtime capability still needs it.
+- Add the target application's chosen Parallel credential setting to checked-in environment templates, validation schemas, setup scripts, deployment manifests, examples, and docs. Bind Parallel clients and headers through that application's existing settings, dependency-injection, or secret-access boundary; do not leave generic reference identifiers such as `parallel_api_key` or `parallel_key` undefined. Recommend the canonical variable name in generated application documentation, but do not read or reuse any credential from the plugin installer's environment. Remove a legacy key from those surfaces only when no retained runtime capability still needs it.
 - Preserve existing timeout, retry, cancellation, and logging behavior where the Parallel SDK supports it; otherwise implement the behavior at the application boundary and test it.
 - Keep error messages provider-neutral unless the provider name helps the operator act.
 

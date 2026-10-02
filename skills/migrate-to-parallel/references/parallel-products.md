@@ -47,6 +47,11 @@ Use Chat for an interactive grounded completion when the old path returned an an
 - Models: `speed` is the low-latency option; `lite`, `base`, and `core` are research models with research-basis support.
 - Streaming and `response_format` are supported. Several OpenAI-compatible controls, including token limits, `top_p`, and `stop`, are documented as ignored.
 
+In the example below, `parallel_key` stands for the target application's existing
+settings, dependency-injection, or secret-access value. Replace it with that
+application-owned binding during migration; do not leave it undefined and do not
+resolve it from the plugin installer's environment.
+
 Example:
 
 ```python

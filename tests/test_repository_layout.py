@@ -13,19 +13,13 @@ MCP_CONFIG = REPO_ROOT / ".mcp.json"
 CLAUDE_PLUGIN_MANIFEST = REPO_ROOT / ".claude-plugin" / "plugin.json"
 CLAUDE_MARKETPLACE = REPO_ROOT / ".claude-plugin" / "marketplace.json"
 CODEX_PLUGIN_MANIFEST = REPO_ROOT / ".codex-plugin" / "plugin.json"
-CLAUDE_CREDENTIAL_REVIEW_FILES = (
-    SKILLS_ROOT / "parallel-cli-setup" / "SKILL.md",
-    SKILLS_ROOT / "choose-your-parallel-api" / "SKILL.md",
-    SKILLS_ROOT / "parallel-data-enrichment" / "SKILL.md",
-    SKILLS_ROOT / "parallel-deep-research" / "SKILL.md",
-    SKILLS_ROOT / "parallel-findall" / "SKILL.md",
-    SKILLS_ROOT / "parallel-monitor" / "SKILL.md",
-    SKILLS_ROOT / "parallel-search-setup" / "SKILL.md",
-    SKILLS_ROOT / "parallel-web-extract" / "SKILL.md",
-    SKILLS_ROOT / "parallel-web-search" / "SKILL.md",
-    SKILLS_ROOT / "migrate-to-parallel" / "SKILL.md",
-    SKILLS_ROOT / "migrate-to-parallel" / "references" / "parallel-products.md",
-    SKILLS_ROOT / "migrate-to-parallel" / "references" / "parallel-search.md",
+SKILL_TEXT_SUFFIXES = {".json", ".md", ".py", ".sh", ".toml", ".yaml", ".yml"}
+CLAUDE_CREDENTIAL_REVIEW_FILES = tuple(
+    sorted(
+        path
+        for path in SKILLS_ROOT.rglob("*")
+        if path.is_file() and path.suffix in SKILL_TEXT_SUFFIXES
+    )
 )
 
 
@@ -92,18 +86,17 @@ class RepositoryLayoutTestCase(unittest.TestCase):
 
     def test_claude_skill_content_does_not_read_installer_credentials(self):
         forbidden = (
-            "parallel-cli auth --json",
-            "parallel-cli login --json",
-            "${PARALLEL_API_KEY}",
-            "$PARALLEL_API_KEY",
-            'os.environ["PERPLEXITY_API_KEY"]',
+            re.compile(r"parallel-cli (?:auth|login) --json"),
+            re.compile(r"\$\{?[A-Z][A-Z0-9_]*(?:API_KEY|TOKEN|SECRET)\}?"),
+            re.compile(r"\bos\.(?:environ\[|getenv\()"),
+            re.compile(r"\bprocess\.env(?:\.|\[)"),
         )
 
         for path in CLAUDE_CREDENTIAL_REVIEW_FILES:
             content = path.read_text(encoding="utf-8")
             with self.subTest(path=path.relative_to(REPO_ROOT)):
                 for pattern in forbidden:
-                    self.assertNotIn(pattern, content)
+                    self.assertIsNone(pattern.search(content), pattern.pattern)
 
     def test_cli_setup_does_not_preapprove_shell_commands(self):
         content = (SKILLS_ROOT / "parallel-cli-setup" / "SKILL.md").read_text(
