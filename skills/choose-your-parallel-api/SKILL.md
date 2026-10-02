@@ -22,9 +22,11 @@ with the wrong knobs. Choose the API first, tier second, knobs third — in that
 
 ## Setup
 
-`PARALLEL_API_KEY` is the server-side connection secret. Load it using the target
-application's existing pattern for server-side environment variables or managed
-secrets. Never hardcode, print, or expose it to client-side code.
+`PARALLEL_API_KEY` is the server-side connection secret. Put it in the target
+application's server-side environment using that application's existing secret
+management pattern. Initialize official Parallel SDK clients with their default
+constructor so they pick up `PARALLEL_API_KEY` automatically, as the other Parallel
+integrations do. Never hardcode, print, or expose it to client-side code.
 
 ## Step 1 — Know the available surface
 
