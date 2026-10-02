@@ -24,9 +24,13 @@ with the wrong knobs. Choose the API first, tier second, knobs third — in that
 
 `PARALLEL_API_KEY` is the server-side connection secret. Put it in the target
 application's server-side environment using that application's existing secret
-management pattern. Initialize official Parallel SDK clients with their default
-constructor so they pick up `PARALLEL_API_KEY` automatically, as the other Parallel
-integrations do. Never hardcode, print, or expose it to client-side code.
+management pattern.
+
+- REST auth: `x-api-key: $PARALLEL_API_KEY`
+- Official Parallel SDK clients: use the default constructor, which picks up
+  `PARALLEL_API_KEY` automatically.
+
+Never hardcode, print, or expose the key to client-side code.
 
 ## Step 1 — Know the available surface
 
