@@ -2,11 +2,13 @@
   "name": "parallel",
   "version": "0.10.0",
   "description": "Web search and page fetching through Parallel's hosted MCP server — free, no account or API key needed — plus CLI-backed deep research, data enrichment, entity discovery (FindAll), and web monitoring.",
+  "icon": "./.claude-plugin/icon.png",
   "author": {
     "name": "Parallel Web Systems",
     "email": "support@parallel.ai"
   },
   "homepage": "https://docs.parallel.ai/home",
+  "privacyPolicyUrl": "https://parallel.ai/privacy-policy",
   "repository": "https://github.com/parallel-web/parallel-agent-skills",
   "license": "MIT",
   "keywords": [
