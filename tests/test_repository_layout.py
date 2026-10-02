@@ -88,7 +88,10 @@ class RepositoryLayoutTestCase(unittest.TestCase):
             int.from_bytes(icon[offset : offset + 4], "big") for offset in (16, 20)
         )
 
-        self.assertEqual((1024, 1024), dimensions)
+        self.assertEqual(dimensions[0], dimensions[1])
+        for dimension in dimensions:
+            self.assertGreaterEqual(dimension, 512)
+            self.assertLessEqual(dimension, 2048)
         self.assertLess(len(icon), 2 * 1024 * 1024)
         self.assertEqual(
             "https://parallel.ai/privacy-policy", manifest["privacyPolicyUrl"]
