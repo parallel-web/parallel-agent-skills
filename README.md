@@ -154,6 +154,16 @@ credentials, or sensitive local content through search or fetch tools.
 The CLI-backed skills run `parallel-cli` locally using credentials you have
 already configured. They send task inputs to Parallel's API under the same terms.
 
+The bundled MCP connection has no authentication headers and does not forward
+CLI credentials. CLI-backed skills authenticate separately to Parallel through
+`parallel-cli`; the setup skill can check authentication status and start the
+CLI's sign-in flow.
+
+Migration examples describe authentication for the application being migrated.
+Provider credentials shown in scanner tests are synthetic source-code fixtures,
+not real keys or live requests. Neither those examples nor the test fixtures run
+automatically when the plugin loads.
+
 ## Support and security
 
 - **Questions and bugs:** [open an issue](https://github.com/parallel-web/parallel-agent-skills/issues) with your client, version, and error message (leave out API keys and other credentials), or see the [documentation](https://docs.parallel.ai/home).
