@@ -2,7 +2,6 @@
 name: parallel-cli-setup
 description: Set up and maintain the Parallel CLI (install, auth, balance, skills install)
 user-invocable: true
-allowed-tools: Bash(command:*), Bash(brew:*), Bash(uv:*), Bash(npm:*), Bash(pipx:*), Bash(curl:*), Bash(rm:*), Bash(parallel-cli:*)
 metadata:
   author: parallel
 ---
