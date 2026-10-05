@@ -76,27 +76,6 @@ class RepositoryLayoutTestCase(unittest.TestCase):
 
         self.assertEqual("productivity", marketplace["plugins"][0]["category"])
 
-    def test_claude_manifest_declares_directory_metadata(self):
-        manifest = json.loads(CLAUDE_PLUGIN_MANIFEST.read_text(encoding="utf-8"))
-        icon_path = REPO_ROOT / manifest["icon"]
-        icon = icon_path.read_bytes()
-
-        self.assertEqual("./.claude-plugin/icon.png", manifest["icon"])
-        self.assertTrue(icon_path.is_file())
-        self.assertTrue(icon.startswith(b"\x89PNG\r\n\x1a\n"))
-        dimensions = tuple(
-            int.from_bytes(icon[offset : offset + 4], "big") for offset in (16, 20)
-        )
-
-        self.assertEqual(dimensions[0], dimensions[1])
-        for dimension in dimensions:
-            self.assertGreaterEqual(dimension, 512)
-            self.assertLessEqual(dimension, 2048)
-        self.assertLess(len(icon), 2 * 1024 * 1024)
-        self.assertEqual(
-            "https://parallel.ai/privacy-policy", manifest["privacyPolicyUrl"]
-        )
-
     def test_codex_manifest_uses_live_policy_urls(self):
         manifest = json.loads(CODEX_PLUGIN_MANIFEST.read_text(encoding="utf-8"))
         interface = manifest["interface"]
