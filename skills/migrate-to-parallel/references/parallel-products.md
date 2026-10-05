@@ -15,7 +15,7 @@ Verified against the official Parallel OpenAPI and product docs on 2026-07-14. U
 Use Extract for known URLs when the application needs focused excerpts or page bodies.
 
 - Endpoint: `POST https://api.parallel.ai/v1/extract`
-- Auth: `x-api-key` supplied by the target application's secret-management boundary. Do not read the installer's environment or credential store.
+- Auth: `x-api-key: $PARALLEL_API_KEY`
 - SDK: `parallel-web` exposes `client.extract(...)` in Python and TypeScript.
 - Input: `urls` is required and accepts up to 20 URLs. `objective`, `search_queries`, `max_chars_total`, `session_id`, `client_model`, and `advanced_settings` are optional.
 - Full page body: set `advanced_settings.full_content` to `true` or to `{max_chars_per_result: ...}`. Full content is off by default.
@@ -42,15 +42,10 @@ Treat an HTTP 200 as a possibly partial success. A requested URL can appear in `
 Use Chat for an interactive grounded completion when the old path returned an answer rather than only sources.
 
 - Endpoint: `POST https://api.parallel.ai/chat/completions`
-- Auth: bearer credential supplied by the target application's secret-management boundary. Do not read the installer's environment or credential store.
+- Auth: `Authorization: Bearer $PARALLEL_API_KEY`
 - SDK: use the `openai` package with `base_url`/`baseURL` set to `https://api.parallel.ai`. This is not a `parallel-web` client method.
 - Models: `speed` is the low-latency option; `lite`, `base`, and `core` are research models with research-basis support.
 - Streaming and `response_format` are supported. Several OpenAI-compatible controls, including token limits, `top_p`, and `stop`, are documented as ignored.
-
-In the example below, `parallel_key` stands for the target application's existing
-settings, dependency-injection, or secret-access value. Replace it with that
-application-owned binding during migration; do not leave it undefined and do not
-resolve it from the plugin installer's environment.
 
 Example:
 

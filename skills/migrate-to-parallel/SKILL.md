@@ -24,9 +24,7 @@ Resolve `<skill-root>` to the directory containing this `SKILL.md`. Resolve ever
 
 - Preserve caller-visible behavior unless the user explicitly authorizes a change.
 - Never silently drop a filter, content field, synthesized answer, image, safety control, or score-based decision.
-- Never inspect, print, or copy live API keys or secret values. Treat the target
-  application's secret-injection boundary as opaque; verify configuration wiring
-  and missing-secret behavior without resolving the value.
+- Never print API keys or secret values. Check only whether a key is present.
 - Do not add a hidden LLM call merely to manufacture `search_queries`.
 - Do not treat an arbitrary user prompt as a keyword query merely because it fits an API length limit.
 - Keep web-research intent, hard filters, handler policy, and answer-synthesis instructions in their separate contracts.
@@ -90,7 +88,7 @@ Build every Parallel Search API request around these facts:
 
 - `search_queries` is required. Supply at least one non-empty keyword query; use two or three diverse keyword queries when the calling flow can provide them.
 - `objective` is optional but recommended. Put the self-contained web-research goal there, not the whole user conversation or answer-format instructions.
-- Use `https://api.parallel.ai/v1/search` and an `x-api-key` supplied by the target application's secret-management boundary for direct REST calls. Never read the plugin installer's environment or credential store.
+- Use `https://api.parallel.ai/v1/search`, `x-api-key`, and `PARALLEL_API_KEY` for direct REST calls.
 - Use the official `parallel-web` package for both Python and TypeScript unless the detected framework has a current first-party Parallel integration that preserves the needed contract.
 
 Classify every legacy input before translating it:
@@ -130,7 +128,7 @@ Do not fill missing fields with plausible-looking constants. Remove obsolete con
 - Add only the SDKs required by the chosen routes: `parallel-web` for Search, Extract, or Task; `openai` for Chat unless the application already has a compatible client; no SDK when direct REST is the simpler existing pattern.
 - Remove a legacy provider package only when no `retain` row still depends on it, then regenerate the lockfile with the repository's package manager.
 - Replace provider imports, client initialization, endpoints, and headers only inside `migrate` rows. Keep shared provider setup until retained calls have their own explicit boundary.
-- Add the target application's chosen Parallel credential setting to checked-in environment templates, validation schemas, setup scripts, deployment manifests, examples, and docs. Bind Parallel clients and headers through that application's existing settings, dependency-injection, or secret-access boundary; do not leave generic reference identifiers such as `parallel_api_key` or `parallel_key` undefined. Recommend the canonical variable name in generated application documentation, but do not read or reuse any credential from the plugin installer's environment. Remove a legacy key from those surfaces only when no retained runtime capability still needs it.
+- Add `PARALLEL_API_KEY` to checked-in environment templates, validation schemas, setup scripts, deployment manifests, examples, and docs. Remove a legacy key from those surfaces only when no retained runtime capability still needs it.
 - Preserve existing timeout, retry, cancellation, and logging behavior where the Parallel SDK supports it; otherwise implement the behavior at the application boundary and test it.
 - Keep error messages provider-neutral unless the provider name helps the operator act.
 
@@ -161,7 +159,7 @@ Then run, in order:
 4. when approved non-search Perplexity or Firecrawl usage remains, run the provider scan without `--fail-on-legacy`, classify every finding, and then scan only the migrated roots or use narrow `--exclude` paths for isolated retained modules; never exclude a mixed search/non-search boundary;
 5. an independent case-insensitive search for `exa`, `tavily`, `perplexity`, `sonar-`, `firecrawl`, exact `model` assignments to `sonar`, routed `perplexity/sonar` model IDs, package names, endpoints, and key names, excluding `<skill-root>` if the skill is installed inside the target repository;
 6. a review of the final diff for unintended behavior changes, leaked values, unrelated edits, and stale lockfiles;
-7. a live smoke test only when provider calls are explicitly authorized for this task and the target application supplies its Parallel credential through its normal secret boundary, without printing it.
+7. a live smoke test only when provider calls are explicitly authorized for this task and `PARALLEL_API_KEY` is already available, without printing it.
 
 An ambient credential does not by itself authorize a paid network call. When authorized, use a small, non-sensitive synthetic query and inspect `warnings`, result ordering, excerpts, and error behavior. Compare representative production queries only when the user approves sending them to both providers or an existing repository test policy already permits that exact comparison. Do not require the user to paste secrets.
 

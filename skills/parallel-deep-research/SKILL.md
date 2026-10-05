@@ -101,7 +101,7 @@ Avoid loading the whole report into context. Read only the relevant sections whe
 
 ## Setup
 
-If `parallel-cli` is not found, run the credential-free install and upgrade skill:
+If `parallel-cli` is not found, install and authenticate:
 
 ```bash
 /parallel:parallel-cli-setup
@@ -109,4 +109,4 @@ If `parallel-cli` is not found, run the credential-free install and upgrade skil
 
 If a documented option or command is missing, identify the install method and upgrade through that method: standalone `parallel-cli update`; pipx `pipx upgrade parallel-web-tools`; uv `uv tool upgrade parallel-web-tools`; Homebrew `brew upgrade parallel-web/tap/parallel-cli`; npm `npm update -g parallel-web-cli`. Recheck version and help in the agent's terminal before retrying.
 
-For authentication or API errors, inspect the returned message. A `403` can indicate permissions, account policy or billing; it does not prove low balance. Do not inspect environment variables, credential files, keychains, or authentication metadata. On an authentication error, stop and ask the user to complete the documented Parallel CLI sign-in flow in a trusted terminal, then resume only after they confirm it succeeded. Only a billing-specific error warrants a balance check, and adding funds needs explicit confirmation. Reuse saved task IDs; do not automatically retry an ambiguous creation.
+For authentication or API errors, inspect the returned message. A `403` can indicate permissions, account policy or billing; it does not prove low balance. Check `parallel-cli auth --json` and its `authenticated` boolean when relevant without exposing credentials. Only a billing-specific error warrants a balance check, and adding funds needs explicit confirmation. Reuse saved task IDs; do not automatically retry an ambiguous creation.

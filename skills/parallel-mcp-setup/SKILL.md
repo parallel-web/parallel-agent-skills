@@ -11,13 +11,13 @@ Configure and verify authenticated Parallel MCP connections. The first supported
 
 Identify the target Bifrost instance, its configuration source (dashboard or `config.json`), and the intended downstream agent or virtual key. Inspect existing MCP clients before changing anything; update the matching Parallel connection instead of adding duplicates. Preserve unrelated clients, access rules, and tool approval settings.
 
-Confirm access to Bifrost management and that the deployment operator has provisioned a Parallel account credential. These are separate from the downstream agent's Bifrost credential. Confirm only the configured secret reference, never its value. If access or a secret is missing, prepare the non-secret configuration and report what the operator must provision without claiming installation succeeded. Keep secrets in the deployment's secret manager or environment; never put them in skill files, source control, prompts, or tool arguments.
+Confirm access to Bifrost management and a Parallel account credential. These are separate from the downstream agent's Bifrost credential. If access or a secret is missing, prepare the configuration and report what is needed without claiming installation succeeded. Keep secrets in the deployment's secret manager or environment; never put them in skill files, source control, prompts, or tool arguments.
 
 ## 2. Configure the authenticated connection
 
 Use `https://search.parallel.ai/mcp-oauth`, which requires authentication. Choose Headers auth for a shared Parallel API key, or Bifrost's OAuth flow when that is the deployment's chosen authentication method. Do not change an authentication failure into an unauthenticated connection.
 
-For shared-key configuration, have the deployment operator provision `PARALLEL_MCP_AUTHORIZATION` in the **Bifrost server environment**, outside the agent session, with the complete value `Bearer <Parallel API key>`. The `env.` reference consumes that value at runtime and substitutes the whole header; it does not prepend `Bearer`. Do not read the variable to verify it.
+For shared-key configuration, provision `PARALLEL_MCP_AUTHORIZATION` in the **Bifrost server environment** with the complete value `Bearer <Parallel API key>`. The `env.` reference substitutes the whole header value; it does not prepend `Bearer`.
 
 In **MCP Gateway → New MCP Server**, choose HTTP, the URL above, and Headers auth. Set `Authorization` to the environment-variable reference using the UI's env-var picker. Allow `web_search` and `web_fetch` for this connection.
 
@@ -55,7 +55,7 @@ Confirm Bifrost discovers both tools and grants the intended downstream client o
 4. Inspect Bifrost's tool-call records to confirm the intended connection was used. Verify account attribution and any configured mode or source policy in available upstream request metadata or account logs; result quality alone does not prove the mode used.
 5. Report exactly what was verified and what remains untested. A direct request to Parallel does not prove Bifrost routing, authentication, or downstream permissions.
 
-On a 401/403, ask the deployment operator to verify the Parallel credential and account access while you inspect only the non-secret upstream auth configuration. On a handshake 400, check the configured search overrides. For missing tools, inspect connection health and gateway filtering. Keep existing access controls while diagnosing failures.
+On a 401/403, check the Parallel credential, account access, and upstream auth configuration. On a handshake 400, check the configured search overrides. For missing tools, inspect connection health and gateway filtering. Keep existing access controls while diagnosing failures.
 
 ## Optional: distribute this setup skill through Bifrost
 

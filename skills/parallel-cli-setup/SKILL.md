@@ -1,6 +1,6 @@
 ---
 name: parallel-cli-setup
-description: Install or upgrade the Parallel CLI and install its skills without reading, requesting, or handling credentials. Authentication stays in the user's trusted terminal.
+description: Set up and maintain the Parallel CLI (install, auth, balance, skills install)
 user-invocable: true
 metadata:
   author: parallel
@@ -8,9 +8,7 @@ metadata:
 
 # Parallel CLI Setup
 
-Install or maintain `parallel-cli` without handling the user's credentials. This
-skill may install or upgrade the CLI and install its skills. Authentication is a
-separate user-controlled step in a trusted terminal.
+Set up or maintain `parallel-cli` with minimal friction. If you are running this prompt, your goal is to follow the instructions below and set up `parallel-cli` for the user so that they can execute searches, run extracts, deep research, etc.
 
 ## Step 1: Install or upgrade the CLI
 
@@ -38,21 +36,57 @@ Upgrade commands (choose based on how it was installed):
 - npm: `npm update -g parallel-web-cli`
 - homebrew: `brew update && brew upgrade parallel-web/tap/parallel-cli`
 
-## Step 2: Keep authentication user-controlled
+## Step 2: Authenticate
 
-Do not inspect environment variables, credential files, operating-system keychains,
-or CLI authentication status. Do not ask the user to paste a key into chat, and do
-not start an authentication flow from this skill.
+Check auth status:
 
-If a Parallel command reports that authentication is required, stop and ask the
-user to complete the CLI's documented sign-in flow in a trusted terminal. Link to
-<https://docs.parallel.ai/integrations/cli>. Resume only after the user confirms
-that sign-in completed. Report the original error without printing or probing any
-credential metadata.
+```bash
+parallel-cli auth --json
+```
 
-## Step 3: Check balance after sign-in
+You will get a response like:
 
-Only after the user confirms sign-in, check the current balance:
+```json
+{
+  "authenticated": true,
+  "method": "oauth",
+  "env_var_set": false,
+  "has_stored_credentials": true,
+  "stored_overridden_by_env": false,
+  "token_file": "xxx",
+  "version": 1,
+  "selected_org_id": "legacy",
+  "selected_org_name": null,
+  "has_control_api_tokens": false
+}
+```
+
+If `authenticated` is `false` or `selected_org_id` is `legacy`, prompt the user to log in:
+
+```bash
+parallel-cli login --json
+```
+
+If this is a headless session, append `--no-browser`.
+
+This triggers device OAuth. The user will be prompted to go to a web browser and input the code the CLI outputs.
+
+When invoking from an agent harness, prefer streaming stdout via a Monitor-style tool over blocking on completion.
+
+The output will look like:
+
+```json
+{"event": "auth_start"}
+{"event": "device_code", "verification_uri": "http://localhost:3000/getServiceKeys/device", "verification_uri_complete": "http://localhost:3000/getServiceKeys/device?user_code=CHQX-NQKP&onboard_variant=agent", "user_code": "CHQX-NQKP", "expires_in": 600, "browser_open_attempted": true, "browser_opened": true}
+{"event": "auth_waiting"}
+{"event": "auth_success"}
+```
+
+`{"event": "auth_success"}` is emitted only after the user has successfully authorized the CLI. Otherwise it blocks at `{"event": "auth_waiting"}`.
+
+## Step 3: Check balance
+
+After authentication, check the current balance:
 
 ```bash
 parallel-cli balance get
@@ -65,9 +99,6 @@ parallel-cli balance add <AMOUNT_IN_CENTS>
 ```
 
 Make it clear that a payment method should have been added to the organization. If not, the user can go to <https://platform.parallel.ai/settings> to add one.
-
-If this command reports an authentication error, return to the user-controlled
-flow above. Do not inspect stored credentials to diagnose it.
 
 ## Step 4: Install the Parallel skills
 

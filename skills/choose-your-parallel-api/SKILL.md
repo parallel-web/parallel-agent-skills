@@ -20,6 +20,10 @@ Most disappointing results come from choosing the wrong API or configuration, no
 from the underlying quality: the right API at the wrong tier, or the right tier
 with the wrong knobs. Choose the API first, tier second, knobs third — in that order.
 
+## Setup
+
+`PARALLEL_API_KEY` is the connection secret, server side.
+
 ## Step 1 — Know the available surface
 
 ```text

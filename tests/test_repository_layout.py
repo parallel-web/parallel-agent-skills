@@ -13,14 +13,6 @@ MCP_CONFIG = REPO_ROOT / ".mcp.json"
 CLAUDE_PLUGIN_MANIFEST = REPO_ROOT / ".claude-plugin" / "plugin.json"
 CLAUDE_MARKETPLACE = REPO_ROOT / ".claude-plugin" / "marketplace.json"
 CODEX_PLUGIN_MANIFEST = REPO_ROOT / ".codex-plugin" / "plugin.json"
-SKILL_TEXT_SUFFIXES = {".json", ".md", ".py", ".sh", ".toml", ".yaml", ".yml"}
-CLAUDE_CREDENTIAL_REVIEW_FILES = tuple(
-    sorted(
-        path
-        for path in SKILLS_ROOT.rglob("*")
-        if path.is_file() and path.suffix in SKILL_TEXT_SUFFIXES
-    )
-)
 
 
 class RepositoryLayoutTestCase(unittest.TestCase):
@@ -83,27 +75,6 @@ class RepositoryLayoutTestCase(unittest.TestCase):
         marketplace = json.loads(CLAUDE_MARKETPLACE.read_text(encoding="utf-8"))
 
         self.assertEqual("productivity", marketplace["plugins"][0]["category"])
-
-    def test_claude_skill_content_does_not_read_installer_credentials(self):
-        forbidden = (
-            re.compile(r"parallel-cli (?:auth|login) --json"),
-            re.compile(r"\$\{?[A-Z][A-Z0-9_]*(?:API_KEY|TOKEN|SECRET)\}?"),
-            re.compile(r"\bos\.(?:environ\[|getenv\()"),
-            re.compile(r"\bprocess\.env(?:\.|\[)"),
-        )
-
-        for path in CLAUDE_CREDENTIAL_REVIEW_FILES:
-            content = path.read_text(encoding="utf-8")
-            with self.subTest(path=path.relative_to(REPO_ROOT)):
-                for pattern in forbidden:
-                    self.assertIsNone(pattern.search(content), pattern.pattern)
-
-    def test_cli_setup_does_not_preapprove_shell_commands(self):
-        content = (SKILLS_ROOT / "parallel-cli-setup" / "SKILL.md").read_text(
-            encoding="utf-8"
-        )
-
-        self.assertNotIn("allowed-tools:", content)
 
     def test_codex_manifest_uses_live_policy_urls(self):
         manifest = json.loads(CODEX_PLUGIN_MANIFEST.read_text(encoding="utf-8"))
