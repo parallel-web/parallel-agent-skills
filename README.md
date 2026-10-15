@@ -63,6 +63,16 @@ Then run the setup skill to install/auth the CLI:
 /parallel:parallel-cli-setup
 ```
 
+### Neotask
+
+Install the plugin with the Neotask CLI:
+
+```bash
+neotask construct install parallel
+```
+
+Then ask your agent to run the `parallel-cli-setup` skill. Neotask does not include the bundled `parallel-search` MCP server, so web search and fetch also run through `parallel-cli`.
+
 ## CDN and discovery
 
 A human + machine-readable catalog is published at [skills.parallel.ai](https://skills.parallel.ai).
