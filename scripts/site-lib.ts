@@ -13,6 +13,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export const REPO_ROOT = resolve(__dirname, "..");
 export const SKILLS_DIR = join(REPO_ROOT, "skills");
 export const VERSION_FILE = join(REPO_ROOT, "VERSION");
+const ANTIGRAVITY_PLUGIN_DIR = join(REPO_ROOT, "plugins", "antigravity", "parallel");
 export const SITE_URL = "https://skills.parallel.ai";
 export const REPOSITORY = "https://github.com/parallel-web/parallel-agent-skills";
 export const OWNER = "parallel-web";
@@ -421,12 +422,33 @@ export async function buildArchives(outputDirInput: string, version: string): Pr
     throw new Error(`Version must be semver, got: ${version}`);
   }
 
+  const pluginManifest = JSON.parse(readFileSync(join(ANTIGRAVITY_PLUGIN_DIR, "plugin.json"), "utf8"));
+  if (pluginManifest.version !== version.replace(/^v/, "")) {
+    throw new Error(`Antigravity plugin version ${pluginManifest.version} does not match archive version ${version}`);
+  }
+
+  const packages = collectSkills().map((skill) => {
+    const skillDir = join(SKILLS_DIR, skill.directory);
+    return { filename: `${skill.name}-${version}.zip`, directory: skillDir, prefix: skill.name, files: walkFiles(skillDir) };
+  });
+  // Keep the standalone package independent of root skills and authoring files.
+  const pluginFiles = ["plugin.json", "mcp_config.json", "README.md", "LICENSE", "icon.svg"]
+    .map((name) => join(ANTIGRAVITY_PLUGIN_DIR, name));
+  for (const path of pluginFiles) {
+    if (!statSync(path).isFile()) throw new Error(`Missing Antigravity package file: ${path}`);
+  }
+  packages.push({
+    filename: `parallel-antigravity-${version}.zip`,
+    directory: ANTIGRAVITY_PLUGIN_DIR,
+    prefix: "parallel",
+    files: pluginFiles,
+  });
+
   const outputDir = resolve(outputDirInput);
   ensureCleanDirectory(outputDir);
 
-  for (const skill of collectSkills()) {
-    const skillDir = join(SKILLS_DIR, skill.directory);
-    const archivePath = join(outputDir, `${skill.name}-${version}.zip`);
+  for (const pkg of packages) {
+    const archivePath = join(outputDir, pkg.filename);
 
     await new Promise<void>((resolvePromise, rejectPromise) => {
       const output = createWriteStream(archivePath);
@@ -437,8 +459,8 @@ export async function buildArchives(outputDirInput: string, version: string): Pr
       archive.on("error", rejectPromise);
 
       archive.pipe(output);
-      for (const filePath of walkFiles(skillDir)) {
-        const arcname = `${skill.name}/${relative(skillDir, filePath).replaceAll("\\", "/")}`;
+      for (const filePath of pkg.files) {
+        const arcname = `${pkg.prefix}/${relative(pkg.directory, filePath).replaceAll("\\", "/")}`;
         archive.file(filePath, { name: arcname });
       }
       void archive.finalize();
@@ -486,6 +508,11 @@ export function bumpVersion(part: "major" | "minor" | "patch"): string {
   const codexPlugin = JSON.parse(readFileSync(codexPluginPath, "utf8")) as Record<string, unknown>;
   codexPlugin.version = newVersion;
   writeJsonFile(codexPluginPath, codexPlugin);
+
+  const antigravityPluginPath = join(ANTIGRAVITY_PLUGIN_DIR, "plugin.json");
+  const antigravityPlugin = JSON.parse(readFileSync(antigravityPluginPath, "utf8")) as Record<string, unknown>;
+  antigravityPlugin.version = newVersion;
+  writeJsonFile(antigravityPluginPath, antigravityPlugin);
 
   return newVersion;
 }
