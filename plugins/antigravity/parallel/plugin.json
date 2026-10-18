@@ -1,0 +1,21 @@
+{
+  "name": "parallel",
+  "displayName": "Parallel",
+  "version": "0.10.0",
+  "description": "Search the live web and fetch page content with Parallel's hosted MCP server. Free access with no Parallel account, API key, or local CLI required.",
+  "logo": "icon.svg",
+  "suggestedPrompts": [
+    "Use Parallel to find the upgrade guide for this project's main framework and tell me what we'd need to change.",
+    "Use Parallel to find official docs and examples for the feature we're building. Match the versions in this project.",
+    "Use Parallel to look up this error in official docs and GitHub issues, then suggest a fix with sources."
+  ],
+  "author": {
+    "name": "Parallel Web Systems",
+    "email": "support@parallel.ai",
+    "url": "https://parallel.ai"
+  },
+  "homepage": "https://docs.parallel.ai/search/search-mcp",
+  "repository": "https://github.com/parallel-web/parallel-agent-skills",
+  "license": "MIT",
+  "keywords": ["parallel", "web-search", "page-extraction", "mcp"]
+}
