@@ -11,7 +11,7 @@ const FILES_TO_COMMIT = [
   ".claude-plugin/plugin.json",
   ".claude-plugin/marketplace.json",
   ".codex-plugin/plugin.json",
-  "plugins/antigravity/parallel/plugin.json",
+  ".antigravity-plugin/plugin.json",
 ];
 const PR_BODY = `## Release checklist
 - [ ] Review version bumps and changelog-relevant changes

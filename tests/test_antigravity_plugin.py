@@ -14,19 +14,25 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-PLUGIN_PATH = Path("plugins/antigravity/parallel")
-PACKAGE_FILES = {"plugin.json", "mcp_config.json", "README.md", "LICENSE", "icon.svg"}
+MANIFEST_PATH = Path(".antigravity-plugin/plugin.json")
+PACKAGE_FILES = {
+    ".antigravity-plugin/plugin.json": ".antigravity-plugin/plugin.json",
+    "mcp_config.json": "mcp_config.json",
+    "assets/antigravity.svg": "assets/antigravity.svg",
+    "README.md": "docs/antigravity.md",
+    "LICENSE": "LICENSE",
+}
 
 
 class AntigravityPluginTestCase(unittest.TestCase):
-    def test_package_is_self_contained_and_exposes_only_anonymous_search(self):
-        plugin = REPO_ROOT / PLUGIN_PATH
-        self.assertTrue(plugin.is_dir(), "the standalone Antigravity package is missing")
-        self.assertEqual(PACKAGE_FILES, {p.name for p in plugin.iterdir()})
-        self.assertFalse(any(p.is_symlink() for p in plugin.rglob("*")))
+    def test_root_manifest_resolves_search_config_and_logo_from_repository_root(self):
+        plugin = REPO_ROOT
+        self.assertEqual({"plugin.json"}, {p.name for p in (plugin / ".antigravity-plugin").iterdir()})
+        self.assertFalse((plugin / "plugins/antigravity/parallel").exists())
+        self.assertFalse(any((plugin / source).is_symlink() for source in PACKAGE_FILES.values()))
 
-        manifest = json.loads((plugin / "plugin.json").read_text())
-        self.assertEqual(plugin.name, manifest["name"])
+        manifest = json.loads((plugin / MANIFEST_PATH).read_text())
+        self.assertEqual("parallel", manifest["name"])
         self.assertEqual((REPO_ROOT / "VERSION").read_text().strip(), manifest["version"])
         for field in ("displayName", "description", "author", "suggestedPrompts"):
             self.assertTrue(manifest[field], field)
@@ -59,7 +65,6 @@ class AntigravityPluginTestCase(unittest.TestCase):
         )
         # An exact native connection shape also excludes credential prompts,
         # auth headers, local subprocesses, and the legacy url transport field.
-        self.assertEqual((REPO_ROOT / "LICENSE").read_bytes(), (plugin / "LICENSE").read_bytes())
 
 
 class AntigravityReleaseTestCase(unittest.TestCase):
@@ -89,8 +94,7 @@ class AntigravityReleaseTestCase(unittest.TestCase):
         return self.run_command("node", "node_modules/tsx/dist/cli.mjs", script, *args, **kwargs)
 
     def test_archives_preserve_skills_and_ship_only_installable_plugin_files(self):
-        plugin = self.repo / PLUGIN_PATH
-        self.assertTrue(plugin.is_dir(), "the standalone Antigravity package is missing")
+        plugin = self.repo
         # Unrelated authoring files must never enter a distributed package.
         (plugin / "private-notes.txt").write_text("must not ship\n")
         self.run_script("scripts/build.ts", "archives", "--version", self.version, "--output", "release-assets")
@@ -111,8 +115,13 @@ class AntigravityReleaseTestCase(unittest.TestCase):
             self.assertEqual({f"parallel/{p}" for p in PACKAGE_FILES}, set(archive.namelist()))
             archive.extractall(self.root / "unpacked")
         installed = self.root / "unpacked/parallel"
-        for name in PACKAGE_FILES:
-            self.assertEqual((plugin / name).read_bytes(), (installed / name).read_bytes())
+        for name, source in PACKAGE_FILES.items():
+            self.assertEqual((plugin / source).read_bytes(), (installed / name).read_bytes())
+        manifest = json.loads((installed / MANIFEST_PATH).read_text())
+        self.assertTrue((installed / manifest["logo"]).is_file())
+        self.assertEqual({"plugin.json"}, {p.name for p in (installed / ".antigravity-plugin").iterdir()})
+        for component in ("skills", "agents", "rules", "hooks.json"):
+            self.assertFalse((installed / component).exists())
 
     def test_mismatched_archive_version_preserves_existing_output(self):
         output = self.repo / "release-assets"
@@ -162,7 +171,7 @@ class AntigravityReleaseTestCase(unittest.TestCase):
         major, minor, patch = self.version.split(".")
         expected = f"{major}.{minor}.{int(patch) + 1}"
         self.assertEqual(expected, (self.repo / "VERSION").read_text().strip())
-        for path in (".claude-plugin/plugin.json", ".codex-plugin/plugin.json", PLUGIN_PATH / "plugin.json"):
+        for path in (".claude-plugin/plugin.json", ".codex-plugin/plugin.json", MANIFEST_PATH):
             committed = self.run_command("git", "show", f"HEAD:{path}").stdout
             self.assertEqual(expected, json.loads(committed)["version"], str(path))
         marketplace = json.loads(self.run_command("git", "show", "HEAD:.claude-plugin/marketplace.json").stdout)

@@ -7,14 +7,13 @@ Anonymous access is subject to free-tier rate limits.
 
 ## Install
 
-With the [Antigravity CLI](https://antigravity.google/docs/cli/install) available,
-clone the repository and install **this package directory**:
+Download `parallel-antigravity-<version>.zip` from the repository's
+[releases](https://github.com/parallel-web/parallel-agent-skills/releases), extract
+it, and use the [Antigravity CLI](https://antigravity.google/docs/cli/plugins/):
 
 ```bash
-git clone https://github.com/parallel-web/parallel-agent-skills.git
-cd parallel-agent-skills
-agy plugin validate ./plugins/antigravity/parallel --strict
-agy plugin install ./plugins/antigravity/parallel
+agy plugin validate ./parallel --strict
+agy plugin install ./parallel
 agy plugin list --json
 ```
 
@@ -22,10 +21,38 @@ The installed plugin is named `parallel`. Its component list should contain one
 MCP server and no skills, agents, rules, or hooks. Antigravity may prefix the
 server name with `parallel`.
 
-For a project-local installation in the Antigravity app or IDE, copy this entire
-directory to `.agents/plugins/parallel/` in the target project. Keep `plugin.json`
-and `mcp_config.json` at that directory's root, together with the logo and README.
+For a project-local installation in the Antigravity app or IDE, copy the extracted
+`parallel/` directory to `.agents/plugins/parallel/` in the target project. Keep
+`.antigravity-plugin/plugin.json`, `mcp_config.json`, and `assets/antigravity.svg`
+in their relative locations. Only the manifest belongs inside
+`.antigravity-plugin/`; component and logo paths resolve from the plugin root.
 See [Google's plugin documentation](https://antigravity.google/docs/plugins).
+
+### Build from source
+
+```bash
+git clone https://github.com/parallel-web/parallel-agent-skills.git
+cd parallel-agent-skills
+pnpm install --frozen-lockfile
+pnpm build:archives --version "$(cat VERSION)" --output release-assets
+unzip "release-assets/parallel-antigravity-$(cat VERSION).zip" -d release-assets/unpacked
+agy plugin validate ./release-assets/unpacked/parallel --strict
+agy plugin install ./release-assets/unpacked/parallel
+```
+
+The source manifest is at `.antigravity-plugin/plugin.json` in the repository
+root. The archive uses that same manifest and includes only the files needed
+for Search MCP. Install the extracted archive to avoid loading this repository's
+separate CLI skills and agent.
+
+### Repository URL installation
+
+Direct installation of the repository is not yet verified for Search-only use.
+Antigravity CLI 1.4.2 discovers all 14 root skills even when the manifest specifies
+an empty or alternate skills directory. Its validator also rejects the existing
+Claude agent's `tools` frontmatter. Moving the manifest alone does not isolate
+these components. Use the release archive until the publishing client supports
+selecting only the Search MCP package files.
 
 If you already enabled Parallel through the MCP store or a manual connection,
 keep just one Parallel connection enabled while testing to avoid duplicate tools.
@@ -66,13 +93,10 @@ The repository's existing release process includes
 The CLI and marketplace release versions can differ, so repeat the installation
 and conversation checks on the build used for publication.
 
-For marketplace submission, use `plugins/antigravity/parallel` or the extracted
-`parallel/` directory as the plugin root. The repository root also contains
-separate CLI skills and other client packages. A GitHub directory link is a
-source reference; the installation commands above use a local directory.
-Confirm with the publisher how they accept a package from a repository
-subdirectory before submitting a Git URL.
-
+For marketplace submission, the repository-root manifest is
+`.antigravity-plugin/plugin.json`. The Search-only distributable is the extracted
+`parallel/` release directory. Repository URL installation needs the component
+isolation issue above resolved before it can replace the archive.
 To remove a CLI-installed copy:
 
 ```bash

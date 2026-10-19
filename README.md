@@ -65,18 +65,20 @@ Then run the setup skill to install/auth the CLI:
 
 ### Google Antigravity
 
-Install the standalone Search MCP plugin with the Antigravity CLI:
+Install the Search MCP plugin from the `parallel-antigravity-<version>.zip`
+[release asset](https://github.com/parallel-web/parallel-agent-skills/releases).
+Extract the archive, then run:
 
 ```bash
-git clone https://github.com/parallel-web/parallel-agent-skills.git
-cd parallel-agent-skills
-agy plugin install ./plugins/antigravity/parallel
+agy plugin install ./parallel
 ```
 
 This package provides free web search and page fetching without a Parallel account,
-API key, or local Parallel CLI. Use the package directory above so Antigravity
-loads only the Search MCP connection. See the [Antigravity package README](plugins/antigravity/parallel/README.md)
-for project-local installation, validation, example prompts, and removal.
+API key, or local Parallel CLI. The manifest lives at
+`.antigravity-plugin/plugin.json`; the release archive includes only the Search MCP
+files. Installing the full repository also discovers its separate CLI skills.
+See the [Antigravity guide](docs/antigravity.md) for building the package locally,
+validation, example prompts, and removal.
 
 ## CDN and discovery
 
