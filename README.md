@@ -102,6 +102,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 | **parallel-web-search**      | CLI-backed search for explicit CLI use or when MCP is unavailable |
 | **parallel-web-extract**     | CLI-backed extraction for explicit CLI use or when MCP is unavailable |
 | **choose-your-parallel-api** | Choose the right Parallel API and configuration           |
+| **parallel-search-evaluation** | Benchmark web search providers on your own workload. |
 | **parallel-deep-research**   | Comprehensive research and analysis                       |
 | **parallel-data-enrichment** | Enrich lists of companies, people, products               |
 | **parallel-findall**         | Discover entities matching a natural-language description |
@@ -116,6 +117,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 
 ```text
 /parallel:parallel-web-search latest React 19 features
+/parallel:parallel-search-evaluation compare search providers on production questions
 /parallel:parallel-web-extract https://docs.parallel.ai
 /parallel:parallel-deep-research competitive landscape of AI code assistants
 /parallel:parallel-data-enrichment Apple, Microsoft, Google - get CEO names
