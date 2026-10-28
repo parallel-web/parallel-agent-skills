@@ -58,7 +58,7 @@ class RepositoryLayoutTestCase(unittest.TestCase):
         self.assertTrue(link.is_symlink())
         self.assertTrue(link.exists())
 
-    def test_plugin_manifests_bundle_anonymous_search_mcp(self):
+    def test_codex_keeps_anonymous_search_mcp(self):
         mcp_config = json.loads(MCP_CONFIG.read_text(encoding="utf-8"))
         server = mcp_config["mcpServers"]["parallel-search"]
 
@@ -66,10 +66,21 @@ class RepositoryLayoutTestCase(unittest.TestCase):
         self.assertEqual("https://search.parallel.ai/mcp", server["url"])
         self.assertNotIn("headers", server)
 
-        for manifest_path in (CLAUDE_PLUGIN_MANIFEST, CODEX_PLUGIN_MANIFEST):
-            with self.subTest(manifest=manifest_path):
-                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-                self.assertEqual("./.mcp.json", manifest["mcpServers"])
+        manifest = json.loads(CODEX_PLUGIN_MANIFEST.read_text(encoding="utf-8"))
+        self.assertEqual("./.mcp.json", manifest["mcpServers"])
+
+    def test_claude_override_replaces_anonymous_server_without_duplicates(self):
+        # Claude loads root .mcp.json first, then merges manifest servers by name.
+        servers = json.loads(MCP_CONFIG.read_text())["mcpServers"]
+        manifest = json.loads(CLAUDE_PLUGIN_MANIFEST.read_text())
+        servers.update(manifest["mcpServers"])
+
+        self.assertEqual("parallel", manifest["name"])
+        self.assertEqual(["parallel-search"], list(servers))
+        self.assertEqual({
+            "type": "http",
+            "url": "https://mcp.parallel.ai/mcp?login&tools=web_search,web_fetch,web_research,web_decisions",
+        }, servers["parallel-search"])
 
     def test_claude_marketplace_uses_productivity_category(self):
         marketplace = json.loads(CLAUDE_MARKETPLACE.read_text(encoding="utf-8"))
