@@ -4,14 +4,14 @@ Web search and page fetching for AI coding agents, through [Parallel](https://pa
 
 The plugin ships two things:
 
-- **A hosted MCP server** (`parallel-search`) providing `web_search` and `web_fetch`. Anonymous and rate-limited: no account, API key, or CLI needed. It works the moment the plugin is installed.
+- **A hosted MCP server** (`parallel-search`). In Claude, it provides `web_search`, `web_fetch`, `web_research`, and `web_decisions` after signing in to Parallel. Usage is billed to your Parallel account. The Codex and Antigravity packages retain anonymous, rate-limited search and fetch.
 - **CLI-backed skills** for deep research, enrichment, FindAll, and Monitor. These run through `parallel-cli` and need it installed, authenticated, and funded.
 
 You can use the first without ever setting up the second.
 
 ## Prerequisites
 
-Nothing, for web search and fetch. The bundled MCP server is anonymous.
+For the Claude MCP tools, you need a Parallel account with sufficient balance. Sign in through Claude; no API key or local CLI is needed. Codex and Antigravity retain anonymous search and fetch with no account required.
 
 The execution skills require `parallel-cli` (installed, authenticated, and funded). The [`parallel-cli-setup`](skills/parallel-cli-setup/SKILL.md) skill walks an agent through install, auth, balance, and skills install end-to-end — install the plugin/skills below, then run `/parallel:parallel-cli-setup` from your agent.
 
@@ -38,8 +38,20 @@ Available as a [Claude Code Plugin Marketplace](https://code.claude.com/docs/en/
 # restart Claude Code before continuing!
 ```
 
-Web search and fetch work immediately after the restart — run `/mcp` to confirm
-`parallel-search` is connected. No account or API key is required.
+After restarting, open `/mcp`, select the plugin-provided `parallel-search`
+server, and complete the Parallel sign-in flow. Then confirm that search, fetch,
+research, and decisions are available. MCP usage is billed to your Parallel
+account at [Parallel pricing](https://parallel.ai/pricing).
+
+Upgrading from v0.10.0 changes the plugin endpoint from anonymous Search MCP to
+the authenticated unified MCP. Update the plugin, fully exit Claude Code, and
+start a fresh session. Complete sign-in from `/mcp` when requested. An old
+Search MCP login may not carry over to the new endpoint. Existing conversations
+can retain old tool arguments after `/reload-plugins`; if a call rejects
+`model_name` or `session_id`, start a fresh session instead of resuming the old
+one. If you previously added a separate
+Parallel connection, verify the new one works before disabling the duplicate.
+Do not restore the anonymous URL to bypass sign-in.
 
 For the CLI-backed skills (deep research, enrichment, FindAll, Monitor), install
 and authenticate the CLI:
@@ -97,7 +109,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 
 | Skill                        | Description                                               |
 | ---------------------------- | --------------------------------------------------------- |
-| **parallel-search-setup**    | Verify, use, and troubleshoot the bundled anonymous Search MCP server     |
+| **parallel-search-setup**    | Verify, authenticate, and troubleshoot the bundled Parallel MCP server     |
 | **parallel-mcp-setup** | Set up authenticated Parallel MCP connections; Bifrost Search MCP is the first supported path |
 | **parallel-web-search**      | CLI-backed search for explicit CLI use or when MCP is unavailable |
 | **parallel-web-extract**     | CLI-backed extraction for explicit CLI use or when MCP is unavailable |
@@ -130,7 +142,20 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 /parallel:parallel-cli-setup
 ```
 
-## Free access and higher limits
+## Accounts, billing, and free access
+
+### Claude
+
+The Claude plugin uses OAuth at
+`https://mcp.parallel.ai/mcp?login&tools=web_search,web_fetch,web_research,web_decisions`.
+A Parallel account is required and authenticated tool calls are billed under
+your account's [pricing and limits](https://parallel.ai/pricing). Manage balance
+and usage at [platform.parallel.ai](https://platform.parallel.ai).
+
+MCP research returns a cited answer. The existing deep-research skill continues
+to run asynchronous Task API reports through the CLI; it is a separate workflow.
+
+### Codex and other anonymous Search MCP installations
 
 The bundled `parallel-search` MCP server is anonymous by design: `web_search` and
 `web_fetch` work with no account, API key, or login, subject to free-tier rate
@@ -158,20 +183,22 @@ are billed as ordinary API usage.
 
 ## Privacy and terms
 
-Parallel hosts the search service. Tool arguments sent to Parallel can include
-objectives, search queries, requested URLs, and optional session and model
-metadata. Parallel also receives standard connection and MCP client metadata.
+Parallel hosts the MCP service. Tool arguments sent to Parallel can include
+objectives, search queries, requested URLs, research questions, decision inputs,
+and optional session and model metadata. Parallel also receives standard
+connection and MCP client metadata.
 This data is handled under the
 [Customer Terms](https://parallel.ai/customer-terms) and
 [Privacy Policy](https://parallel.ai/privacy-policy). The MCP server does not
 automatically receive the rest of your conversation or local files, but an agent
 can include context in tool arguments when it is relevant. Do not send secrets,
-credentials, or sensitive local content through search or fetch tools.
+credentials, or sensitive local content through MCP tools.
 
 The CLI-backed skills run `parallel-cli` locally using credentials you have
 already configured. They send task inputs to Parallel's API under the same terms.
 
-The bundled MCP connection has no authentication headers and does not forward
+Claude authenticates the bundled MCP connection through OAuth. Codex and
+Antigravity retain anonymous MCP connections. No bundled connection forwards
 CLI credentials. CLI-backed skills authenticate separately to Parallel through
 `parallel-cli`; the setup skill can check authentication status and start the
 CLI's sign-in flow.

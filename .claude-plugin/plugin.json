@@ -1,7 +1,7 @@
 {
   "name": "parallel",
-  "version": "0.10.0",
-  "description": "Web search and page fetching through Parallel's hosted MCP server — free, no account or API key needed — plus CLI-backed deep research, data enrichment, entity discovery (FindAll), and web monitoring.",
+  "version": "0.11.0",
+  "description": "Search the web, read pages, research questions, and get evidence-backed decisions through Parallel's MCP server. Requires a Parallel account; usage is billed. Includes CLI skills for deep research, enrichment, FindAll, and monitoring.",
   "author": {
     "name": "Parallel Web Systems",
     "email": "support@parallel.ai"
@@ -23,5 +23,10 @@
     "web-monitoring"
   ],
   "skills": "./skills",
-  "mcpServers": "./.mcp.json"
+  "mcpServers": {
+    "parallel-search": {
+      "type": "http",
+      "url": "https://mcp.parallel.ai/mcp?login&tools=web_search,web_fetch,web_research,web_decisions"
+    }
+  }
 }
