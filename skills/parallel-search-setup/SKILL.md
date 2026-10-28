@@ -32,9 +32,13 @@ In Claude Code, open `/mcp`, select the plugin-provided server, and complete
 its sign-in flow. In other Claude surfaces, use the connection's sign-in
 control. Never ask the user to paste credentials into chat or configuration.
 
-When upgrading from the anonymous plugin, update and reload or restart the
-client, then sign in if requested. A previous login on the old Search endpoint
-may not carry over. An HTTP 401 on this URL means authentication is needed;
+When upgrading from the anonymous plugin in Claude Code, update the plugin,
+fully exit Claude Code, and start a fresh session, then sign in if requested.
+Do not rely on `/reload-plugins` in an existing conversation for this migration:
+the conversation can retain the old tool arguments. If a call rejects
+`model_name` or `session_id`, start a fresh session instead of resuming the old
+one, and use the current advertised schema. A previous login on the old Search
+endpoint may not carry over. An HTTP 401 on this URL means authentication is needed;
 **do not restore the anonymous URL or silently fall back to anonymous access**.
 If another Parallel connection is enabled, verify this one works before
 helping the user disable the duplicate. Do not uninstall the plugin.

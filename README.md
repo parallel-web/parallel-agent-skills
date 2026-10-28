@@ -43,9 +43,12 @@ research, and decisions are available. MCP usage is billed to your Parallel
 account at [Parallel pricing](https://parallel.ai/pricing).
 
 Upgrading from v0.10.0 changes the plugin endpoint from anonymous Search MCP to
-the authenticated unified MCP. Update the plugin and reload or restart Claude
-Code, then complete sign-in from `/mcp` when requested. An old Search MCP login
-may not carry over to the new endpoint. If you previously added a separate
+the authenticated unified MCP. Update the plugin, fully exit Claude Code, and
+start a fresh session. Complete sign-in from `/mcp` when requested. An old
+Search MCP login may not carry over to the new endpoint. Existing conversations
+can retain old tool arguments after `/reload-plugins`; if a call rejects
+`model_name` or `session_id`, start a fresh session instead of resuming the old
+one. If you previously added a separate
 Parallel connection, verify the new one works before disabling the duplicate.
 Do not restore the anonymous URL to bypass sign-in.
 
