@@ -33,7 +33,8 @@ parallel-cli skills install
 Available as a [Claude Code Plugin Marketplace](https://code.claude.com/docs/en/discover-plugins).
 
 ```bash
-/plugin install parallel --marketplace parallel-web/parallel-agent-skills
+/plugin marketplace add parallel-web/parallel-agent-skills
+/plugin install parallel
 # restart Claude Code before continuing!
 ```
 

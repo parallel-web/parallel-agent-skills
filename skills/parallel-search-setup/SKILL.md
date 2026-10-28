@@ -59,9 +59,18 @@ apply only to these anonymous installations, not to the Claude unified plugin.
 
 Installing with `parallel-cli skills install` or Codex's skill installer does
 not register the MCP server. Before verification, check the current client's
-registered servers. If absent, explain the appropriate endpoint and register it in that client:
+registered servers. Preserve an existing connection unless the user asks to
+change it. Installing skills alone does not opt the user into the Claude
+plugin migration or billed MCP access.
 
-- **Claude Code:** `claude mcp add --scope user --transport http parallel-search 'https://mcp.parallel.ai/mcp?login&tools=web_search,web_fetch,web_research,web_decisions'`, then sign in through `/mcp`. This requires a Parallel account and billed usage.
+If no server is registered:
+
+- **Claude Code:** explain both options and ask which the user wants before
+  registering a connection. Anonymous Search MCP provides free, rate-limited
+  search and fetch without an account. Unified MCP adds research and decisions,
+  requires Parallel sign-in, and bills usage to the user's account.
+  - For anonymous access, use `claude mcp add --scope user --transport http parallel-search https://search.parallel.ai/mcp`.
+  - If the user chooses authenticated, billed access, use `claude mcp add --scope user --transport http parallel-search 'https://mcp.parallel.ai/mcp?login&tools=web_search,web_fetch,web_research,web_decisions'`, then sign in through `/mcp`.
 - **Codex:** `codex mcp add parallel-search --url https://search.parallel.ai/mcp`
 - **Other clients:** register `https://search.parallel.ai/mcp` with Streamable
   HTTP transport and no authorization header.
