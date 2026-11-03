@@ -80,7 +80,15 @@ class AntigravityReleaseTestCase(unittest.TestCase):
         self.version = (self.repo / "VERSION").read_text().strip()
 
     def run_command(self, *args, check=True, env=None):
-        result = subprocess.run(args, cwd=self.repo, env=env, text=True, capture_output=True)
+        # The fixture uses a local Git remote and a stub gh. It needs no account.
+        environment = {
+            "PATH": os.environ["PATH"],
+            "GIT_CONFIG_NOSYSTEM": "1",
+            "GIT_CONFIG_GLOBAL": os.devnull,
+            "GIT_ALLOW_PROTOCOL": "file",
+            **(env or {}),
+        }
+        result = subprocess.run(args, cwd=self.repo, env=environment, text=True, capture_output=True)
         if check:
             self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         return result
@@ -156,8 +164,10 @@ class AntigravityReleaseTestCase(unittest.TestCase):
             '  *) exit 70 ;;\nesac\n'
         )
         gh.chmod(0o755)
-        environment = dict(os.environ, PATH=f"{bin_dir}{os.pathsep}{os.environ['PATH']}",
-                           TEST_GH_ARGS=str(self.root / "gh-args"))
+        environment = {
+            "PATH": f"{bin_dir}{os.pathsep}{os.environ['PATH']}",
+            "TEST_GH_ARGS": str(self.root / "gh-args"),
+        }
         self.run_script("scripts/open-release-pr.ts", "--part", "patch", env=environment)
         major, minor, patch = self.version.split(".")
         expected = f"{major}.{minor}.{int(patch) + 1}"
