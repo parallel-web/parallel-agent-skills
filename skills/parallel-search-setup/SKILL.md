@@ -169,10 +169,11 @@ Ask which authentication method the user prefers before configuring it:
   `claude mcp login parallel-search-auth` or complete sign-in from `/mcp`.
   In Codex, run `codex mcp login parallel-search-auth` if needed. For other clients,
   complete their OAuth sign-in flow.
-- **API key:** point `parallel-search-auth` at
-  `https://search.parallel.ai/mcp` and set
-  `Authorization: Bearer ${PARALLEL_API_KEY}` from the user's environment. Do
-  not paste or commit the key in a plugin or project file.
+- **API key:** if the user chooses this option, direct them to configure their
+  own key for the separate `parallel-search-auth` connection to
+  `https://search.parallel.ai/mcp` as a bearer token using their client's secret storage.
+  If the client lacks secure key entry, offer OAuth. Never look up a key in
+  the shell or local files, or ask the user to paste one into chat.
 
 In Claude Code, after the authenticated connection succeeds, open `/mcp` and make sure only one
 Parallel Search connection is enabled. Recent Claude Code versions deduplicate

@@ -1,6 +1,6 @@
 {
   "name": "parallel",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Search the web, read pages, research questions, and assess claims through Parallel's MCP server. Search, Fetch, and Decisions work without an account; Research requires sign-in. Includes CLI skills for deep research, enrichment, FindAll, and monitoring.",
   "author": {
     "name": "Parallel Web Systems",

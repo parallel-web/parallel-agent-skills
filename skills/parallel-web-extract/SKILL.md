@@ -63,12 +63,9 @@ For large content, keep the full verbatim text in the saved file and provide a b
 
 ## Setup
 
-If `parallel-cli` is not found, install and authenticate:
-
-```bash
-/parallel:parallel-cli-setup
-```
-
-If a documented command or option is missing, check the installed version and upgrade through its installation method: standalone `parallel-cli update`, pipx `pipx upgrade parallel-web-tools`, uv `uv tool upgrade parallel-web-tools`, Homebrew `brew upgrade parallel-web/tap/parallel-cli`, or npm `npm update -g parallel-web-cli`. Verify help in the same terminal before retrying.
+If `parallel-cli` or a required option is missing, tell the user which part is
+missing and offer `/parallel:parallel-cli-setup`. That skill covers installation
+and upgrades for each supported install method. After setup, check
+`parallel-cli extract --help` in the same terminal before retrying.
 
 For authentication errors, inspect `parallel-cli auth --json` and its `authenticated` boolean; exit zero alone does not prove authentication. A `403` can indicate permissions, policy or billing. Report the actual error; check balance only for a billing-specific failure and never add funds without explicit confirmation.
