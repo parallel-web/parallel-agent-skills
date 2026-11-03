@@ -79,7 +79,7 @@ class RepositoryLayoutTestCase(unittest.TestCase):
         self.assertEqual(["parallel-search"], list(servers))
         self.assertEqual({
             "type": "http",
-            "url": "https://mcp.parallel.ai/mcp?login&tools=web_search,web_fetch,web_research,web_decisions",
+            "url": "https://mcp.parallel.ai/mcp/claude",
         }, servers["parallel-search"])
 
     def test_claude_marketplace_uses_productivity_category(self):
