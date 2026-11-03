@@ -1,7 +1,7 @@
 {
   "name": "parallel",
   "displayName": "Parallel",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Search the live web and fetch page content with Parallel's hosted MCP server. Free access with no Parallel account, API key, or local CLI required.",
   "logo": "icon.svg",
   "suggestedPrompts": [
