@@ -9,6 +9,8 @@
     "build:archives": "tsx scripts/build.ts archives",
     "release:bump": "tsx scripts/release.ts bump-version",
     "release:pr": "tsx scripts/open-release-pr.ts",
+    "release:clawhub": "node scripts/publish-clawhub.mjs",
+    "test:clawhub": "node --test tests/test_clawhub_release.mjs",
     "typecheck": "tsc --noEmit"
   },
   "engines": {
@@ -18,6 +20,7 @@
     "@types/archiver": "^6.0.3",
     "@types/node": "^24.10.1",
     "archiver": "^7.0.1",
+    "clawhub": "0.25.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "wrangler": "4.92.0"
