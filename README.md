@@ -118,6 +118,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 | **parallel-mcp-setup** | Set up authenticated Parallel MCP connections; Bifrost Search MCP is the first supported path |
 | **parallel-web-search**      | CLI-backed search for explicit CLI use or when MCP is unavailable |
 | **parallel-web-extract**     | CLI-backed extraction for explicit CLI use or when MCP is unavailable |
+| **parallel-api**             | Build on the Parallel API: choose an API, set up the key, write the integration, fix errors |
 | **choose-your-parallel-api** | Choose the right Parallel API and configuration           |
 | **parallel-search-evaluation** | Benchmark web search providers on your own workload. |
 | **parallel-deep-research**   | Comprehensive research and analysis                       |
@@ -141,6 +142,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 /parallel:parallel-findall AI startups that raised Series A in 2026
 /parallel:parallel-monitor track price changes for the iPhone 16 Pro
 /parallel:parallel-memory retrieve past research about AI code assistants
+/parallel:parallel-api add Parallel web search to this app
 /parallel:migrate-to-parallel migrate this app from Tavily to Parallel
 /parallel:migrate-to-parallel migrate this app from Perplexity to Parallel
 /parallel:migrate-to-parallel migrate this app from Firecrawl to Parallel
