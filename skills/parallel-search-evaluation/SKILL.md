@@ -1,6 +1,6 @@
 ---
 name: parallel-search-evaluation
-description: Use for search evaluation, a POC or bake-off, Parallel vs Exa/Tavily comparisons, SimpleQA/DeepSearchQA benchmarks, or diagnosing search evaluation results. For product selection use parallel-api; for integration migration use migrate-to-parallel.
+description: Use for search evaluation, a POC or bake-off, Parallel vs Exa/Tavily comparisons, SimpleQA/DeepSearchQA benchmarks, or diagnosing search evaluation results. For product selection use choose-your-parallel-api; for integration migration use migrate-to-parallel.
 metadata:
   author: parallel
 ---
@@ -9,7 +9,7 @@ metadata:
 
 Turn the user's workload into a reproducible end-to-end comparison. Deliver a runnable harness when implementation is requested, or an actionable plan when planning is requested. Reuse an existing harness before creating another one. Do not invent a Parallel CLI eval command.
 
-For product selection without a benchmark, use `parallel-api`; for replacing an existing search integration, use `migrate-to-parallel`. Use this skill to measure the resulting quality, cost, and latency.
+For product selection without a benchmark, use `choose-your-parallel-api`; for replacing an existing search integration, use `migrate-to-parallel`. Use this skill to measure the resulting quality, cost, and latency.
 
 ## Start with the workload
 
