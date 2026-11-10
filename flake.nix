@@ -19,7 +19,7 @@
       '';
     in {
       devShells.default = pkgs.mkShell {
-        packages = [pkgs.nodejs_25 pnpm pkgs.pre-commit];
+        packages = [pkgs.nodejs_25 pkgs.corepack pkgs.pre-commit];
       };
     });
 }
