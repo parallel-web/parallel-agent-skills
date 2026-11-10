@@ -193,7 +193,7 @@ if answer["type"] != "refusal":
 ```python
 monitor = client.monitor.create(
     type="event_stream",
-    frequency="1d",  # 1h | 1d | 1w
+    frequency="1d",  # any value from 1h to 30d
     processor="lite",
     settings={"query": "AI startup funding announcements"},
     webhook={"url": "https://example.com/webhooks/parallel", "event_types": ["monitor.event.detected"]},
