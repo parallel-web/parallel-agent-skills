@@ -9,7 +9,7 @@ metadata:
 
 Turn the user's workload into a reproducible end-to-end comparison. Deliver a runnable harness when implementation is requested, or an actionable plan when planning is requested. Reuse an existing harness before creating another one. Do not invent a Parallel CLI eval command.
 
-For product selection without a benchmark, use `parallel-api`; for replacing an existing search integration, use `migrate-to-parallel`. Use this skill to measure the resulting quality, cost, and latency.
+To choose a Parallel API or build the integration, use `parallel-api`. To replace another provider's integration, use `migrate-to-parallel`. Use this skill to measure quality, cost and latency.
 
 <!-- markdownlint-disable MD033 MD034 -->
 
