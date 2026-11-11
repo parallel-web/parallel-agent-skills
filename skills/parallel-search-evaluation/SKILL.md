@@ -15,7 +15,7 @@ For product selection without a benchmark, use `parallel-api`; for replacing an 
 
 ## Onboarding
 
-Follow this section when a Parallel setup prompt sends you here, or when the user is evaluating Parallel for the first time.
+Follow this section when a Parallel setup prompt sends you here, or when the user is evaluating Parallel or comparing it with other providers.
 
 - Work quietly: give progress updates only for decisions the user must make. Use the quoted messages below word for word, filling in <placeholders>. Anywhere else, write at most two short lines.
 - Ask one question at a time, with your question UI if you have one.

@@ -35,8 +35,8 @@ Follow this section when a Parallel setup prompt sends you here, or when the use
 1. Check the current directory:
    - A project that calls another search provider (for example Exa, Tavily, Perplexity, Firecrawl, a SERP API, or a model's built-in web search): ask
      "This project uses <provider> for web search. What should I do?
-     1. Replace <provider> with Parallel (recommended). <provider> will stay the default until Parallel passes a test.
-     2. Keep <provider> and add Parallel for something new."
+     1. Replace <provider> with Parallel (recommended).
+     2. Keep <provider> and add Parallel for a new use case."
      For answer 1, follow "Replace another search provider".
    - A project with no search provider, or answer 2: ask "What should Parallel do in this project? For example: give your agent web search, answer questions with sources, research a list of companies, or watch the web for new events."
    - No project: ask "What would you like to build? I'll create a small starter project for it."
@@ -93,8 +93,6 @@ Both `parallel-web` clients read `PARALLEL_API_KEY` when no key is passed.
 | Alerts on new web events, on a schedule | Monitor | `POST /v1/monitors` | ongoing | $3 to $10 / 1k executions |
 
 When the app's model writes the answer, use Search, then Extract on the results worth reading in full. When Parallel writes the answer, use Responses if a user is waiting and Task if the work can run in the background.
-
-Choose once, while writing the integration, and hard-code the API and setting. Don't call a model on each request to choose. Start one tier below your first guess, test 10 to 20 real inputs, and move up only for a failure you saw; each tier up costs 2 to 5 times more. When the user wants only a recommendation, give the API, the setting, the cost per call and the failure that would justify the next tier, and don't change their app.
 
 - **Search `mode`:** `fast` (about 700 ms, $1 / 1k) for most agents. `turbo` (about 200 ms, $1 / 1k) for high-volume simple lookups in English or Japanese. `basic` (about 1 s, $5 / 1k) for longer excerpts. `advanced` (about 3 s, $5 / 1k) for multi-hop background work.
 - **Responses `reasoning.effort`:** `low` ($10 / 1k, 5 to 10 s) for simple facts, `medium` ($50 / 1k, the default) for multi-hop questions, `high` ($250 / 1k, up to 60 s) for deep synthesis.
@@ -200,7 +198,7 @@ result = client.task_run.result(run.run_id, api_timeout=3600)  # blocks until do
 print(result.output.content)
 ```
 
-- `output_schema` takes a text description, `{"type": "json", "json_schema": {...}}` for typed fields, or `{"type": "text"}` for a cited report. `output.basis` holds citations and a confidence per field; confidence shows which fields to review, not which are right.
+- `output_schema` takes a text description, `{"type": "json", "json_schema": {...}}` for typed fields, or `{"type": "text"}` for a cited report. `output.basis` holds citations and a confidence per field.
 - In production, store `run_id` server-side and get completion from a webhook or the `/events` stream. A blocking `result` call returns 408 when the run outlives the wait: poll again.
 - For many rows, use [Task Groups](https://docs.parallel.ai/task-api/group-api.md). Each row is one run and one charge, whatever the number of fields.
 - If a run researched the wrong entity, add identifying detail to `input`, such as a domain or ticker. A bigger processor does not fix that.
