@@ -31,11 +31,12 @@ Follow this section when a Parallel setup prompt sends you here, or when the use
    2. Add PARALLEL_API_KEY=<your key> to <file>.
    3. Reply done, or reply skip to get the plan and the test harness without live runs."
    <file> is the project's existing secret file. If there is none, create .env and add .env to .gitignore first.
+   If a request can't connect to api.parallel.ai, or a proxy refuses it (`host_not_allowed`, `EGRESS_BLOCKED`), the network blocks it: ask the user to allow api.parallel.ai in the environment's network settings and reply done.
 3. Ask: "Want a quick look first?
    1. Spot check: I'll run 5 of your questions through Parallel and <provider>, side by side.
    2. Full evaluation: a fixed question set, repeated runs, graded results.
    A spot check doesn't replace the full evaluation."
-4. In its own message, report quality, cost, latency and the main failure types in at most ten lines, with the path to the full report.
+4. In its own message, report quality, cost in dollars (per question and in total, from the calls made and the current pricing page), latency and the main failure types in at most ten lines, with the path to the full report.
 5. If Parallel caused a problem (this skill, the docs, the API, the key or the skill install), ask in a separate message: "One issue came up during the evaluation: <one-line description>. Would you like a note to send to support@parallel.ai?" Skip problems in the user's own project.
 
 <!-- markdownlint-enable MD033 MD034 -->
@@ -58,7 +59,7 @@ Always set Search `mode` explicitly for REST requests: omitting it selects `adva
 
 ## Build and freeze the comparison
 
-Use [references/eval-contract.md](references/eval-contract.md) when creating dataset records, run manifests, traces, grading output, and reports. Resolve this reference relative to this skill's directory.
+Before writing any file, read [references/eval-contract.md](references/eval-contract.md), which sits next to this SKILL.md. It defines the dataset records, run manifests, traces, grading output, and reports.
 
 1. Prefer real production questions and independently verified answers. Match domain, wording, freshness, and task shape. Review synthetic labels before running. Pin question IDs and dataset version; separate pilot questions from held-out questions. Public benchmarks supplement this set and need a consistent policy for answer-key contamination.
 2. Hold the model, research prompt, budgets, judge, and extraction policy constant across providers. Expose only the selected provider's search tool. Start with each provider's documented defaults and tool definition, including descriptions; change a setting only with evidence from the workload or pilot, and record the evidence and deviation in the manifest. Avoid arbitrary result caps or custom tool descriptions. If extraction differs as part of a provider stack, disclose that boundary. Keep gold answers and annotations out of agent prompts, query generation, and tool messages.

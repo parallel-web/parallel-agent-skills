@@ -41,7 +41,7 @@ Follow this section when a Parallel setup prompt sends you here, or when the use
    - A project with no search provider, or answer 2: ask "What should Parallel do in this project? For example: give your agent web search, answer questions with sources, research a list of companies, or watch the web for new events."
    - No project: ask "What would you like to build? I'll create a small starter project for it."
 2. Pick the API and setting with "Choose the API", then ask: "Plan: <API> (<mode, effort or processor>), about <cost> per call. <One-line reason>. Go ahead?"
-3. Follow "Setup", write the smallest working integration in the project's style, and run "Verify" step 1.
+3. Follow "Setup". Before you edit the project, run one `fast` Search with `curl` to check the key and the network. If it fails, handle it with "Errors" or "Verify" step 4, and wait for the user before editing anything. Then write the smallest working integration in the project's style and run "Verify" step 1.
 4. In its own message, send:
    "Parallel is working in <project>. Test: <one-line result> (<source URL>)
    Changed: <files>
@@ -244,12 +244,21 @@ A Monitor runs once at creation, then on schedule, and bills every execution unt
 
 ## Replace another search provider
 
-1. Add Parallel next to the old provider, and switch the default only after Parallel passes a test on the app's real queries. To remove the old provider entirely, including dependencies, env vars, tests and docs, use `migrate-to-parallel`.
+1. Keep the old provider working. Add Parallel beside it, behind a flag, an env var or a second function. Don't delete the old provider's code, imports, dependencies or env vars before step 7.
 2. Pass the old query string as one entry in `search_queries`. For better results, add an `objective` and split the query into 2 or 3 keyword queries.
 3. Map the depth tier to `mode`: Exa `instant` or Tavily `ultra-fast` to `turbo`; `fast` to `fast`; Tavily `basic` to `basic`; Exa `auto` or Tavily `advanced` to `advanced`. Exa `deep` maps to Task or Responses.
 4. Move options into `advanced_settings`: result count to `max_results`, domain filters to `source_policy.include_domains` and `exclude_domains`, a start date to `source_policy.after_date` (`YYYY-MM-DD`). `include_domains` is a hard allow list: Search skips every other site, so keep it only when results must come from those domains.
 5. Results arrive ranked, with `url`, `title`, `publish_date` and `excerpts` but no score: keep the order.
 6. Route what Search does not cover: full page text to Extract, a synthesized answer to Responses or Task, a people or company list to [Entity Search](https://docs.parallel.ai/findall-api/entity-search.md). A model's built-in web search becomes the tool above.
+7. After "Verify" step 1 passes, and before the final report, make Parallel the default and ask:
+
+   ```text
+   Parallel passed the test. Remove <provider> from <project>?
+   1. Remove <provider> (recommended)
+   2. Keep both for now
+   ```
+
+   For answer 1, remove the old provider's code, imports, dependencies and env vars. To also clean up its tests and docs, use `migrate-to-parallel`: `npx skills add parallel-web/parallel-agent-skills --skill migrate-to-parallel`, or read `https://skills.parallel.ai/migrate-to-parallel/SKILL.md`.
 
 Field-by-field tables: `https://docs.parallel.ai/search/migrate-to-parallel.md`
 
@@ -279,6 +288,7 @@ Retry only 408, 429 and 5xx. Default limits per minute: 600 for Search, Extract 
 1. Run one real request with one small, non-sensitive input; for a list, the first row only. If the app needs other credentials, test the Parallel call on its own. A Search or Extract call costs $0.001 to $0.005.
 2. Report the result in one line with a source URL, the files changed, the cost per call, and what remains untested, such as a webhook that needs a public URL.
 3. If a documented request fails, or the docs contradict this skill, tell the user and suggest a report to `support@parallel.ai`.
+4. If the request can't connect, or a proxy refuses it (`host_not_allowed`, `EGRESS_BLOCKED`), the network blocks `api.parallel.ai`. That isn't a Parallel problem: tell the user to allow `api.parallel.ai` in the environment's network settings and reply done.
 
 ## Reference
 
