@@ -119,7 +119,6 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 | **parallel-web-search**      | CLI-backed search for explicit CLI use or when MCP is unavailable |
 | **parallel-web-extract**     | CLI-backed extraction for explicit CLI use or when MCP is unavailable |
 | **parallel-api**             | Build on the Parallel API: choose an API, set up the key, write the integration, fix errors |
-| **choose-your-parallel-api** | Replaced by `parallel-api`; kept so existing install commands still work |
 | **parallel-search-evaluation** | Benchmark web search providers on your own workload. |
 | **parallel-deep-research**   | Comprehensive research and analysis                       |
 | **parallel-data-enrichment** | Enrich lists of companies, people, products               |
