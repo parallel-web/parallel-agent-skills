@@ -1,6 +1,6 @@
 ---
 name: parallel-search-evaluation
-description: Use for search evaluation, a POC or bake-off, Parallel vs Exa/Tavily comparisons, SimpleQA/DeepSearchQA benchmarks, or diagnosing search evaluation results. For product selection use choose-your-parallel-api; for integration migration use migrate-to-parallel.
+description: Use for search evaluation, a POC or bake-off, Parallel vs Exa/Tavily comparisons, SimpleQA/DeepSearchQA benchmarks, or diagnosing search evaluation results. For product selection use parallel-api; for integration migration use migrate-to-parallel.
 metadata:
   author: parallel
 ---
@@ -9,7 +9,36 @@ metadata:
 
 Turn the user's workload into a reproducible end-to-end comparison. Deliver a runnable harness when implementation is requested, or an actionable plan when planning is requested. Reuse an existing harness before creating another one. Do not invent a Parallel CLI eval command.
 
-For product selection without a benchmark, use `choose-your-parallel-api`; for replacing an existing search integration, use `migrate-to-parallel`. Use this skill to measure the resulting quality, cost, and latency.
+For product selection without a benchmark, use `parallel-api`; for replacing an existing search integration, use `migrate-to-parallel`. Use this skill to measure the resulting quality, cost, and latency.
+
+<!-- markdownlint-disable MD033 MD034 -->
+
+## Onboarding
+
+Follow this section when a Parallel setup prompt sends you here, or when the user is evaluating Parallel for the first time.
+
+- Work quietly: give progress updates only for decisions the user must make. Use the quoted messages below word for word, filling in <placeholders>. Anywhere else, write at most two short lines.
+- Ask one question at a time, with your question UI if you have one.
+
+1. When the comparison needs one of these decisions and the project doesn't answer it, ask:
+   "What should Parallel be compared with? For example: Exa, Tavily, your current setup, or a public benchmark."
+   "Do you have real questions from your app, with known answers?
+   1. Yes: tell me where they are.
+   2. No: start from a public benchmark."
+2. API key: if PARALLEL_API_KEY is set in the shell or in the project's secret file, use that key (check without printing it). Otherwise, send:
+   "Live runs need a Parallel API key:
+   1. Sign in or sign up at https://platform.parallel.ai and create a key.
+   2. Add PARALLEL_API_KEY=<your key> to <file>.
+   3. Reply done, or reply skip to get the plan and the test harness without live runs."
+   <file> is the project's existing secret file. If there is none, create .env and add .env to .gitignore first.
+3. Ask: "Want a quick look first?
+   1. Spot check: I'll run 5 of your questions through Parallel and <provider>, side by side.
+   2. Full evaluation: a fixed question set, repeated runs, graded results.
+   A spot check doesn't replace the full evaluation."
+4. In its own message, report quality, cost, latency and the main failure types in at most ten lines, with the path to the full report.
+5. If Parallel caused a problem (this skill, the docs, the API, the key or the skill install), ask in a separate message: "One issue came up during the evaluation: <one-line description>. Would you like a note to send to support@parallel.ai?" Skip problems in the user's own project.
+
+<!-- markdownlint-enable MD033 MD034 -->
 
 ## Start with the workload
 
