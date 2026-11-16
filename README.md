@@ -4,7 +4,7 @@ Web search and page fetching for AI coding agents, through [Parallel](https://pa
 
 The plugin ships two things:
 
-- **A hosted MCP server** (`parallel-search`). In Claude, it provides anonymous `web_search`, `web_fetch`, and `web_decisions`, plus `web_research` with Parallel sign-in. Authenticated calls are billed to your Parallel account. The Codex and Antigravity packages retain anonymous, rate-limited search and fetch.
+- **A hosted MCP server** (`parallel-search`). In Claude, it provides anonymous `web_search`, `web_fetch`, and `web_decisions`, plus `web_research` with Parallel sign-in. Authenticated calls are billed to your Parallel account. The Codex and Antigravity packages use Parallel MCP for anonymous, rate-limited Search and Fetch.
 - **CLI-backed skills** for deep research, enrichment, FindAll, and Monitor. These run through `parallel-cli` and need it installed, authenticated, and funded.
 
 You can use the first without ever setting up the second.
@@ -50,7 +50,7 @@ If the server supplies an authenticated fallback URL, review the account and
 billing implications before switching to it. Do not silently change endpoints
 or add a duplicate server. See the setup skill for the explicit-login fallback.
 
-Upgrading from v0.10.0 changes the Claude plugin endpoint to unified MCP at
+Upgrading from v0.10.0 moves the Claude plugin to Parallel MCP at
 `https://mcp.parallel.ai/mcp/claude`. Update the plugin, fully exit Claude Code,
 and start a fresh session. Existing conversations can retain old tool arguments
 after `/reload-plugins`; if a call rejects `model_name` or `session_id`, start a
@@ -82,7 +82,7 @@ Then run the setup skill to install/auth the CLI:
 
 ### Google Antigravity
 
-Install the standalone Search MCP plugin with the Antigravity CLI:
+Install this repository's Antigravity package with the Antigravity CLI:
 
 ```bash
 git clone https://github.com/parallel-web/parallel-agent-skills.git
@@ -91,9 +91,8 @@ agy plugin install ./plugins/antigravity/parallel
 ```
 
 This package provides free web search and page fetching without a Parallel account,
-API key, or local Parallel CLI. Use the package directory above so Antigravity
-loads only the Search MCP connection. See the [Antigravity package README](plugins/antigravity/parallel/README.md)
-for project-local installation, validation, example prompts, and removal.
+API key, or local Parallel CLI. For project-local installation, validation,
+example prompts, and removal, see the [Antigravity package README](plugins/antigravity/parallel/README.md).
 
 ## CDN and discovery
 
@@ -115,7 +114,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 | Skill                        | Description                                               |
 | ---------------------------- | --------------------------------------------------------- |
 | **parallel-search-setup**    | Verify and troubleshoot Parallel MCP; sign in for Research     |
-| **parallel-mcp-setup** | Set up authenticated Parallel MCP connections; Bifrost Search MCP is the first supported path |
+| **parallel-mcp-setup** | Connect Bifrost to authenticated Parallel MCP |
 | **parallel-web-search**      | CLI-backed search for explicit CLI use or when MCP is unavailable |
 | **parallel-web-extract**     | CLI-backed extraction for explicit CLI use or when MCP is unavailable |
 | **parallel-api**             | Build on the Parallel API: choose an API, set up the key, write the integration, fix errors |
@@ -162,27 +161,17 @@ and usage at [platform.parallel.ai](https://platform.parallel.ai).
 MCP research returns a cited answer. The existing deep-research skill continues
 to run asynchronous Task API reports through the CLI; it is a separate workflow.
 
-### Codex and other anonymous Search MCP installations
+### Codex and Antigravity
 
-The bundled `parallel-search` MCP server is anonymous by design: `web_search` and
-`web_fetch` work with no account, API key, or login, subject to free-tier rate
-limits. The free tier is intended for personal agents, hobby projects, and
-exploration.
+Both plugins use the default tools from Parallel MCP. Search and Fetch work
+without an account, API key, or login, subject to free-tier rate limits. The
+free tier is intended for personal agents, hobby projects, and exploration.
 
-For higher search limits, usage analytics, and production workloads, create an
-account at [platform.parallel.ai](https://platform.parallel.ai), then add a
-separate authenticated Search MCP connection. The same service supports a
-Parallel API key on `https://search.parallel.ai/mcp` or OAuth through
-`https://search.parallel.ai/mcp-oauth`. Authenticated usage is billed under your
-account's pricing and limits — see
-[parallel.ai/pricing](https://parallel.ai/pricing).
-
-Keep the plugin-provided connection anonymous rather than editing the installed
-plugin. After the authenticated connection works, use `/mcp` to ensure only one
-Parallel Search connection is enabled; if both appear, toggle the bundled
-anonymous server off. See
-[`parallel-search-setup`](skills/parallel-search-setup/SKILL.md) for the upgrade
-steps.
+For higher limits, usage analytics, and production workloads, add an
+authenticated connection. Follow the [Parallel MCP installation guide](https://docs.parallel.ai/integrations/mcp/installation)
+and use [`parallel-search-setup`](skills/parallel-search-setup/SKILL.md) to switch
+from the bundled anonymous connection. Authenticated calls are billed to your
+account under [Parallel API pricing](https://parallel.ai/pricing).
 
 The CLI-backed skills are separate: deep research, enrichment, FindAll, and
 Monitor run through `parallel-cli` against your own funded Parallel account and

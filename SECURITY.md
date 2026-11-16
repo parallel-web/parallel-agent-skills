@@ -3,7 +3,7 @@
 ## Reporting a vulnerability
 
 If you find a security issue in this repository, in the skills it publishes, or
-in the hosted Parallel Search MCP service (`search.parallel.ai`), report it
+in the hosted Parallel MCP service, report it
 privately to **[support@parallel.ai](mailto:support@parallel.ai)**. Do not open a public GitHub issue for
 security reports.
 
@@ -14,9 +14,9 @@ We will acknowledge your report and follow up as we investigate.
 
 - This repository contains skills, documentation, and client configuration. The
   search service and the Task API run on Parallel's infrastructure.
-- The bundled MCP server (`parallel-search`) is anonymous: it carries no
-  credentials of any kind, and its tools (`web_search`, `web_fetch`) are
-  read-only.
+- The bundled MCP connection (`parallel-search`) starts without credentials.
+  Available tools and authentication requirements are described in the
+  [Parallel MCP documentation](https://docs.parallel.ai/integrations/mcp/quickstart).
 - The CLI-backed skills run `parallel-cli` locally and use the credentials you
   have already configured for it. They never transmit those credentials
   anywhere except to Parallel's API.
