@@ -68,13 +68,24 @@ and authenticate the CLI:
 
 ### OpenAI Codex
 
-Install skills using the built-in skill installer (run inside Codex):
+Install the Parallel plugin:
+
+```bash
+codex plugin marketplace add parallel-web/parallel-agent-skills
+codex plugin add parallel@parallel-web
+```
+
+Restart Codex and check `/mcp` for `parallel-search`. Search and Fetch work
+without a Parallel account. For an existing plugin installation, see the
+[upgrade steps](skills/parallel-search-setup/SKILL.md#codex-and-antigravity-plugins).
+
+For a skills-only installation, run the built-in skill installer inside Codex:
 
 ```text
 $skill-installer parallel-web/parallel-agent-skills
 ```
 
-Then run the setup skill to install/auth the CLI:
+For CLI-backed skills, run the setup skill to install and authenticate the CLI:
 
 ```text
 /parallel:parallel-cli-setup

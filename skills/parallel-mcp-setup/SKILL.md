@@ -41,7 +41,7 @@ For OAuth, use the same endpoint and tool settings. Choose **OAuth 2.0** in the 
 
 ### Migrate an existing connection
 
-Bifrost treats the URL and auth type as immutable. Create a replacement with a distinct client name and verify the upstream connection. Carry over search overrides, tool restrictions, and approval settings. If the old connection granted access by default, preserve the tools those callers could already use before enabling **Allow by Default** on the replacement.
+Bifrost treats the URL and auth type as immutable. Create a replacement with a distinct client name and verify the upstream connection. Carry over search overrides, the client's allowed tools (`tools_to_execute`), and its automatic approvals (`tools_to_auto_execute`). If a client-level wildcard relied on the old server only offering Search and Fetch, list `web_search` and `web_fetch` explicitly in that setting. Enable **Allow by Default** only if the old client used it and the replacement offers the same tools to callers who have no explicit binding.
 
 On each affected [virtual key](https://docs.getbifrost.ai/features/governance/mcp-tools#setting-mcp-tool-restrictions), replace the old client binding with one for the new client. Preserve the other bindings and the old list of allowed tools, including an empty list that blocks access. If a wildcard grant relied on the old server's smaller tool set, use that set explicitly for the grant. Verify access with the affected keys and have downstream clients rediscover tools, since their prefixes can change.
 
@@ -51,13 +51,13 @@ Once the replacement works, retire the old client. For file-managed deployments,
 
 Keep Parallel’s defaults by omitting `x-parallel-mcp-config`. When the user explicitly requests a particular search mode, source policy, or response budget, read [gateway search controls](./references/gateway-controls.md). Apply these as upstream connection settings. Keep the chosen credential and search policy under gateway administration; do not enable caller-supplied overrides of these headers unless explicitly intended.
 
-Confirm Bifrost discovers both tools and grants the intended downstream client or virtual key access to them. Connect the agent to the deployment's Bifrost MCP gateway with its configured downstream authentication. Use the actual discovered tool names, which may be prefixed. Installing this skill does not itself register or expose the MCP tools.
+Confirm Bifrost discovers Search and Fetch upstream and exposes the intended subset to each downstream client or virtual key. Connect the agent to the deployment's Bifrost MCP gateway with its configured downstream authentication. Use the actual discovered tool names, which may be prefixed. Installing this skill does not itself register or expose the MCP tools.
 
 ## 4. Verify through Bifrost
 
 1. Confirm the upstream connection is healthy and authenticated, with `web_search` and `web_fetch` discovered.
-2. Confirm the downstream agent can discover both tools through Bifrost and that restricted keys see only their intended tools.
-3. Run a small search for official Python asyncio documentation, then fetch a returned documentation URL. Use the tools' current schemas and descriptions. Confirm successful results and inspect per-URL errors.
+2. For each affected downstream key, confirm it discovers exactly the intended tools, including none if all access was blocked.
+3. Where Search is allowed downstream, run a small search for official Python asyncio documentation. Where Fetch is allowed, fetch a documentation URL. Use the tools' current schemas and descriptions and a caller authorized for each tool. Confirm successful results and inspect per-URL errors. For restricted keys, also verify that calls outside their allowlists are rejected.
 4. Inspect Bifrost's tool-call records to confirm the intended connection was used. Verify account attribution and any configured mode or source policy in available upstream request metadata or account logs; result quality alone does not prove the mode used.
 5. Report exactly what was verified and what remains untested. A direct request to Parallel does not prove Bifrost routing, authentication, or downstream permissions.
 
