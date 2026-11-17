@@ -1,8 +1,7 @@
 # Parallel for Antigravity
 
-Search the live web and fetch page content from your coding agent. This plugin
-connects Antigravity to the hosted Parallel Search MCP server and provides
-`web_search` and `web_fetch` without a Parallel account, API key, or local CLI.
+Search the live web and fetch page content from your coding agent. Parallel MCP
+provides `web_search` and `web_fetch` without a Parallel account, API key, or local CLI.
 Anonymous access is subject to free-tier rate limits.
 
 ## Install
@@ -20,7 +19,8 @@ agy plugin list --json
 
 The installed plugin is named `parallel`. Its component list should contain one
 MCP server and no skills, agents, rules, or hooks. Antigravity may prefix the
-server name with `parallel`.
+server name with `parallel`. To upgrade a CLI-installed copy, pull the latest
+changes and rerun the install command above.
 
 For a project-local installation in the Antigravity app or IDE, copy this entire
 directory to `.agents/plugins/parallel/` in the target project. Keep `plugin.json`
@@ -84,14 +84,14 @@ you added. Other Parallel MCP connections are managed separately.
 
 ## Data handling and support
 
-Parallel hosts the search service. Tool calls send search queries, objectives,
-requested URLs, and optional session metadata to Parallel, along with standard
-MCP connection metadata. This plugin configures no authentication headers or
-local commands and does not automatically upload your repository.
+Parallel hosts the MCP server. Tool calls send their arguments, such as search
+queries or requested URLs, and standard MCP connection metadata to Parallel.
+This plugin configures no authentication headers or local commands and does not
+automatically upload your repository.
 
 See the [Privacy Policy](https://parallel.ai/privacy-policy),
 [Customer Terms](https://parallel.ai/customer-terms), and
-[Search MCP documentation](https://docs.parallel.ai/search/search-mcp).
+[Parallel MCP documentation](https://docs.parallel.ai/integrations/mcp/quickstart).
 
 For help, email [support@parallel.ai](mailto:support@parallel.ai) or
 [open an issue](https://github.com/parallel-web/parallel-agent-skills/issues)

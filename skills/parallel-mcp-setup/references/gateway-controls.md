@@ -1,55 +1,40 @@
 # Gateway-level search controls
 
-Configure Parallel's search behavior on Bifrost's authenticated upstream MCP connection. These settings apply to every `web_search` call on that connection and do not affect `web_fetch`.
+Configure Parallel's search behavior on Bifrost's authenticated upstream MCP connection. Settings under `web_search.override` apply to every Search call. Fetch uses its own defaults.
 
-## Keep defaults unless overrides are requested
+## Configure search overrides
 
-By default, omit `x-parallel-search-config` and search-setting URL parameters. Let Parallel use its current defaults for mode, excerpt size, and result count. The shared-key header configuration is:
+Set `x-parallel-mcp-config` as a static upstream header on the Bifrost client, alongside the existing authentication. Pass the settings under `web_search.override`. Include only the fields you want to set. Leave the header unset to use Parallel's defaults.
+
+For example, enter this value in the Bifrost dashboard to use `basic` mode and return at most two results:
+
+```json
+{"web_search":{"override":{"mode":"basic","advanced_settings":{"max_results":2}}}}
+```
+
+In `config.json`, serialize the same object as a string in the client's `headers` map. This example includes the Authorization header for a shared API key:
 
 ```json
 {
-  "Authorization": "env.PARALLEL_MCP_AUTHORIZATION"
+  "Authorization": "env.PARALLEL_MCP_AUTHORIZATION",
+  "x-parallel-mcp-config": "{\"web_search\":{\"override\":{\"mode\":\"basic\",\"advanced_settings\":{\"max_results\":2}}}}"
 }
 ```
 
-Use the plain `https://search.parallel.ai/mcp-oauth` connection URL. If a connection already has overrides, remove them only when the user requests returning to defaults; preserve unrelated settings and authentication.
-
-## Optional search overrides
-
-Only add `x-parallel-search-config` when the user explicitly requests custom search settings. Its value is a JSON string containing just those requested settings. In the dashboard header-value field, enter the JSON object text without outer string escaping. Leave unspecified settings omitted so they retain their defaults.
-
-Search MCP calls the processing preset `mode`, not `processor`. Supported modes are `turbo`, `fast`, `basic`, and `advanced`; do not invent a `processor` field or copy Task API processors into this configuration.
-
-Keep the Authorization header present when adding or changing search controls. For OAuth connections, preserve OAuth authentication and configure the search header through the connection's supported static-header settings.
+For OAuth, keep `auth_type` set to `oauth` and add only the search config header. Bifrost supplies the OAuth token.
 
 ## Other controls
 
-Use only the settings the deployment needs. The header follows the current Search API request schema:
+See the [supported override fields](https://docs.parallel.ai/integrations/mcp/quickstart#supported-fields) for modes, result limits, and source filters. Search filters apply to Search results. Manage access to Fetch through Bifrost's tool controls.
 
-| Setting | Purpose |
-| --- | --- |
-| `mode` | Search processing preset |
-| `max_chars_total` | Total excerpt character budget |
-| `advanced_settings.max_results` | Maximum number of results |
-| `advanced_settings.excerpt_settings.max_chars_per_result` | Per-result excerpt budget |
-| `advanced_settings.source_policy.include_domains` | Restrict returned sources to specified domains or supported paths |
-| `advanced_settings.source_policy.exclude_domains` | Exclude sources when no include list is set |
-| `advanced_settings.source_policy.after_date` | Publication-date filter |
-| `advanced_settings.location` | Two-letter country code for geographic relevance |
-| `advanced_settings.fetch_policy` | Live-fetch/cache policy; can increase latency |
+## Migrate existing Search MCP overrides
 
-An include list takes precedence over exclusions. Domain/path prefixes require `fast`, `basic`, or `advanced`; they are unsupported in `turbo`. Source filters constrain search results, not which URLs `web_fetch` can read; do not treat them as a gateway-wide network access boundary.
+Resolve the old connection's effective settings first. In standalone Search MCP, a URL setting took precedence over the same field in `x-parallel-search-config`. Check those fields against the Parallel MCP override documentation, move the supported values into `web_search.override`, and remove the legacy header and search-setting query parameters. Keep `?login` in the Parallel MCP URL to require authentication.
 
-## URL alternative and precedence
-
-For explicitly requested overrides, URL query parameters are an alternative to the configuration header. Omit them for default behavior.
-
-Nested fields use dotted paths. URL parameters override the same fields in `x-parallel-search-config`; unrelated header settings remain. Prefer one location for each setting to avoid an old URL parameter silently overriding a new header value. An existing Bifrost client's URL is immutable, so header changes are preferable for tuning an established connection.
-
-`objective` and `search_queries` remain per-call tool inputs and cannot be pinned in the connection. Unknown fields, unsupported modes, malformed JSON, or attempts to pin those inputs cause a handshake 400. Reconnect/verify after changes and check the effective settings in available request logs without exposing credentials.
+Use `objective` and `search_queries` as per-call tool inputs. After saving the header and applying the deployment's reload procedure, run Search and Fetch through Bifrost and verify the expected limit or source filter. On HTTP 400, check the JSON, field names, values, and nesting against the override documentation. Use request logs to verify settings that are not visible in results.
 
 ## References
 
-- [Search MCP configuration and precedence](https://docs.parallel.ai/integrations/mcp/search-mcp#configure-search-behavior)
+- [Parallel MCP override settings](https://docs.parallel.ai/integrations/mcp/quickstart#override-settings)
 - [Search API schema](https://docs.parallel.ai/api-reference/search/search)
 - [Bifrost header configuration](https://docs.getbifrost.ai/mcp/auth/headers)

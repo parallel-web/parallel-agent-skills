@@ -19,7 +19,7 @@ PACKAGE_FILES = {"plugin.json", "mcp_config.json", "README.md", "LICENSE", "icon
 
 
 class AntigravityPluginTestCase(unittest.TestCase):
-    def test_package_is_self_contained_and_exposes_only_anonymous_search(self):
+    def test_package_is_self_contained_and_uses_unified_mcp_without_credentials(self):
         plugin = REPO_ROOT / PLUGIN_PATH
         self.assertTrue(plugin.is_dir(), "the standalone Antigravity package is missing")
         self.assertEqual(PACKAGE_FILES, {p.name for p in plugin.iterdir()})

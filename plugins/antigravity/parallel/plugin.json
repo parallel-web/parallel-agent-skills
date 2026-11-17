@@ -14,7 +14,7 @@
     "email": "support@parallel.ai",
     "url": "https://parallel.ai"
   },
-  "homepage": "https://docs.parallel.ai/search/search-mcp",
+  "homepage": "https://docs.parallel.ai/integrations/mcp/quickstart",
   "repository": "https://github.com/parallel-web/parallel-agent-skills",
   "license": "MIT",
   "keywords": [

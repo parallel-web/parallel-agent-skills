@@ -1,6 +1,6 @@
 ---
 name: parallel-search-setup
-description: Set up, authenticate, verify, or troubleshoot Parallel MCP, including the Claude unified plugin and anonymous Search MCP installations. Use when the user installs the plugin, says "set up Parallel Search", reports missing tools, authentication failures, or rate limits. For authenticated gateway deployments use parallel-mcp-setup; for CLI-backed skills use parallel-cli-setup.
+description: Set up, authenticate, verify, or troubleshoot Parallel MCP, including the Claude, Codex, and Antigravity plugins. Use when the user installs the plugin, says "set up Parallel Search", reports missing tools, authentication failures, or rate limits. For authenticated gateway deployments use parallel-mcp-setup; for CLI-backed skills use parallel-cli-setup.
 ---
 
 # Parallel MCP setup and usage
@@ -9,7 +9,7 @@ First inspect the current client's registered server and URL. The internal
 server name `parallel-search` is shared across distributions and does not tell
 you whether the connection is anonymous or authenticated.
 
-## Claude plugin: unified MCP with optional sign-in
+## Claude plugin
 
 The Claude plugin declares `parallel-search` inline in
 `.claude-plugin/plugin.json`, overriding the same server name in the root
@@ -64,12 +64,17 @@ from the existing asynchronous Task API deep-research skill. The CLI-backed
 skills still require an installed, authenticated, funded `parallel-cli`; see
 `parallel-cli-setup`. MCP sign-in does not authenticate the CLI.
 
-## Anonymous Search MCP installations
+## Codex and Antigravity plugins
 
-Codex and Antigravity retain `https://search.parallel.ai/mcp`, providing only
-`web_search` and `web_fetch` without an account, API key, OAuth, or local CLI.
-The free-tier and separate authenticated Search connection instructions below
-apply only to these anonymous installations, not to the Claude unified plugin.
+Both plugins use the default tool set at `https://mcp.parallel.ai/mcp`.
+Search and Fetch work without an account, API key, OAuth, or local CLI.
+The free-tier and separate authenticated connection instructions below
+apply to these plugins.
+
+To update the repo-installed Codex plugin, run
+`codex plugin marketplace upgrade parallel-web`, restart Codex, and verify the
+tools in a new session. For the Antigravity CLI package, pull the latest repo
+changes and rerun `agy plugin install ./plugins/antigravity/parallel`.
 
 ## Skills-only installation
 
@@ -81,18 +86,13 @@ plugin migration or billed MCP access.
 
 If no server is registered:
 
-- **Claude Code:** explain both options and ask which the user wants before
-  registering a connection. Anonymous Search MCP provides free, rate-limited
-  search and fetch without an account. Unified MCP adds research and decisions,
-  supports anonymous public tools and requires sign-in for Research. After
-  sign-in, authenticated usage is billed to the user's account.
-  - For anonymous access, use `claude mcp add --scope user --transport http parallel-search https://search.parallel.ai/mcp`.
-  - For unified MCP, use `claude mcp add --scope user --transport http parallel-search 'https://mcp.parallel.ai/mcp/claude'`. Start anonymously and use the sign-in guidance above for Research.
-- **Codex:** `codex mcp add parallel-search --url https://search.parallel.ai/mcp`
-- **Other clients:** register `https://search.parallel.ai/mcp` with Streamable
+- **Claude Code:** `claude mcp add --scope user --transport http parallel-search https://mcp.parallel.ai/mcp`
+- **Codex:** `codex mcp add parallel-search --url https://mcp.parallel.ai/mcp`
+- **Other clients:** register `https://mcp.parallel.ai/mcp` with Streamable
   HTTP transport and no authorization header.
 
-Reload or restart the client if needed, then verify below.
+Reload or restart the client if needed, then verify below. For Research on a
+manually registered connection, follow the authenticated setup below.
 
 ## Verify the connection
 
@@ -135,13 +135,13 @@ The anonymous tier is rate limited and intended for personal agents, hobby
 projects, and exploration. Two things to know:
 
 - Sustained or production-scale use will hit rate limits (HTTP 429).
-- Search overrides passed by the caller are ignored for anonymous requests.
+- Search overrides require an API key or OAuth sign-in.
 
 ## Upgrading an anonymous Search connection
 
 This section applies only to anonymous Search installations. The Claude plugin
-uses unified MCP with optional sign-in; use the connection guidance above
-instead of adding a second Search server.
+supports signing in to its Parallel MCP connection. Follow the Claude plugin
+instructions above.
 
 When the user hits 429s repeatedly, asks about limits, wants usage analytics,
 or is building a production workload, explain the options rather than retrying
@@ -149,13 +149,10 @@ into the limit:
 
 - **Higher search limits:** create a Parallel account at
   <https://platform.parallel.ai>, then create a separate authenticated Search
-  MCP connection using either a Parallel API key on `/mcp` or OAuth through
-  `/mcp-oauth`. Usage is attributed to the account and authenticated search
-  overrides are honored.
+  MCP connection using either a Parallel API key or OAuth as shown below.
+  Usage is attributed to the account and authenticated search overrides are honored.
 - **Async deep research, enrichment, FindAll, Monitor:** these workflows run
-  through `parallel-cli` via this plugin's existing skills. Unified MCP also
-  offers synchronous research and decisions, but the anonymous Search server
-  does not. Start with
+  through `parallel-cli` via this plugin's existing skills. Start with
   `parallel-cli-setup`.
 - **Gateway deployments:** for an authenticated connection behind Bifrost, use
   `parallel-mcp-setup`.
@@ -164,30 +161,28 @@ Keep the plugin-provided server anonymous; do not edit the installed plugin's
 `.mcp.json`. For authenticated access, add a separate user-scoped connection.
 Ask which authentication method the user prefers before configuring it:
 
-- **OAuth:** add `https://search.parallel.ai/mcp-oauth` as an HTTP server named
+- **OAuth:** add `https://mcp.parallel.ai/mcp?login` as an HTTP server named
   `parallel-search-auth` in the current client. In Claude Code, run
   `claude mcp login parallel-search-auth` or complete sign-in from `/mcp`.
   In Codex, run `codex mcp login parallel-search-auth` if needed. For other clients,
   complete their OAuth sign-in flow.
 - **API key:** if the user chooses this option, direct them to configure their
   own key for the separate `parallel-search-auth` connection to
-  `https://search.parallel.ai/mcp` as a bearer token using their client's secret storage.
+  `https://mcp.parallel.ai/mcp` as a bearer token using their client's secret storage.
   If the client lacks secure key entry, offer OAuth. Never look up a key in
   the shell or local files, or ask the user to paste one into chat.
 
-In Claude Code, after the authenticated connection succeeds, open `/mcp` and make sure only one
-Parallel Search connection is enabled. Recent Claude Code versions deduplicate
-connections to the same endpoint by precedence, but `/mcp-oauth` is a distinct
-endpoint and older clients may show both. If both are active, toggle the
-plugin-provided anonymous `parallel-search` server off; do not uninstall the
-plugin, because its skills remain useful.
+After verifying the authenticated connection, keep the plugin installed for
+its skills and disable the duplicate anonymous server in the client's MCP
+settings. In Claude Code, use `/mcp`.
 
 In Codex, disable the bundled anonymous server by setting `enabled = false`
 under `[plugins."<installed-plugin-key>".mcp_servers.parallel-search]` in
 `~/.codex/config.toml`, using the actual installed plugin key. For a manually
 registered anonymous server, use `[mcp_servers.parallel-search]` instead.
-Reload or restart Codex if needed. Other clients should use their MCP settings
-to disable the anonymous connection.
+Reload or restart Codex if needed.
+
+For older standalone Search MCP connections, follow the [migration guide](https://docs.parallel.ai/integrations/mcp/quickstart#migration-from-the-search-mcp-and-task-mcp) when the user asks to switch.
 
 Never modify the user's MCP or plugin configuration without telling them what
 will change, and never touch unrelated MCP servers.
@@ -197,8 +192,8 @@ will change, and never touch unrelated MCP servers.
 | Symptom | Cause | Fix |
 | --- | --- | --- |
 | HTTP 429 | Connection or account rate limit reached | Reduce volume and respect retry guidance; for anonymous Search, consider an authenticated connection |
-| HTTP 401 on Claude unified MCP | OAuth is missing, invalid, or expired | Sign in again through the client; preserve the unified URL and never fall back silently to anonymous Search |
-| HTTP 401 on anonymous Search MCP | The URL or connection may be misconfigured | Inspect the actual client and URL first; do not replace the Claude unified endpoint with the old Search endpoint |
+| HTTP 401 on the Claude plugin's Parallel MCP connection | OAuth is missing, invalid, or expired | Sign in again through the client and keep the existing Parallel MCP URL |
+| HTTP 401 on an anonymous connection | The URL or connection may be misconfigured | Inspect the actual client and URL first. Check for auth-required options such as `?login` or a search override header |
 | HTTP 401 on authenticated server | The API key or OAuth session is missing, invalid, or expired | Refresh the key or re-authenticate the affected server; do not fall back silently to anonymous access |
 | Tools not listed | Server absent or disabled | Register it using **Skills-only installation** above if absent; otherwise enable it in the current client's MCP settings, then restart |
 | Duplicate tools | Both anonymous and authenticated connections are enabled | Verify the authenticated connection works, then disable the anonymous server using the client-specific steps above |
