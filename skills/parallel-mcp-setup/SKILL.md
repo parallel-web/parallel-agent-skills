@@ -45,9 +45,15 @@ Bifrost treats the URL and auth type as immutable. Create a replacement with a d
 
 For each [virtual key](https://docs.getbifrost.ai/features/governance/mcp-tools#setting-mcp-tool-restrictions) with an explicit binding to the old client, add a binding for the replacement alongside it. Copy the allowed tool list, including an empty list that blocks access. If a wildcard would grant additional tools, use the old grant's tool set explicitly. Keep the old and unrelated bindings in place.
 
-After all replacement bindings are in place, enable **Allow by Default** on the replacement only if the old client used it and keys that inherit defaults get the same tools. Verify the replacement with both restricted keys and keys that inherit access. Disable the old client before removing its bindings. Removing those bindings while the old client is active can give restricted keys its default tools. Verify final access for affected keys and have downstream clients rediscover tools under the new prefix. Once the cutover is verified, remove the disabled client.
+After all replacement bindings are in place, enable **Allow by Default** on the replacement only if the old client used it and keys that inherit defaults get the same tools. Verify the replacement with both restricted keys and keys that inherit access.
 
-For file-managed deployments, make the same changes in the client entries and virtual-key bindings in `config.json`. Apply them in the same order so a reload preserves the access rules at each step.
+For each [Virtual MCP](https://docs.getbifrost.ai/mcp/virtual-mcps) that uses the old client, edit its tool selection in place. Replace that source with the new client and preserve the tools the old source actually exposed on that route. Keep the existing slug, attached keys, and other sources. Verify the tool selection with affected keys through the same endpoint URL.
+
+Have callers rediscover tools when switching to the replacement. Update any pinned tool names and [request filters](https://docs.getbifrost.ai/mcp/filtering#gateway-headers) that refer to the old client. Keep the same tool scope when updating the client name or tool prefix. Coordinate pinned names on a Virtual MCP with its source change. If callers use the old client's [direct endpoint](https://docs.getbifrost.ai/mcp/virtual-mcps#direct-mcp-client-endpoints), switch them to the replacement's verified URL while the old endpoint still works.
+
+After verifying the replacement routes and callers, disable the old client before removing its bindings. Removing those bindings while the old client is active can give restricted keys its default tools. Verify final access for affected keys, then remove the disabled client.
+
+For file-managed deployments, make the same changes in the client entries, virtual-key bindings, and any affected Virtual MCP source definitions in `config.json`. Apply them in the same order so a reload preserves the access rules at each step.
 
 ## 3. Configure gateway controls and access
 
