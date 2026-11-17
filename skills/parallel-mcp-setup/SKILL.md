@@ -41,11 +41,13 @@ For OAuth, use the same endpoint and tool settings. Choose **OAuth 2.0** in the 
 
 ### Migrate an existing connection
 
-Bifrost treats the URL and auth type as immutable. Create a replacement with a distinct client name and verify the upstream connection. Carry over search overrides, the client's allowed tools (`tools_to_execute`), and its automatic approvals (`tools_to_auto_execute`). If a client-level wildcard relied on the old server only offering Search and Fetch, list `web_search` and `web_fetch` explicitly in that setting. Enable **Allow by Default** only if the old client used it and the replacement offers the same tools to callers who have no explicit binding.
+Bifrost treats the URL and auth type as immutable. Create a replacement with a distinct client name and leave **Allow by Default** off while you set it up. Carry over the [search overrides](./references/gateway-controls.md#migrate-existing-search-mcp-overrides), allowed tools (`tools_to_execute`), and automatic approvals (`tools_to_auto_execute`). For a wildcard in either setting, list the tools it allowed or auto-approved on the old client if the replacement would expand that set. Verify the upstream connection.
 
-On each affected [virtual key](https://docs.getbifrost.ai/features/governance/mcp-tools#setting-mcp-tool-restrictions), replace the old client binding with one for the new client. Preserve the other bindings and the old list of allowed tools, including an empty list that blocks access. If a wildcard grant relied on the old server's smaller tool set, use that set explicitly for the grant. Verify access with the affected keys and have downstream clients rediscover tools, since their prefixes can change.
+For each [virtual key](https://docs.getbifrost.ai/features/governance/mcp-tools#setting-mcp-tool-restrictions) with an explicit binding to the old client, add a binding for the replacement alongside it. Copy the allowed tool list, including an empty list that blocks access. If a wildcard would grant additional tools, use the old grant's tool set explicitly. Keep the old and unrelated bindings in place.
 
-Once the replacement works, retire the old client. For file-managed deployments, update both the client entries and virtual-key bindings in `config.json` so the change survives a restart.
+After all replacement bindings are in place, enable **Allow by Default** on the replacement only if the old client used it and keys that inherit defaults get the same tools. Verify the replacement with both restricted keys and keys that inherit access. Disable the old client before removing its bindings. Removing those bindings while the old client is active can give restricted keys its default tools. Verify final access for affected keys and have downstream clients rediscover tools under the new prefix. Once the cutover is verified, remove the disabled client.
+
+For file-managed deployments, make the same changes in the client entries and virtual-key bindings in `config.json`. Apply them in the same order so a reload preserves the access rules at each step.
 
 ## 3. Configure gateway controls and access
 
