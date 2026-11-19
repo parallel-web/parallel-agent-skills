@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
           fetch-depth: 0
 
       - name: Configure git identity
@@ -28,12 +28,24 @@ jobs:
       - name: Create and push tag
         run: |
           version=$(tr -d '\n' < VERSION)
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           tag="v$version"
 
           if git rev-parse "$tag" >/dev/null 2>&1; then
             echo "Tag $tag already exists"
-            exit 0
+          else
+            git tag -a "$tag" -m "Release $tag"
+            git push origin "$tag"
           fi
 
-          git tag -a "$tag" -m "Release $tag"
-          git push origin "$tag"
+          mkdir -p "$RUNNER_TEMP/release-metadata"
+          git show "$tag:VERSION" > "$RUNNER_TEMP/release-metadata/VERSION"
+          git rev-parse "$tag^{commit}" > "$RUNNER_TEMP/release-metadata/COMMIT"
+
+      - name: Save immutable release reference
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-metadata
+          path: ${{ runner.temp }}/release-metadata/
+          overwrite: true
+          if-no-files-found: error
