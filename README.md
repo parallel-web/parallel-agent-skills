@@ -120,6 +120,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 | **parallel-web-decisions**   | Probabilities, choices, and scores through MCP `web_decisions` |
 | **parallel-image-search**    | Find images through MCP `image_search`; advanced mode only works when signed in |
 | **parallel-vertical-search** | Query specialized data sources through MCP; paid sources only work when signed in |
+| **parallel-send-feedback**   | Report a Parallel problem through MCP `send_feedback`, after asking the user |
 | **parallel-web-search**      | CLI-backed search for explicit CLI use or when MCP is unavailable |
 | **parallel-web-extract**     | CLI-backed extraction for explicit CLI use or when MCP is unavailable |
 | **parallel-api**             | Build on the Parallel API: choose an API, set up the key, write the integration, fix errors |
