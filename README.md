@@ -116,6 +116,10 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 | ---------------------------- | --------------------------------------------------------- |
 | **parallel-search-setup**    | Verify and troubleshoot Parallel MCP; sign in for Research     |
 | **parallel-mcp-setup** | Set up authenticated Parallel MCP connections; Bifrost Search MCP is the first supported path |
+| **parallel-web-research**    | Cited research answers through MCP `web_research`; only works when signed in |
+| **parallel-web-decisions**   | Probabilities, choices, and scores through MCP `web_decisions` |
+| **parallel-image-search**    | Find images through MCP `image_search`; advanced mode only works when signed in |
+| **parallel-vertical-search** | Query specialized data sources through MCP; paid sources only work when signed in |
 | **parallel-web-search**      | CLI-backed search for explicit CLI use or when MCP is unavailable |
 | **parallel-web-extract**     | CLI-backed extraction for explicit CLI use or when MCP is unavailable |
 | **parallel-api**             | Build on the Parallel API: choose an API, set up the key, write the integration, fix errors |
@@ -134,6 +138,10 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 
 ```text
 /parallel:parallel-web-search latest React 19 features
+/parallel:parallel-web-research how do the EU and US AI rules differ for model providers
+/parallel:parallel-web-decisions how likely is it that Acme ships SSO this year
+/parallel:parallel-image-search official logo of the Rust programming language
+/parallel:parallel-vertical-search recent clinical trials for semaglutide
 /parallel:parallel-search-evaluation compare search providers on production questions
 /parallel:parallel-web-extract https://docs.parallel.ai
 /parallel:parallel-deep-research competitive landscape of AI code assistants
