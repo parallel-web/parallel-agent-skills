@@ -58,13 +58,14 @@ class RepositoryLayoutTestCase(unittest.TestCase):
         self.assertTrue(link.is_symlink())
         self.assertTrue(link.exists())
 
-    def test_codex_keeps_anonymous_search_mcp(self):
+    def test_codex_uses_unified_mcp_defaults_without_credentials(self):
         mcp_config = json.loads(MCP_CONFIG.read_text(encoding="utf-8"))
+        self.assertEqual(["parallel-search"], list(mcp_config["mcpServers"]))
         server = mcp_config["mcpServers"]["parallel-search"]
 
         self.assertEqual("http", server["type"])
-        self.assertEqual("https://search.parallel.ai/mcp", server["url"])
-        self.assertNotIn("headers", server)
+        self.assertEqual("https://mcp.parallel.ai/mcp", server["url"])
+        self.assertEqual({"type", "url"}, set(server))
 
         manifest = json.loads(CODEX_PLUGIN_MANIFEST.read_text(encoding="utf-8"))
         self.assertEqual("./.mcp.json", manifest["mcpServers"])
