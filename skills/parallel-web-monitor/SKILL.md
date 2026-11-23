@@ -56,7 +56,16 @@ After creating it, give the user the monitor's id and say that it keeps running,
 
 Report events with their dates and citations. Never invent an event or a URL. If a monitor has no events yet, say so; it may not have found anything new.
 
-The agent reads events by calling `web_monitor_events`. A monitor created here does not notify the agent or the user by itself, and it has no webhook.
+## Get new events without polling
+
+There are two ways to learn that a monitor found something:
+
+- **The client subscribes.** A client that supports the MCP events extension can subscribe to this server's `monitor.event.detected` event for one `monitor_id`. Parallel then sends each new event to the client, with the same content `web_monitor_events` returns, and the client passes it on. The client does this through the protocol; there is no tool for the agent to call. It works only on a signed-in connection that selects the monitor tools, and only for an active monitor of the signed-in organization.
+- **The agent polls.** In every other client, call `web_monitor_events` when the user asks what the monitor found.
+
+If the user asks to be notified, offer a subscription only when the client gives you a way to create one. A subscription expires unless the client renews it, so do not describe it as permanent. In a client that cannot subscribe, say that the monitor records events but does not notify anyone, and that you can check it on request.
+
+A monitor created through these tools has no webhook of its own.
 
 ## Cancel a monitor
 
