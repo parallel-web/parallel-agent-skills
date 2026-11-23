@@ -124,6 +124,7 @@ Skills follow the [Agent Skills](https://agentskills.io/specification) specifica
 | **parallel-data-enrichment** | Enrich lists of companies, people, products               |
 | **parallel-findall**         | Discover entities matching a natural-language description |
 | **parallel-monitor**         | Continuously track the web for changes (with webhooks)    |
+| **parallel-web-monitor**     | Create and read monitors through MCP `web_monitor` tools; only works when signed in |
 | **parallel-memory**          | Recall and manage saved Parallel runs                     |
 | **migrate-to-parallel**      | Migrate Exa, Tavily, Perplexity, or Firecrawl integrations to Parallel |
 | **parallel-cli-setup**       | Install/update CLI, authenticate, and handle balance      |
