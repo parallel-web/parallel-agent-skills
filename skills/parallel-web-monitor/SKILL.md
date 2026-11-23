@@ -56,7 +56,7 @@ After creating it, give the user the monitor's id and say that it keeps running,
 
 Report events with their dates and citations. Never invent an event or a URL. If a monitor has no events yet, say so; it may not have found anything new.
 
-## Get new events without polling
+## Get new events
 
 There are two ways to learn that a monitor found something:
 
