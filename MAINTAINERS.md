@@ -102,6 +102,7 @@ Releases are repo-wide semver tags backed by GitHub Release archives.
    - create the corresponding git tag
    - publish per-skill zip files to GitHub Releases
    - refresh `skills.parallel.ai` metadata so `versions.json` and `index.json` include the new release
+   - publish every skill to ClawHub at that same version, when ClawHub is configured
 
 The helper script is the canonical maintainer flow for opening release PRs locally: it bumps the version, creates and pushes `release/vX.Y.Z`, and opens the PR via `gh`.
 
@@ -116,6 +117,7 @@ The automated bump updates these files:
 - `.claude-plugin/marketplace.json` → `metadata.version`
 - `.claude-plugin/marketplace.json` → `plugins[0].version`
 - `.codex-plugin/plugin.json` → `version`
+- `plugins/antigravity/parallel/plugin.json` → `version`
 
 If you ever need to bootstrap or recover a tag for the current `VERSION`, run the **Create release tag** workflow manually.
 
@@ -124,8 +126,101 @@ If you ever need to bootstrap or recover a tag for the current `VERSION`, run th
 - **Validate PR**: runs on PRs to `main`; executes pre-commit and validates site/archive builds
 - **Deploy CDN**: runs on pushes to `main`; deploys the live catalog
 - **pnpm run release:pr**: local helper that bumps semver, pushes `release/v*`, and opens the release PR
-- **Create release tag**: creates `vX.Y.Z` after a merged release PR (or manually)
-- **Publish release archives**: builds per-skill zip files, uploads them to the GitHub Release, and refreshes CDN metadata
+- **Create release tag**: creates `vX.Y.Z` at the merged release commit (or the manually selected commit) and saves the immutable release reference as an artifact
+- **Publish release archives**: builds per-skill zip files from that reference, uploads them to the GitHub Release, refreshes CDN metadata, then publishes the same release to ClawHub when configured
+
+### ClawHub setup
+
+ClawHub publishing is enabled by the repository variable `CLAWHUB_OWNER`. Until
+that variable is set, the ClawHub job is skipped and existing releases continue.
+Publishing needs a `CLAWHUB_TOKEN` Actions secret whose account can publish for
+that owner. Set the secret before enabling the variable.
+
+From this repository, install the pinned publishing tools and sign in:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm exec clawhub login --label parallel-agent-skills-releases
+pnpm exec clawhub whoami
+```
+
+Create an organization publisher, replacing `parallel` with the handle you want:
+
+```bash
+pnpm exec clawhub publisher create parallel --display-name "Parallel"
+```
+
+If the publisher already exists, use an account with publishing access to it.
+Creating a ClawHub publisher does not automatically link or verify a GitHub
+organization. If your brand's handle is taken or reserved, use ClawHub's
+[Org / Namespace Claim form](https://github.com/openclaw/clawhub/issues/new?template=org-namespace-claim.yml).
+
+Save the signed-in account's token directly to GitHub, then enable publishing:
+
+```bash
+gh auth status
+pnpm exec clawhub token | gh secret set CLAWHUB_TOKEN --repo parallel-web/parallel-agent-skills
+gh variable set CLAWHUB_OWNER --body parallel --repo parallel-web/parallel-agent-skills
+```
+
+You can instead create a dedicated API token in ClawHub Settings → API tokens
+and enter it through GitHub Settings → Secrets and variables → Actions. Keep
+the token out of commits and shell history. Rotate or revoke it in ClawHub when
+maintainer access changes.
+
+ClawHub releases skills under **MIT-0**, which does not require attribution;
+this repository uses MIT. Enabling publishing authorizes the CLI to accept
+ClawHub's license terms for the uploaded skills. See the
+[skill license rules](https://github.com/openclaw/clawhub/blob/main/docs/skill-format.md#license).
+
+After this automation is merged, publish the current version once by running:
+
+```bash
+gh workflow run create-tag.yml --ref main --repo parallel-web/parallel-agent-skills
+```
+
+This reuses an existing `v<VERSION>` tag, or creates it if missing. The workflow
+publishes the tag's original content. Future release PRs use the same automation;
+ordinary merges do not create ClawHub releases. No dry-run publishing is required.
+
+### ClawHub versions and recovery
+
+Every directory under `skills/` containing `SKILL.md` receives the exact repo
+release version, including skills whose contents have not changed. For example,
+repository tag `v0.12.0` publishes every skill as `0.12.0`. Supporting files are
+included using the pinned ClawHub CLI's file selection rules. Source attribution
+records this repository, the exact commit, the tag, and each skill's path.
+
+ClawHub publishes individual skills, not the plugin's MCP server configuration.
+Installing a skill alone does not install the Claude or Codex plugin.
+
+The job checks file hashes for existing versions before uploading. Matching
+versions are skipped; conflicting content at the same version fails the job.
+It waits up to 20 minutes for submitted versions to pass ClawHub checks and
+verifies their published hashes before reporting success. Pending or blocked
+uploads do not count as published. Deleted local skills are not deleted from
+ClawHub.
+
+If a publish fails, fix credentials or inspect the named skill/version in
+ClawHub, then rerun the failed jobs in **Publish release archives**. Already
+published skills are verified and skipped. Retained pending uploads are checked
+again without resubmitting their version. A version conflict requires a new
+repository release. If the release-reference artifact has expired, rerun
+**Create release tag** to reconstruct it from the existing tag.
+
+### ClawHub trusted publishing
+
+ClawHub currently supports GitHub OIDC trusted publishing for **packages**, but
+not individual **skills**. This integration therefore needs `CLAWHUB_TOKEN`.
+See the [skill workflow documentation](https://github.com/openclaw/clawhub/blob/main/docs/cli.md#github-actions-1).
+
+Organization trust and the official publisher badge are separate from OIDC.
+Self-serve organization creation does not grant either status. Contact
+[ClawHub support](https://community.openclaw.ai) to request publisher trust or
+verification review. Include the publisher handle, `https://parallel.ai`, the
+GitHub organization and this repository, plus public evidence that you control
+them. ClawHub staff decide whether to grant that status; it does not remove the
+skill API-token requirement.
 
 ### Useful local commands
 

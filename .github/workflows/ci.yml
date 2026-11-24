@@ -41,6 +41,9 @@ jobs:
       - name: Run Python tests
         run: python3 -m unittest discover -s tests
 
+      - name: Test ClawHub release publishing
+        run: pnpm run test:clawhub
+
       - name: Validate CDN site build
         run: pnpm build
 
